@@ -14,6 +14,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
+    console.error('useAuth called outside AuthProvider. Make sure the component is wrapped with AuthProvider.');
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
@@ -27,6 +28,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  console.log('AuthProvider rendering', { user: !!user, loading });
 
   useEffect(() => {
     // Set up auth state listener

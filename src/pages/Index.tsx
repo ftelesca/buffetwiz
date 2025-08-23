@@ -6,16 +6,35 @@ import Dashboard from "./Dashboard"
 import { Skeleton } from "@/components/ui/skeleton"
 
 const Index = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
+  console.log('Index component rendering');
+  
+  let user, loading, navigate;
+  
+  try {
+    const authContext = useAuth();
+    user = authContext.user;
+    loading = authContext.loading;
+    navigate = useNavigate();
+    console.log('Auth context available:', { user: !!user, loading });
+  } catch (error) {
+    console.error('Auth context error:', error);
+    // If auth context is not available, redirect to auth page
+    navigate = useNavigate();
+    useEffect(() => {
+      navigate("/auth");
+    }, [navigate]);
+    return <div>Redirecting to authentication...</div>;
+  }
 
   useEffect(() => {
+    console.log('Index useEffect:', { loading, user: !!user });
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
 
   if (loading) {
+    console.log('Index showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="space-y-4 w-full max-w-md">
@@ -28,9 +47,11 @@ const Index = () => {
   }
 
   if (!user) {
+    console.log('Index: no user, returning null');
     return null;
   }
 
+  console.log('Index rendering MainLayout');
   return (
     <MainLayout>
       <Dashboard />
