@@ -355,7 +355,7 @@ export default function Insumos() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Insumos</h1>
-            <p className="text-muted-foreground">Gerencie itens, unidades e conversões</p>
+            <p className="text-muted-foreground">Gerencie itens e unidades</p>
           </div>
           <div className="flex gap-2">
             <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
