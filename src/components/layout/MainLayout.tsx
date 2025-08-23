@@ -35,7 +35,7 @@ function LayoutContent({ children }: MainLayoutProps) {
             </div>
           </div>
         </header>
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 overflow-hidden">
           {children}
         </div>
       </main>
