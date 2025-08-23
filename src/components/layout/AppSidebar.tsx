@@ -51,8 +51,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar className={`${state === "collapsed" ? "w-16" : "w-64"} transition-all duration-300`}>
-      <div className="border-b border-border p-4 flex items-center justify-between">
-        {state !== "collapsed" && (
+      <div className="border-b border-border p-4 flex items-center justify-center">
+        {state !== "collapsed" ? (
           <div className="flex items-center gap-2">
             <UtensilsCrossed className="h-8 w-8 text-primary" />
             <div>
@@ -62,15 +62,9 @@ export function AppSidebar() {
               <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
             </div>
           </div>
+        ) : (
+          <UtensilsCrossed className="h-8 w-8 text-primary" />
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          className="h-8 w-8"
-        >
-          <MenuIcon className="h-4 w-4" />
-        </Button>
       </div>
 
       <SidebarContent className="p-2">
