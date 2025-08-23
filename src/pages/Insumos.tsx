@@ -495,73 +495,75 @@ export default function Insumos() {
         </div>
 
         {/* Item Dialog */}
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingItem ? 'Editar Item' : 'Novo Item'}
-            </DialogTitle>
-            <DialogDescription>
-              {editingItem ? 'Edite as informações do item.' : 'Adicione um novo item ao sistema.'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="item-description">Descrição</Label>
-              <Input
-                id="item-description"
-                value={newItem.description || ''}
-                onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Digite a descrição do item"
-              />
+        <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editingItem ? 'Editar Item' : 'Novo Item'}
+              </DialogTitle>
+              <DialogDescription>
+                {editingItem ? 'Edite as informações do item.' : 'Adicione um novo item ao sistema.'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="item-description">Descrição</Label>
+                <Input
+                  id="item-description"
+                  value={newItem.description || ''}
+                  onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Digite a descrição do item"
+                />
+              </div>
+              <div>
+                <Label htmlFor="item-unit">Unidade</Label>
+                <Select
+                  value={newItem.unit?.toString() || ''}
+                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit: parseInt(value) }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {units.map((unit) => (
+                      <SelectItem key={unit.id} value={unit.id.toString()}>
+                        {unit.description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="item-cost">Custo</Label>
+                <Input
+                  id="item-cost"
+                  type="number"
+                  step="0.01"
+                  value={newItem.cost || ''}
+                  onChange={(e) => setNewItem(prev => ({ ...prev, cost: parseFloat(e.target.value) }))}
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsItemDialogOpen(false)
+                    setEditingItem(null)
+                    setNewItem({ description: "", unit: 0, cost: 0 })
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                  Cancelar
+                </Button>
+                <Button onClick={handleSaveItem}>
+                  <Save className="h-4 w-4" />
+                  Salvar
+                </Button>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="item-unit">Unidade</Label>
-              <Select
-                value={newItem.unit?.toString() || ''}
-                onValueChange={(value) => setNewItem(prev => ({ ...prev, unit: parseInt(value) }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma unidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {units.map((unit) => (
-                    <SelectItem key={unit.id} value={unit.id.toString()}>
-                      {unit.description}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="item-cost">Custo</Label>
-              <Input
-                id="item-cost"
-                type="number"
-                step="0.01"
-                value={newItem.cost || ''}
-                onChange={(e) => setNewItem(prev => ({ ...prev, cost: parseFloat(e.target.value) }))}
-                placeholder="0.00"
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsItemDialogOpen(false)
-                  setEditingItem(null)
-                  setNewItem({ description: "", unit: 0, cost: 0 })
-                }}
-              >
-                <X className="h-4 w-4" />
-                Cancelar
-              </Button>
-              <Button onClick={handleSaveItem}>
-                <Save className="h-4 w-4" />
-                Salvar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
+          </DialogContent>
+        </Dialog>
 
         {/* Unit Dialog */}
         <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
