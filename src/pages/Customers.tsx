@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { toTitleCase } from "@/lib/utils";
 
 interface Customer {
   id: number;
@@ -177,10 +178,14 @@ const Customers = () => {
     if (editingCustomer) {
       updateMutation.mutate({
         ...editingCustomer,
-        ...formData
+        ...formData,
+        name: toTitleCase(formData.name)
       });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate({
+        ...formData,
+        name: toTitleCase(formData.name)
+      });
     }
   };
 
@@ -330,7 +335,7 @@ const Customers = () => {
                 {filteredCustomers.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell className="font-medium">
-                      {customer.name}
+                      {toTitleCase(customer.name)}
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
