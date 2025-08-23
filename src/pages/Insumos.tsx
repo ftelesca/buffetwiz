@@ -308,7 +308,7 @@ export default function Insumos() {
                           <Badge variant="secondary">{item.unit_use_desc}</Badge>
                         </TableCell>
                         <TableCell>{item.factor || 1}</TableCell>
-                        <TableCell>R$ {item.cost?.toFixed(2) || '0,00'}</TableCell>
+                        <TableCell>{item.cost?.toFixed(2).replace('.', ',') || '0,00'}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             <Button
