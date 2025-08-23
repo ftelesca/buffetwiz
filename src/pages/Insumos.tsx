@@ -476,7 +476,20 @@ export default function Insumos() {
             {/* Unit Conversions */}
             <Card>
               <CardHeader>
-                <CardTitle>Conversões de Unidades</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  Conversões de Unidades
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedUnit(null)
+                      setNewConversion({ unit_from: 0, unit_to: 0, factor: 1 })
+                      setIsConversionDialogOpen(true)
+                    }}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {unitConversions.map((conversion, index) => (
@@ -613,10 +626,33 @@ export default function Insumos() {
             <DialogHeader>
               <DialogTitle>Nova Conversão de Unidade</DialogTitle>
               <DialogDescription>
-                Adicione uma conversão entre {selectedUnit?.description} e outra unidade.
+                {selectedUnit 
+                  ? `Adicione uma conversão entre ${selectedUnit?.description} e outra unidade.`
+                  : 'Adicione uma nova conversão entre duas unidades.'
+                }
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
+              {!selectedUnit && (
+                <div>
+                  <Label htmlFor="conv-unit-from">Converter de</Label>
+                  <Select
+                    value={newConversion.unit_from?.toString() || ''}
+                    onValueChange={(value) => setNewConversion(prev => ({ ...prev, unit_from: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a unidade de origem" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {units.map((unit) => (
+                        <SelectItem key={unit.id} value={unit.id.toString()}>
+                          {unit.description}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label htmlFor="conv-unit-to">Converter para</Label>
                 <Select
@@ -627,7 +663,9 @@ export default function Insumos() {
                     <SelectValue placeholder="Selecione a unidade de destino" />
                   </SelectTrigger>
                   <SelectContent>
-                    {units.filter(unit => unit.id !== selectedUnit?.id).map((unit) => (
+                    {units.filter(unit => 
+                      selectedUnit ? unit.id !== selectedUnit.id : unit.id !== newConversion.unit_from
+                    ).map((unit) => (
                       <SelectItem key={unit.id} value={unit.id.toString()}>
                         {unit.description}
                       </SelectItem>
@@ -646,7 +684,11 @@ export default function Insumos() {
                   placeholder="1.0"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  1 {selectedUnit?.description} = {newConversion.factor} unidades de destino
+                  {selectedUnit ? (
+                    <>1 {selectedUnit.description} = {newConversion.factor} unidades de destino</>
+                  ) : (
+                    <>Fator de conversão entre as unidades selecionadas</>
+                  )}
                 </p>
               </div>
               <div className="flex justify-end gap-2">
