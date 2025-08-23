@@ -2,7 +2,8 @@ import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/hooks/use-toast"
-import { Plus } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Plus, Search } from "lucide-react"
 import { MainLayout } from "@/components/layout/MainLayout"
 import RecipeList from "@/components/recipes/RecipeList"
 import RecipeItems from "@/components/recipes/RecipeItems"
@@ -19,6 +20,7 @@ export default function Recipes() {
   const [isAddingRecipe, setIsAddingRecipe] = useState(false)
   const [isAddingItem, setIsAddingItem] = useState(false)
   const [editingRecipeItem, setEditingRecipeItem] = useState<RecipeItem | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
     fetchRecipes()
@@ -122,6 +124,10 @@ export default function Recipes() {
     setIsAddingItem(true)
   }
 
+  const filteredRecipes = recipes.filter(recipe =>
+    recipe.description.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -136,9 +142,22 @@ export default function Recipes() {
           </Button>
         </div>
 
+        {/* Search */}
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar receitas..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <RecipeList
-            recipes={recipes}
+            recipes={filteredRecipes}
             selectedRecipe={selectedRecipe}
             onSelectRecipe={handleSelectRecipe}
             onRecipesChange={handleRecipesChange}
