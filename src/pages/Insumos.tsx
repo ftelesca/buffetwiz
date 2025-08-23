@@ -356,7 +356,7 @@ export default function Insumos() {
           <div className="flex items-center gap-3">
             <Package className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold">Insumos</h1>
+              <h1 className="text-3xl font-bold">Gerenciamento de Insumos</h1>
               <p className="text-muted-foreground">Gerencie itens, unidades e conversões</p>
             </div>
           </div>
