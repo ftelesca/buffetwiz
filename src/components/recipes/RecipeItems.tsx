@@ -60,13 +60,7 @@ export default function RecipeItems({
   }, 0)
 
   const formatCurrency = (value: number) => {
-    if (value < 0.01) return "< 0,01"
-    const valueStr = value.toString()
-    const decimalPart = valueStr.split('.')[1]
-    if (decimalPart && decimalPart.length > 2) {
-      return value.toFixed(2).replace('.', ',')
-    }
-    return valueStr.replace('.', ',')
+    return value < 0.01 ? "< 0,01" : value.toFixed(2).replace('.', ',')
   }
 
   return (
