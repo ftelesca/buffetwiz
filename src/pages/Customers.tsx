@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Mail, Phone, MapPin } from "lucide-react";
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Customer {
@@ -24,6 +24,7 @@ interface Customer {
 const Customers = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -189,6 +190,14 @@ const Customers = () => {
     }
   };
 
+  // Filter customers based on search query
+  const filteredCustomers = customers?.filter(customer =>
+    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    customer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    customer.phone?.includes(searchQuery) ||
+    customer.address?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
   if (isLoading) {
     return (
       <MainLayout>
@@ -288,15 +297,26 @@ const Customers = () => {
         </Dialog>
       </div>
 
+      {/* Search Bar */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        <Input
+          placeholder="Buscar clientes..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Lista de Clientes</CardTitle>
           <CardDescription>
-            {customers?.length || 0} cliente(s) cadastrado(s)
+            {filteredCustomers.length} de {customers?.length || 0} cliente(s) {searchQuery ? "encontrado(s)" : "cadastrado(s)"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {customers && customers.length > 0 ? (
+          {filteredCustomers.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -307,7 +327,7 @@ const Customers = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {customers.map((customer) => (
+                {filteredCustomers.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell className="font-medium">
                       {customer.name}
@@ -364,6 +384,10 @@ const Customers = () => {
                 ))}
               </TableBody>
             </Table>
+          ) : searchQuery ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Nenhum cliente encontrado para "{searchQuery}"</p>
+            </div>
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Nenhum cliente cadastrado</p>
