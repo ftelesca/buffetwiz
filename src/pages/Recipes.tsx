@@ -20,8 +20,10 @@ interface Recipe {
 interface Item {
   id: number
   description: string
-  unit: number
+  unit_purch: number
+  unit_use?: number
   cost: number
+  factor?: number
 }
 
 interface Unit {
@@ -342,9 +344,10 @@ export default function Recipes() {
                         <TableRow key={recipeItem.id}>
                           <TableCell>{recipeItem.item_detail?.description}</TableCell>
                           <TableCell>{recipeItem.qty}</TableCell>
-                          <TableCell>
-                            {recipeItem.item_detail?.unit ? getUnitDescription(recipeItem.item_detail.unit) : ""}
-                          </TableCell>
+                           <TableCell>
+                             {recipeItem.item_detail?.unit_use ? getUnitDescription(recipeItem.item_detail.unit_use) : 
+                              recipeItem.item_detail?.unit_purch ? getUnitDescription(recipeItem.item_detail.unit_purch) : ""}
+                           </TableCell>
                           <TableCell>
                             <Button
                               size="sm"

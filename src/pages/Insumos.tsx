@@ -446,14 +446,14 @@ export default function Insumos() {
               <div>
                 <Label htmlFor="item-unit-use">Unidade de Uso (opcional)</Label>
                 <Select
-                  value={newItem.unit_use?.toString() || ''}
-                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_use: value ? parseInt(value) : undefined }))}
+                  value={newItem.unit_use?.toString() || 'none'}
+                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_use: value === 'none' ? undefined : parseInt(value) }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma unidade" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma</SelectItem>
+                    <SelectItem value="none">Nenhuma</SelectItem>
                     {units.map((unit) => (
                       <SelectItem key={unit.id} value={unit.id.toString()}>
                         {unit.description}
