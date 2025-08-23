@@ -14,24 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      allowed_emails: {
-        Row: {
-          created_at: string | null
-          email: string
-          full_name: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          full_name?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          full_name?: string | null
-        }
-        Relationships: []
-      }
       customer: {
         Row: {
           address: string | null
@@ -64,9 +46,11 @@ export type Database = {
           id: number
           location: string | null
           numguests: number | null
+          status: string | null
           time: string | null
           title: string
           type: string | null
+          valor: number | null
         }
         Insert: {
           customer: number
@@ -75,9 +59,11 @@ export type Database = {
           id?: number
           location?: string | null
           numguests?: number | null
+          status?: string | null
           time?: string | null
           title?: string
           type?: string | null
+          valor?: number | null
         }
         Update: {
           customer?: number
@@ -86,9 +72,11 @@ export type Database = {
           id?: number
           location?: string | null
           numguests?: number | null
+          status?: string | null
           time?: string | null
           title?: string
           type?: string | null
+          valor?: number | null
         }
         Relationships: [
           {
@@ -134,25 +122,38 @@ export type Database = {
         Row: {
           cost: number | null
           description: string
+          factor: number | null
           id: number
-          unit: number
+          unit_purch: number
+          unit_use: number | null
         }
         Insert: {
           cost?: number | null
           description: string
+          factor?: number | null
           id?: number
-          unit: number
+          unit_purch: number
+          unit_use?: number | null
         }
         Update: {
           cost?: number | null
           description?: string
+          factor?: number | null
           id?: number
-          unit?: number
+          unit_purch?: number
+          unit_use?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "item_unit_fkey"
-            columns: ["unit"]
+            foreignKeyName: "item_unit_purch_fkey"
+            columns: ["unit_purch"]
+            isOneToOne: false
+            referencedRelation: "unit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_unit_use_fkey"
+            columns: ["unit_use"]
             isOneToOne: false
             referencedRelation: "unit"
             referencedColumns: ["id"]
@@ -251,39 +252,6 @@ export type Database = {
           id?: number
         }
         Relationships: []
-      }
-      unit_conv: {
-        Row: {
-          factor: number | null
-          unit_from: number
-          unit_to: number
-        }
-        Insert: {
-          factor?: number | null
-          unit_from?: number
-          unit_to: number
-        }
-        Update: {
-          factor?: number | null
-          unit_from?: number
-          unit_to?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "unit_conv_unit_from_fkey"
-            columns: ["unit_from"]
-            isOneToOne: true
-            referencedRelation: "unit"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "unit_conv_unit_to_fkey"
-            columns: ["unit_to"]
-            isOneToOne: false
-            referencedRelation: "unit"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
