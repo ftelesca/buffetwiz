@@ -42,28 +42,34 @@ export type Database = {
         Row: {
           customer: number
           date: string | null
+          description: string | null
           id: number
           location: string | null
           numguests: number | null
           time: string | null
+          title: string
           type: string | null
         }
         Insert: {
           customer: number
           date?: string | null
+          description?: string | null
           id?: number
           location?: string | null
           numguests?: number | null
           time?: string | null
+          title?: string
           type?: string | null
         }
         Update: {
           customer?: number
           date?: string | null
+          description?: string | null
           id?: number
           location?: string | null
           numguests?: number | null
           time?: string | null
+          title?: string
           type?: string | null
         }
         Relationships: [
