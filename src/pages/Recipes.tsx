@@ -172,11 +172,24 @@ export default function Recipes() {
   const addRecipeItem = async () => {
     if (!selectedRecipe || !newRecipeItem.item || !newRecipeItem.qty) return
 
+    // Verificar se o item já existe na receita
+    const itemId = parseInt(newRecipeItem.item)
+    const itemAlreadyExists = recipeItems.some(recipeItem => recipeItem.item === itemId)
+    
+    if (itemAlreadyExists) {
+      toast({ 
+        title: "Erro", 
+        description: "Este item já foi adicionado à receita", 
+        variant: "destructive" 
+      })
+      return
+    }
+
     const { error } = await supabase
       .from("recipe_item")
       .insert([{
         recipe: selectedRecipe.id,
-        item: parseInt(newRecipeItem.item),
+        item: itemId,
         qty: parseFloat(newRecipeItem.qty)
       }])
 
