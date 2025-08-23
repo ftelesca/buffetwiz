@@ -20,9 +20,12 @@ interface Unit {
 interface Item {
   id: number
   description: string
-  unit: number
+  unit_purch: number
+  unit_use?: number
   cost: number
-  unit_desc?: string
+  factor?: number
+  unit_purch_desc?: string
+  unit_use_desc?: string
 }
 
 export default function Insumos() {
@@ -37,8 +40,10 @@ export default function Insumos() {
 
   const [newItem, setNewItem] = useState<Partial<Item>>({
     description: "",
-    unit: 0,
-    cost: 0
+    unit_purch: 0,
+    unit_use: undefined,
+    cost: 0,
+    factor: 1
   })
 
   const [newUnit, setNewUnit] = useState<Partial<Unit>>({
@@ -70,8 +75,14 @@ export default function Insumos() {
       }, {} as Record<number, string>)
       
       const itemsWithUnits = (itemsData || []).map(item => ({
-        ...item,
-        unit_desc: unitsMap[item.unit]
+        id: item.id,
+        description: item.description,
+        unit_purch: item.unit_purch,
+        unit_use: item.unit_use,
+        cost: item.cost || 0,
+        factor: item.factor || 1,
+        unit_purch_desc: unitsMap[item.unit_purch],
+        unit_use_desc: item.unit_use ? unitsMap[item.unit_use] : undefined
       }))
       
       setItems(itemsWithUnits)
@@ -111,8 +122,10 @@ export default function Insumos() {
           .from('item')
           .update({
             description: newItem.description,
-            unit: newItem.unit,
-            cost: newItem.cost
+            unit_purch: newItem.unit_purch,
+            unit_use: newItem.unit_use,
+            cost: newItem.cost,
+            factor: newItem.factor
           })
           .eq('id', editingItem.id)
 
@@ -123,8 +136,10 @@ export default function Insumos() {
           .from('item')
           .insert([{
             description: newItem.description,
-            unit: newItem.unit,
-            cost: newItem.cost
+            unit_purch: newItem.unit_purch,
+            unit_use: newItem.unit_use,
+            cost: newItem.cost,
+            factor: newItem.factor
           }])
 
         if (error) throw error
@@ -133,7 +148,7 @@ export default function Insumos() {
 
       setIsItemDialogOpen(false)
       setEditingItem(null)
-      setNewItem({ description: "", unit: 0, cost: 0 })
+      setNewItem({ description: "", unit_purch: 0, unit_use: undefined, cost: 0, factor: 1 })
       fetchItems()
     } catch (error) {
       console.error('Erro ao salvar item:', error)
@@ -251,7 +266,7 @@ export default function Insumos() {
               <DialogTrigger asChild>
                 <Button variant="premium" onClick={() => {
                   setEditingItem(null)
-                  setNewItem({ description: "", unit: 0, cost: 0 })
+                  setNewItem({ description: "", unit_purch: 0, unit_use: undefined, cost: 0, factor: 1 })
                 }}>
                   <Plus className="h-4 w-4" />
                   Novo Item
@@ -286,7 +301,9 @@ export default function Insumos() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Descrição</TableHead>
-                      <TableHead>Unidade</TableHead>
+                      <TableHead>Unidade Compra</TableHead>
+                      <TableHead>Unidade Uso</TableHead>
+                      <TableHead>Fator</TableHead>
                       <TableHead>Custo</TableHead>
                       <TableHead className="w-24">Ações</TableHead>
                     </TableRow>
@@ -296,8 +313,12 @@ export default function Insumos() {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.description}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{item.unit_desc}</Badge>
+                          <Badge variant="outline">{item.unit_purch_desc}</Badge>
                         </TableCell>
+                        <TableCell>
+                          {item.unit_use_desc && <Badge variant="secondary">{item.unit_use_desc}</Badge>}
+                        </TableCell>
+                        <TableCell>{item.factor || 1}</TableCell>
                         <TableCell>R$ {item.cost?.toFixed(2) || '0,00'}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
@@ -405,10 +426,10 @@ export default function Insumos() {
                 />
               </div>
               <div>
-                <Label htmlFor="item-unit">Unidade</Label>
+                <Label htmlFor="item-unit-purch">Unidade de Compra</Label>
                 <Select
-                  value={newItem.unit?.toString() || ''}
-                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit: parseInt(value) }))}
+                  value={newItem.unit_purch?.toString() || ''}
+                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_purch: parseInt(value) }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma unidade" />
@@ -421,6 +442,36 @@ export default function Insumos() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label htmlFor="item-unit-use">Unidade de Uso (opcional)</Label>
+                <Select
+                  value={newItem.unit_use?.toString() || ''}
+                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_use: value ? parseInt(value) : undefined }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhuma</SelectItem>
+                    {units.map((unit) => (
+                      <SelectItem key={unit.id} value={unit.id.toString()}>
+                        {unit.description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="item-factor">Fator de Conversão</Label>
+                <Input
+                  id="item-factor"
+                  type="number"
+                  step="0.001"
+                  value={newItem.factor || ''}
+                  onChange={(e) => setNewItem(prev => ({ ...prev, factor: parseFloat(e.target.value) }))}
+                  placeholder="1.0"
+                />
               </div>
               <div>
                 <Label htmlFor="item-cost">Custo</Label>
@@ -439,7 +490,7 @@ export default function Insumos() {
                   onClick={() => {
                     setIsItemDialogOpen(false)
                     setEditingItem(null)
-                    setNewItem({ description: "", unit: 0, cost: 0 })
+                    setNewItem({ description: "", unit_purch: 0, unit_use: undefined, cost: 0, factor: 1 })
                   }}
                 >
                   <X className="h-4 w-4" />
