@@ -123,8 +123,7 @@ const Auth = () => {
           </div>
 
           <div className="text-center text-sm text-muted-foreground">
-            <p>Acesso restrito a usuários autorizados</p>
-            <p className="mt-1">fernando@telesca.com.br • luciana@telesca.com.br</p>
+            <p>Acesso restrito ao domínio @telesca.com.br</p>
           </div>
         </CardContent>
       </Card>
