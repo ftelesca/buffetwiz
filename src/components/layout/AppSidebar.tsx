@@ -56,7 +56,7 @@ export function AppSidebar() {
           <div className="flex items-center gap-2">
             <UtensilsCrossed className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
                 BuffetWiz
               </h1>
               <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
