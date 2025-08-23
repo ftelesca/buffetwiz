@@ -51,7 +51,7 @@ export default function RecipeItems({
     <Card>
       <CardHeader>
         <CardTitle>
-          {selectedRecipe ? `Itens da Receita: ${selectedRecipe.description}` : "Selecione uma receita"}
+          {selectedRecipe ? `Itens da receita: ${selectedRecipe.description}` : "Selecione uma receita"}
         </CardTitle>
       </CardHeader>
       <CardContent>
