@@ -142,7 +142,7 @@ export default function Events() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Eventos</h1>
-            <p className="text-muted-foreground">Gerencie todos os seus eventos gastronômicos</p>
+            <p className="text-muted-foreground">Gerencie eventos gastronômicos</p>
           </div>
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
