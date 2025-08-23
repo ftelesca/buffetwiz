@@ -12,6 +12,7 @@ interface RecipeItemsProps {
   recipeItems: RecipeItem[]
   units: Unit[]
   onAddItem: () => void
+  onEditItem: (recipeItem: RecipeItem) => void
   onRecipeItemsChange: () => void
 }
 
@@ -20,6 +21,7 @@ export default function RecipeItems({
   recipeItems, 
   units, 
   onAddItem, 
+  onEditItem,
   onRecipeItemsChange 
 }: RecipeItemsProps) {
   const { toast } = useToast()
@@ -99,7 +101,7 @@ export default function RecipeItems({
                           <Button
                             size="icon"
                             variant="ghost"
-                            onClick={() => {/* TODO: implement edit functionality */}}
+                            onClick={() => onEditItem(recipeItem)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>

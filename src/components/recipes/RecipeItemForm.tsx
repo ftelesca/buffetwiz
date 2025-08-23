@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,6 +14,7 @@ interface RecipeItemFormProps {
   selectedRecipe: Recipe | null
   items: Item[]
   recipeItems: RecipeItem[]
+  editingRecipeItem?: RecipeItem | null
   onSuccess: () => void
 }
 
@@ -23,42 +24,77 @@ export default function RecipeItemForm({
   selectedRecipe, 
   items, 
   recipeItems, 
+  editingRecipeItem,
   onSuccess 
 }: RecipeItemFormProps) {
   const [newRecipeItem, setNewRecipeItem] = useState({ item: "", qty: "" })
   const { toast } = useToast()
 
-  const addRecipeItem = async () => {
+  // Initialize form when editing
+  useEffect(() => {
+    if (editingRecipeItem) {
+      setNewRecipeItem({
+        item: editingRecipeItem.item.toString(),
+        qty: editingRecipeItem.qty.toString()
+      })
+    } else {
+      setNewRecipeItem({ item: "", qty: "" })
+    }
+  }, [editingRecipeItem, isOpen])
+
+  const saveRecipeItem = async () => {
     if (!selectedRecipe || !newRecipeItem.item || !newRecipeItem.qty) return
 
-    // Check if item already exists in recipe
     const itemId = parseInt(newRecipeItem.item)
-    const itemAlreadyExists = recipeItems.some(recipeItem => recipeItem.item === itemId)
     
-    if (itemAlreadyExists) {
-      toast({ 
-        title: "Erro", 
-        description: "Este item já foi adicionado à receita", 
-        variant: "destructive" 
-      })
-      return
-    }
+    if (editingRecipeItem) {
+      // Update existing recipe item
+      const { error } = await supabase
+        .from("recipe_item")
+        .update({
+          item: itemId,
+          qty: parseFloat(newRecipeItem.qty)
+        })
+        .eq("id", editingRecipeItem.id)
 
-    const { error } = await supabase
-      .from("recipe_item")
-      .insert([{
-        recipe: selectedRecipe.id,
-        item: itemId,
-        qty: parseFloat(newRecipeItem.qty)
-      }])
-
-    if (error) {
-      toast({ title: "Erro", description: "Erro ao adicionar item", variant: "destructive" })
+      if (error) {
+        toast({ title: "Erro", description: "Erro ao atualizar item", variant: "destructive" })
+      } else {
+        toast({ title: "Sucesso", description: "Item atualizado com sucesso" })
+        setNewRecipeItem({ item: "", qty: "" })
+        onOpenChange(false)
+        onSuccess()
+      }
     } else {
-      toast({ title: "Sucesso", description: "Item adicionado com sucesso" })
-      setNewRecipeItem({ item: "", qty: "" })
-      onOpenChange(false)
-      onSuccess()
+      // Check if item already exists in recipe (only for new items)
+      const itemAlreadyExists = recipeItems.some(recipeItem => recipeItem.item === itemId)
+      
+      if (itemAlreadyExists) {
+        toast({ 
+          title: "Erro", 
+          description: "Este item já foi adicionado à receita", 
+          variant: "destructive" 
+        })
+        return
+      }
+
+      // Create new recipe item
+      const { error } = await supabase
+        .from("recipe_item")
+        .insert([{
+          recipe: selectedRecipe.id,
+          item: itemId,
+          qty: parseFloat(newRecipeItem.qty)
+        }])
+
+      if (error) {
+        toast({ title: "Erro", description: "Erro ao adicionar item", variant: "destructive" })
+      } else {
+        toast({ title: "Sucesso", description: "Item adicionado com sucesso" })
+        setNewRecipeItem({ item: "", qty: "" })
+        onOpenChange(false)
+        onSuccess()
+      }
     }
   }
 
@@ -71,7 +107,7 @@ export default function RecipeItemForm({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Adicionar Item à Receita</DialogTitle>
+          <DialogTitle>{editingRecipeItem ? 'Editar Item da Receita' : 'Adicionar Item à Receita'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -107,7 +143,7 @@ export default function RecipeItemForm({
             <Button variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button onClick={addRecipeItem}>Adicionar</Button>
+            <Button onClick={saveRecipeItem}>{editingRecipeItem ? 'Atualizar' : 'Adicionar'}</Button>
           </div>
         </div>
       </DialogContent>

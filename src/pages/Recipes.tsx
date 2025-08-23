@@ -18,6 +18,7 @@ export default function Recipes() {
   const [recipeItems, setRecipeItems] = useState<RecipeItem[]>([])
   const [isAddingRecipe, setIsAddingRecipe] = useState(false)
   const [isAddingItem, setIsAddingItem] = useState(false)
+  const [editingRecipeItem, setEditingRecipeItem] = useState<RecipeItem | null>(null)
 
   useEffect(() => {
     fetchRecipes()
@@ -111,6 +112,16 @@ export default function Recipes() {
     }
   }
 
+  const handleEditItem = (recipeItem: RecipeItem) => {
+    setEditingRecipeItem(recipeItem)
+    setIsAddingItem(true)
+  }
+
+  const handleAddItem = () => {
+    setEditingRecipeItem(null)
+    setIsAddingItem(true)
+  }
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -137,7 +148,8 @@ export default function Recipes() {
             selectedRecipe={selectedRecipe}
             recipeItems={recipeItems}
             units={units}
-            onAddItem={() => setIsAddingItem(true)}
+            onAddItem={handleAddItem}
+            onEditItem={handleEditItem}
             onRecipeItemsChange={handleRecipeItemsChange}
           />
         </div>
@@ -150,10 +162,14 @@ export default function Recipes() {
 
         <RecipeItemForm
           isOpen={isAddingItem}
-          onOpenChange={setIsAddingItem}
+          onOpenChange={(open) => {
+            setIsAddingItem(open)
+            if (!open) setEditingRecipeItem(null)
+          }}
           selectedRecipe={selectedRecipe}
           items={items}
           recipeItems={recipeItems}
+          editingRecipeItem={editingRecipeItem}
           onSuccess={handleRecipeItemsChange}
         />
       </div>
