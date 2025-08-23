@@ -21,7 +21,7 @@ interface Item {
   id: number
   description: string
   unit_purch: number
-  unit_use?: number
+  unit_use: number
   cost: number
   factor?: number
   unit_purch_desc?: string
@@ -41,7 +41,7 @@ export default function Insumos() {
   const [newItem, setNewItem] = useState<Partial<Item>>({
     description: "",
     unit_purch: 0,
-    unit_use: undefined,
+    unit_use: 0,
     cost: 0,
     factor: 1
   })
@@ -148,7 +148,7 @@ export default function Insumos() {
 
       setIsItemDialogOpen(false)
       setEditingItem(null)
-      setNewItem({ description: "", unit_purch: 0, unit_use: undefined, cost: 0, factor: 1 })
+      setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: 0, factor: 1 })
       fetchItems()
     } catch (error) {
       console.error('Erro ao salvar item:', error)
@@ -255,7 +255,7 @@ export default function Insumos() {
               <DialogTrigger asChild>
                 <Button variant="premium" onClick={() => {
                   setEditingItem(null)
-                  setNewItem({ description: "", unit_purch: 0, unit_use: undefined, cost: 0, factor: 1 })
+                  setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: 0, factor: 1 })
                 }}>
                   <Plus className="h-4 w-4" />
                   Novo Item
@@ -305,7 +305,7 @@ export default function Insumos() {
                           <Badge variant="outline">{item.unit_purch_desc}</Badge>
                         </TableCell>
                         <TableCell>
-                          {item.unit_use_desc && <Badge variant="secondary">{item.unit_use_desc}</Badge>}
+                          <Badge variant="secondary">{item.unit_use_desc}</Badge>
                         </TableCell>
                         <TableCell>{item.factor || 1}</TableCell>
                         <TableCell>R$ {item.cost?.toFixed(2) || '0,00'}</TableCell>
@@ -433,16 +433,15 @@ export default function Insumos() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="item-unit-use">Unidade de Uso (opcional)</Label>
+                <Label htmlFor="item-unit-use">Unidade de Uso</Label>
                 <Select
-                  value={newItem.unit_use?.toString() || 'none'}
-                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_use: value === 'none' ? undefined : parseInt(value) }))}
+                  value={newItem.unit_use?.toString() || ''}
+                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_use: parseInt(value) }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma unidade" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Nenhuma</SelectItem>
                     {units.map((unit) => (
                       <SelectItem key={unit.id} value={unit.id.toString()}>
                         {unit.description}
@@ -479,7 +478,7 @@ export default function Insumos() {
                   onClick={() => {
                     setIsItemDialogOpen(false)
                     setEditingItem(null)
-                    setNewItem({ description: "", unit_purch: 0, unit_use: undefined, cost: 0, factor: 1 })
+                    setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: 0, factor: 1 })
                   }}
                 >
                   <X className="h-4 w-4" />

@@ -125,7 +125,7 @@ export type Database = {
           factor: number | null
           id: number
           unit_purch: number
-          unit_use: number | null
+          unit_use: number
         }
         Insert: {
           cost?: number | null
@@ -133,7 +133,7 @@ export type Database = {
           factor?: number | null
           id?: number
           unit_purch: number
-          unit_use?: number | null
+          unit_use: number
         }
         Update: {
           cost?: number | null
@@ -141,7 +141,7 @@ export type Database = {
           factor?: number | null
           id?: number
           unit_purch?: number
-          unit_use?: number | null
+          unit_use?: number
         }
         Relationships: [
           {
