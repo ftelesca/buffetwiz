@@ -26,11 +26,10 @@ import { Button } from "@/components/ui/button"
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: Home },
+  { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Eventos", url: "/eventos", icon: Calendar },
   { title: "Receitas", url: "/cardapios", icon: ChefHat },
   { title: "Insumos", url: "/insumos", icon: Truck },
-  { title: "Convidados", url: "/convidados", icon: Users },
-  { title: "Fornecedores", url: "/fornecedores", icon: Truck },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ]
 
