@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Plus, Search, Edit, Trash2, Save, X, Package } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Save, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,14 +17,6 @@ interface Unit {
   description: string
 }
 
-interface UnitConversion {
-  unit_from: number
-  unit_to: number
-  factor: number
-  unit_from_desc?: string
-  unit_to_desc?: string
-}
-
 interface Item {
   id: number
   description: string
@@ -36,15 +28,11 @@ interface Item {
 export default function Insumos() {
   const [items, setItems] = useState<Item[]>([])
   const [units, setUnits] = useState<Unit[]>([])
-  const [unitConversions, setUnitConversions] = useState<UnitConversion[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [editingItem, setEditingItem] = useState<Item | null>(null)
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null)
-  const [editingConversion, setEditingConversion] = useState<UnitConversion | null>(null)
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false)
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false)
-  const [isConversionDialogOpen, setIsConversionDialogOpen] = useState(false)
-  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null)
   const { toast } = useToast()
 
   const [newItem, setNewItem] = useState<Partial<Item>>({
@@ -57,36 +45,36 @@ export default function Insumos() {
     description: ""
   })
 
-  const [newConversion, setNewConversion] = useState<Partial<UnitConversion>>({
-    unit_from: 0,
-    unit_to: 0,
-    factor: 1
-  })
-
   useEffect(() => {
     fetchItems()
     fetchUnits()
-    fetchUnitConversions()
   }, [])
 
   const fetchItems = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: itemsData, error } = await supabase
         .from('item')
-        .select(`
-          *,
-          unit:unit(description)
-        `)
+        .select('*')
         .order('description')
 
       if (error) throw error
+
+      // Fetch units separately to get descriptions
+      const { data: unitsData } = await supabase
+        .from('unit')
+        .select('*')
+
+      const unitsMap = (unitsData || []).reduce((acc, unit) => {
+        acc[unit.id] = unit.description
+        return acc
+      }, {} as Record<number, string>)
       
-      const itemsWithUnit = data?.map(item => ({
+      const itemsWithUnits = (itemsData || []).map(item => ({
         ...item,
-        unit_desc: item.unit?.description
-      })) || []
+        unit_desc: unitsMap[item.unit]
+      }))
       
-      setItems(itemsWithUnit)
+      setItems(itemsWithUnits)
     } catch (error) {
       console.error('Erro ao carregar itens:', error)
       toast({
@@ -111,43 +99,6 @@ export default function Insumos() {
       toast({
         title: "Erro",
         description: "Erro ao carregar unidades",
-        variant: "destructive"
-      })
-    }
-  }
-
-  const fetchUnitConversions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('unit_conv')
-        .select('*')
-
-      if (error) throw error
-      
-      // Buscar descrições das unidades separadamente para evitar confusão
-      const conversionsWithDesc = await Promise.all(
-        (data || []).map(async (conv) => {
-          const [fromUnit, toUnit] = await Promise.all([
-            supabase.from('unit').select('description').eq('id', conv.unit_from).single(),
-            supabase.from('unit').select('description').eq('id', conv.unit_to).single()
-          ])
-          
-          return {
-            unit_from: conv.unit_from,
-            unit_to: conv.unit_to,
-            factor: conv.factor,
-            unit_from_desc: fromUnit.data?.description,
-            unit_to_desc: toUnit.data?.description
-          }
-        })
-      )
-      
-      setUnitConversions(conversionsWithDesc)
-    } catch (error) {
-      console.error('Erro ao carregar conversões:', error)
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar conversões de unidades",
         variant: "destructive"
       })
     }
@@ -228,75 +179,6 @@ export default function Insumos() {
     }
   }
 
-  const handleSaveConversion = async () => {
-    try {
-      if (editingConversion) {
-        // Deletar a conversão antiga e criar uma nova (já que as chaves são compostas)
-        await supabase
-          .from('unit_conv')
-          .delete()
-          .eq('unit_from', editingConversion.unit_from)
-          .eq('unit_to', editingConversion.unit_to)
-
-        const { error } = await supabase
-          .from('unit_conv')
-          .insert([{
-            unit_from: newConversion.unit_from,
-            unit_to: newConversion.unit_to,
-            factor: newConversion.factor
-          }])
-
-        if (error) throw error
-        toast({ title: "Sucesso", description: "Conversão atualizada com sucesso!" })
-      } else {
-        const { error } = await supabase
-          .from('unit_conv')
-          .insert([{
-            unit_from: newConversion.unit_from,
-            unit_to: newConversion.unit_to,
-            factor: newConversion.factor
-          }])
-
-        if (error) throw error
-        toast({ title: "Sucesso", description: "Conversão criada com sucesso!" })
-      }
-      
-      setIsConversionDialogOpen(false)
-      setEditingConversion(null)
-      setNewConversion({ unit_from: 0, unit_to: 0, factor: 1 })
-      fetchUnitConversions()
-    } catch (error) {
-      console.error('Erro ao salvar conversão:', error)
-      toast({
-        title: "Erro",
-        description: "Erro ao salvar conversão",
-        variant: "destructive"
-      })
-    }
-  }
-
-  const handleDeleteConversion = async (unitFrom: number, unitTo: number) => {
-    try {
-      const { error } = await supabase
-        .from('unit_conv')
-        .delete()
-        .eq('unit_from', unitFrom)
-        .eq('unit_to', unitTo)
-
-      if (error) throw error
-      
-      toast({ title: "Sucesso", description: "Conversão excluída com sucesso!" })
-      fetchUnitConversions()
-    } catch (error) {
-      console.error('Erro ao excluir conversão:', error)
-      toast({
-        title: "Erro",
-        description: "Erro ao excluir conversão",
-        variant: "destructive"
-      })
-    }
-  }
-
   const handleDeleteItem = async (id: number) => {
     try {
       const { error } = await supabase
@@ -343,10 +225,6 @@ export default function Insumos() {
   const filteredItems = items.filter(item =>
     item.description.toLowerCase().includes(searchTerm.toLowerCase())
   )
-
-  const getConversionsForUnit = (unitId: number) => {
-    return unitConversions.filter(conv => conv.unit_from === unitId)
-  }
 
   return (
     <MainLayout>
@@ -451,9 +329,8 @@ export default function Insumos() {
             </Card>
           </div>
 
-          {/* Units & Conversions */}
-          <div className="space-y-6">
-            {/* Units */}
+          {/* Units */}
+          <div>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -476,23 +353,8 @@ export default function Insumos() {
                   <div key={unit.id} className="flex items-center justify-between p-2 border rounded">
                     <div className="flex-1">
                       <span className="font-medium">{unit.description}</span>
-                      <div className="text-xs text-muted-foreground">
-                        {getConversionsForUnit(unit.id).length} conversões
-                      </div>
                     </div>
                     <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6"
-                        onClick={() => {
-                          setSelectedUnit(unit)
-                          setNewConversion({ unit_from: unit.id, unit_to: 0, factor: 1 })
-                          setIsConversionDialogOpen(true)
-                        }}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
                       <Button
                         size="icon"
                         variant="ghost"
@@ -510,67 +372,6 @@ export default function Insumos() {
                         variant="ghost"
                         className="h-6 w-6"
                         onClick={() => handleDeleteUnit(unit.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Unit Conversions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Conversões de Unidades
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedUnit(null)
-                      setNewConversion({ unit_from: 0, unit_to: 0, factor: 1 })
-                      setIsConversionDialogOpen(true)
-                    }}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {unitConversions.map((conversion, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 border rounded">
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">
-                        {conversion.unit_from_desc} → {conversion.unit_to_desc}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Fator: {conversion.factor}
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6"
-                        onClick={() => {
-                          setEditingConversion(conversion)
-                          setNewConversion({
-                            unit_from: conversion.unit_from,
-                            unit_to: conversion.unit_to,
-                            factor: conversion.factor
-                          })
-                          setSelectedUnit(null)
-                          setIsConversionDialogOpen(true)
-                        }}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6"
-                        onClick={() => handleDeleteConversion(conversion.unit_from, conversion.unit_to)}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -687,108 +488,6 @@ export default function Insumos() {
                   Cancelar
                 </Button>
                 <Button onClick={handleSaveUnit}>
-                  <Save className="h-4 w-4" />
-                  Salvar
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Conversion Dialog */}
-        <Dialog open={isConversionDialogOpen} onOpenChange={setIsConversionDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingConversion ? 'Editar Conversão' : 'Nova Conversão de Unidade'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingConversion ? 'Edite a conversão de unidade.' : 
-                  selectedUnit 
-                    ? `Adicione uma conversão entre ${selectedUnit?.description} e outra unidade.`
-                    : 'Adicione uma nova conversão entre duas unidades.'
-                }
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              {(!selectedUnit && !editingConversion) && (
-                <div>
-                  <Label htmlFor="conv-unit-from">Converter de</Label>
-                  <Select
-                    value={newConversion.unit_from?.toString() || ''}
-                    onValueChange={(value) => setNewConversion(prev => ({ ...prev, unit_from: parseInt(value) }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a unidade de origem" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {units.map((unit) => (
-                        <SelectItem key={unit.id} value={unit.id.toString()}>
-                          {unit.description}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              {editingConversion && (
-                <div className="text-sm text-muted-foreground p-2 bg-muted rounded">
-                  Editando conversão: {units.find(u => u.id === newConversion.unit_from)?.description} → {units.find(u => u.id === newConversion.unit_to)?.description}
-                </div>
-              )}
-              <div>
-                <Label htmlFor="conv-unit-to">Converter para</Label>
-                <Select
-                  value={newConversion.unit_to?.toString() || ''}
-                  onValueChange={(value) => setNewConversion(prev => ({ ...prev, unit_to: parseInt(value) }))}
-                  disabled={!!editingConversion} // Não permitir alterar unidades na edição
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a unidade de destino" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {units.filter(unit => 
-                      selectedUnit ? unit.id !== selectedUnit.id : unit.id !== newConversion.unit_from
-                    ).map((unit) => (
-                      <SelectItem key={unit.id} value={unit.id.toString()}>
-                        {unit.description}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="conv-factor">Fator de Conversão</Label>
-                <Input
-                  id="conv-factor"
-                  type="number"
-                  step="0.001"
-                  value={newConversion.factor || ''}
-                  onChange={(e) => setNewConversion(prev => ({ ...prev, factor: parseFloat(e.target.value) }))}
-                  placeholder="1.0"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {selectedUnit ? (
-                    <>1 {selectedUnit.description} = {newConversion.factor} unidades de destino</>
-                  ) : (
-                    <>Fator de conversão entre as unidades selecionadas</>
-                  )}
-                </p>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsConversionDialogOpen(false)
-                    setSelectedUnit(null)
-                    setEditingConversion(null)
-                    setNewConversion({ unit_from: 0, unit_to: 0, factor: 1 })
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                  Cancelar
-                </Button>
-                <Button onClick={handleSaveConversion}>
                   <Save className="h-4 w-4" />
                   Salvar
                 </Button>
