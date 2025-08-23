@@ -49,6 +49,16 @@ export default function RecipeItems({
     return qty.toString().replace('.', ',')
   }
 
+  // Calculate total recipe cost
+  const totalRecipeCost = recipeItems.reduce((total, recipeItem) => {
+    const item = recipeItem.item_detail
+    const unitCost = item?.cost || 0
+    const factor = item?.factor || 1
+    const adjustedUnitCost = unitCost / factor
+    const itemTotalCost = adjustedUnitCost * recipeItem.qty
+    return total + itemTotalCost
+  }, 0)
+
   return (
     <Card>
       <CardHeader>
@@ -121,6 +131,18 @@ export default function RecipeItems({
                 })}
               </TableBody>
             </Table>
+
+            {/* Total Cost Card */}
+            <Card className="mt-4">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-medium">Custo Total da Receita:</span>
+                  <span className="text-xl font-bold text-primary">
+                    {totalRecipeCost.toFixed(2).replace('.', ',')}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         ) : (
           <p className="text-muted-foreground text-center py-8">
