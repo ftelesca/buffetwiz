@@ -1,33 +1,52 @@
 import { ReactNode } from "react"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
+import { ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { AppSidebar } from "./AppSidebar"
 
 interface MainLayoutProps {
   children: ReactNode
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
+function LayoutContent({ children }: MainLayoutProps) {
+  const { state, toggleSidebar } = useSidebar()
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 flex flex-col">
-          <header className="sticky top-0 z-50 h-14 border-b border-border bg-background backdrop-blur-sm supports-[backdrop-filter]:bg-background/95">
-            <div className="flex h-full items-center px-4 gap-4 justify-between">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger className="shrink-0" />
-                <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-semibold text-foreground">BuffetWiz</h1>
-                </div>
-              </div>
+    <div className="min-h-screen flex w-full bg-background relative">
+      <AppSidebar />
+      
+      {/* Floating trigger when collapsed */}
+      {state === "collapsed" && (
+        <Button
+          onClick={toggleSidebar}
+          variant="outline"
+          size="icon"
+          className="fixed left-2 top-20 z-50 h-8 w-8 rounded-full shadow-md border-border bg-background hover:bg-accent"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      )}
+      
+      <main className="flex-1 flex flex-col">
+        <header className="sticky top-0 z-40 h-14 border-b border-border bg-background backdrop-blur-sm supports-[backdrop-filter]:bg-background/95">
+          <div className="flex h-full items-center px-4 gap-4 justify-between">
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-semibold text-foreground">BuffetWiz</h1>
             </div>
-          </header>
-          <div className="flex-1 p-6">
-            {children}
           </div>
-        </main>
-      </div>
+        </header>
+        <div className="flex-1 p-6">
+          {children}
+        </div>
+      </main>
+    </div>
+  )
+}
+
+export function MainLayout({ children }: MainLayoutProps) {
+  return (
+    <SidebarProvider defaultOpen={true}>
+      <LayoutContent>{children}</LayoutContent>
     </SidebarProvider>
   )
 }

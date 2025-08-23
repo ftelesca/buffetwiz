@@ -8,7 +8,8 @@ import {
   Users, 
   ShoppingCart,
   Menu as MenuIcon,
-  UtensilsCrossed
+  UtensilsCrossed,
+  ChevronLeft
 } from "lucide-react"
 
 import {
@@ -51,17 +52,27 @@ export function AppSidebar() {
 
   return (
     <Sidebar className={`${state === "collapsed" ? "w-16" : "w-64"} transition-all duration-300`}>
-      <div className="border-b border-border p-4 flex items-center justify-center">
+      <div className="border-b border-border p-4 flex items-center justify-between">
         {state !== "collapsed" ? (
-          <div className="flex items-center gap-2">
-            <UtensilsCrossed className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
-                BuffetWiz
-              </h1>
-              <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
+          <>
+            <div className="flex items-center gap-2">
+              <UtensilsCrossed className="h-8 w-8 text-primary" />
+              <div>
+                <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
+                  BuffetWiz
+                </h1>
+                <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
+              </div>
             </div>
-          </div>
+            <Button
+              onClick={toggleSidebar}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </>
         ) : (
           <UtensilsCrossed className="h-8 w-8 text-primary" />
         )}
