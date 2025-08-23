@@ -6,7 +6,7 @@ import {
   Home, 
   Settings, 
   Users, 
-  Truck,
+  ShoppingCart,
   Menu as MenuIcon,
   UtensilsCrossed
 } from "lucide-react"
@@ -29,7 +29,7 @@ const navigationItems = [
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Eventos", url: "/eventos", icon: Calendar },
   { title: "Receitas", url: "/cardapios", icon: ChefHat },
-  { title: "Insumos", url: "/insumos", icon: Truck },
+  { title: "Insumos", url: "/insumos", icon: ShoppingCart },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ]
 
