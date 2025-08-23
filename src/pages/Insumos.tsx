@@ -293,7 +293,7 @@ export default function Insumos() {
                       <TableHead>Unidade Compra</TableHead>
                       <TableHead>Unidade Uso</TableHead>
                       <TableHead>Fator</TableHead>
-                      <TableHead>Custo</TableHead>
+                      <TableHead className="text-right">Custo</TableHead>
                       <TableHead className="w-24">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -308,7 +308,7 @@ export default function Insumos() {
                           <Badge variant="secondary">{item.unit_use_desc}</Badge>
                         </TableCell>
                         <TableCell>{item.factor || 1}</TableCell>
-                        <TableCell>{item.cost?.toFixed(2).replace('.', ',') || '0,00'}</TableCell>
+                        <TableCell className="text-right">{item.cost?.toFixed(2).replace('.', ',') || '0,00'}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             <Button
