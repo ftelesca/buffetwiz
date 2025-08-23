@@ -59,6 +59,10 @@ export default function RecipeItems({
     return total + itemTotalCost
   }, 0)
 
+  const formatCurrency = (value: number) => {
+    return value < 0.01 ? "< 0,01" : value.toFixed(2).replace('.', ',')
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -106,8 +110,8 @@ export default function RecipeItems({
                       <TableCell>
                         <Badge variant="outline">{unitDescription}</Badge>
                       </TableCell>
-                      <TableCell className="text-right">{adjustedUnitCost.toFixed(2).replace('.', ',')}</TableCell>
-                      <TableCell className="text-right font-medium">{totalCost.toFixed(2).replace('.', ',')}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(adjustedUnitCost)}</TableCell>
+                      <TableCell className="text-right font-medium">{formatCurrency(totalCost)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button
@@ -138,7 +142,7 @@ export default function RecipeItems({
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-medium">Custo Total da Receita:</span>
                   <span className="text-xl font-bold text-primary">
-                    {totalRecipeCost.toFixed(2).replace('.', ',')}
+                    {formatCurrency(totalRecipeCost)}
                   </span>
                 </div>
               </CardContent>
