@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -190,14 +191,17 @@ const Customers = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 bg-muted animate-pulse rounded" />
-        <div className="h-64 bg-muted animate-pulse rounded" />
-      </div>
+      <MainLayout>
+        <div className="space-y-6">
+          <div className="h-8 bg-muted animate-pulse rounded" />
+          <div className="h-64 bg-muted animate-pulse rounded" />
+        </div>
+      </MainLayout>
     );
   }
 
   return (
+    <MainLayout>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -376,6 +380,7 @@ const Customers = () => {
         </CardContent>
       </Card>
     </div>
+    </MainLayout>
   );
 };
 
