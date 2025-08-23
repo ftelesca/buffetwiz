@@ -251,17 +251,6 @@ export default function Insumos() {
             <p className="text-muted-foreground">Gerencie itens e unidades</p>
           </div>
           <div className="flex gap-2">
-            <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" onClick={() => {
-                  setEditingUnit(null)
-                  setNewUnit({ description: "" })
-                }}>
-                  <Plus className="h-4 w-4" />
-                  Nova Unidade
-                </Button>
-              </DialogTrigger>
-            </Dialog>
             <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="premium" onClick={() => {
