@@ -57,7 +57,15 @@ const Auth = () => {
       }
     } catch (error) {
       console.error('Error signing in:', error);
-      setError(error instanceof Error ? error.message : 'Erro ao fazer login');
+      if (error instanceof Error) {
+        if (error.message.includes('provider is not enabled')) {
+          setError('Google authentication is not configured. Please contact the administrator.');
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError('Erro ao fazer login');
+      }
     } finally {
       setLoading(false);
     }
