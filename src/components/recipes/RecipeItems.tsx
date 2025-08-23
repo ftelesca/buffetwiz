@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
-import { Trash2, Plus } from "lucide-react"
+import { Trash2, Plus, Edit } from "lucide-react"
 import type { Recipe, RecipeItem, Unit } from "@/types/recipe"
 
 interface RecipeItemsProps {
@@ -95,13 +95,22 @@ export default function RecipeItems({
                       <TableCell className="text-right">{adjustedUnitCost.toFixed(2).replace('.', ',')}</TableCell>
                       <TableCell className="text-right font-medium">{totalCost.toFixed(2).replace('.', ',')}</TableCell>
                       <TableCell>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => deleteRecipeItem(recipeItem.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {/* TODO: implement edit functionality */}}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => deleteRecipeItem(recipeItem.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )
