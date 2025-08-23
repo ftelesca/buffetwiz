@@ -82,9 +82,9 @@ export default function RecipeItems({
                   const item = recipeItem.item_detail
                   const unitDescription = item?.unit_use ? getUnitDescription(item.unit_use) : 
                                         item?.unit_purch ? getUnitDescription(item.unit_purch) : ""
-                  const unitCost = item?.cost || 0
-                  const factor = item?.factor || 1
-                  const adjustedUnitCost = unitCost / factor
+                  const unitCost = item?.cost || 0  // custo da unidade de compra
+                  const factor = item?.factor || 1  // fator de conversão
+                  const adjustedUnitCost = unitCost / factor  // custo unitario = custo da unidade de compra / fator
                   const totalCost = adjustedUnitCost * recipeItem.qty
 
                   return (
