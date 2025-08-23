@@ -360,7 +360,7 @@ const Customers = () => {
                       {customer.address ? (
                         <div className="flex items-start gap-1 text-sm">
                           <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                          <span className="line-clamp-2">{customer.address}</span>
+                          <span className="whitespace-pre-wrap">{customer.address}</span>
                         </div>
                       ) : (
                         <Badge variant="outline">Sem endereço</Badge>
