@@ -110,8 +110,8 @@ export default function RecipeItems({
                       <TableCell>
                         <Badge variant="outline">{unitDescription}</Badge>
                       </TableCell>
-                      <TableCell className="text-right">{formatCurrency(adjustedUnitCost)}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(totalCost)}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">{formatCurrency(adjustedUnitCost)}</TableCell>
+                      <TableCell className="text-right font-medium whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button
