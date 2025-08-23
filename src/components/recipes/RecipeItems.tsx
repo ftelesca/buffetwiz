@@ -52,19 +52,21 @@ export default function RecipeItems({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          {selectedRecipe ? "Itens da Receita" : "Selecione uma receita"}
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle>
+            {selectedRecipe ? "Itens da Receita" : "Selecione uma receita"}
+          </CardTitle>
+          {selectedRecipe && (
+            <Button onClick={onAddItem} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Item
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {selectedRecipe ? (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <Button onClick={onAddItem} size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Item
-              </Button>
-            </div>
 
             <Table>
               <TableHeader>
