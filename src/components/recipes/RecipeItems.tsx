@@ -70,7 +70,6 @@ export default function RecipeItems({
                   <TableHead>Item</TableHead>
                   <TableHead className="text-right">Quantidade</TableHead>
                   <TableHead>Unidade</TableHead>
-                  <TableHead>Fator</TableHead>
                   <TableHead className="text-right">Custo Unit.</TableHead>
                   <TableHead className="text-right">Custo Total</TableHead>
                   <TableHead className="w-24">Ações</TableHead>
@@ -93,7 +92,6 @@ export default function RecipeItems({
                       <TableCell>
                         <Badge variant="outline">{unitDescription}</Badge>
                       </TableCell>
-                      <TableCell className="text-right">{factor}</TableCell>
                       <TableCell className="text-right">{adjustedUnitCost.toFixed(2).replace('.', ',')}</TableCell>
                       <TableCell className="text-right font-medium">{totalCost.toFixed(2).replace('.', ',')}</TableCell>
                       <TableCell>
