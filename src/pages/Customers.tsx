@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { toTitleCase } from "@/lib/utils";
+import { cn, toTitleCase } from "@/lib/utils";
 
 interface Customer {
   id: number;
