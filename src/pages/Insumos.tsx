@@ -120,21 +120,27 @@ export default function Insumos() {
     try {
       const { data, error } = await supabase
         .from('unit_conv')
-        .select(`
-          *,
-          unit_from:unit!unit_conv_unit_from_fkey(description),
-          unit_to:unit!unit_conv_unit_to_fkey(description)
-        `)
+        .select('*')
 
       if (error) throw error
       
-      const conversionsWithDesc = data?.map(conv => ({
-        unit_from: conv.unit_from,
-        unit_to: conv.unit_to,
-        factor: conv.factor,
-        unit_from_desc: conv.unit_from?.description,
-        unit_to_desc: conv.unit_to?.description
-      })) || []
+      // Buscar descrições das unidades separadamente para evitar confusão
+      const conversionsWithDesc = await Promise.all(
+        (data || []).map(async (conv) => {
+          const [fromUnit, toUnit] = await Promise.all([
+            supabase.from('unit').select('description').eq('id', conv.unit_from).single(),
+            supabase.from('unit').select('description').eq('id', conv.unit_to).single()
+          ])
+          
+          return {
+            unit_from: conv.unit_from,
+            unit_to: conv.unit_to,
+            factor: conv.factor,
+            unit_from_desc: fromUnit.data?.description,
+            unit_to_desc: toUnit.data?.description
+          }
+        })
+      )
       
       setUnitConversions(conversionsWithDesc)
     } catch (error) {
