@@ -311,82 +311,80 @@ export default function Insumos() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className="h-[calc(100vh-16rem-2rem-6rem)]">
-                  <div className="p-6">
-                    <Table>
-                      <TableHeader className="sticky top-0 bg-background z-10">
-                        <TableRow>
-                          <TableHead>Descrição</TableHead>
-                          <TableHead>Unidade Compra</TableHead>
-                          <TableHead>Unidade Uso</TableHead>
-                          <TableHead className="text-right">Fator</TableHead>
-                          <TableHead className="text-right">Custo</TableHead>
-                          <TableHead className="w-24">Ações</TableHead>
+                <div className="h-[calc(100vh-16rem-2rem-6rem)] overflow-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background z-10 border-b">
+                      <TableRow>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Unidade Compra</TableHead>
+                        <TableHead>Unidade Uso</TableHead>
+                        <TableHead className="text-right">Fator</TableHead>
+                        <TableHead className="text-right">Custo</TableHead>
+                        <TableHead className="w-24">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredItems.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">{item.description}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{item.unit_purch_desc}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{item.unit_use_desc}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{item.factor || 1}</TableCell>
+                          <TableCell className="text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingItem(item)
+                  setNewItem({
+                    description: item.description,
+                    unit_purch: item.unit_purch,
+                    unit_use: item.unit_use,
+                    cost: formatCurrencyInput((item.cost * 100).toString()),
+                    factor: item.factor
+                  })
+                                  setIsItemDialogOpen(true)
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                     <AlertDialogDescription>
+                                       Tem certeza que deseja excluir o insumo "{item.description}"? Esta ação não pode ser desfeita.
+                                     </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteItem(item.id)}>
+                                      Excluir
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredItems.map((item) => (
-                          <TableRow key={item.id}>
-                            <TableCell className="font-medium">{item.description}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{item.unit_purch_desc}</Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="secondary">{item.unit_use_desc}</Badge>
-                            </TableCell>
-                            <TableCell className="text-right">{item.factor || 1}</TableCell>
-                            <TableCell className="text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
-                            <TableCell>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    setEditingItem(item)
-                    setNewItem({
-                      description: item.description,
-                      unit_purch: item.unit_purch,
-                      unit_use: item.unit_use,
-                      cost: formatCurrencyInput((item.cost * 100).toString()),
-                      factor: item.factor
-                    })
-                                    setIsItemDialogOpen(true)
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                       <AlertDialogDescription>
-                                         Tem certeza que deseja excluir o insumo "{item.description}"? Esta ação não pode ser desfeita.
-                                       </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                      <AlertDialogAction onClick={() => handleDeleteItem(item.id)}>
-                                        Excluir
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </ScrollArea>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </div>
