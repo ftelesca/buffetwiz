@@ -64,7 +64,9 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
             "receita",
             "receitas",
             "receita cadastrada",
-            "receitas cadastradas"
+            "receitas cadastradas",
+            "encontrada",
+            "encontradas"
           )}
         </CardDescription>
       </CardHeader>

@@ -113,11 +113,13 @@ export function getCountText(
   entitySingular: string,
   entityPlural: string,
   registeredSingular: string,
-  registeredPlural: string
+  registeredPlural: string,
+  foundSingular: string = "encontrado",
+  foundPlural: string = "encontrados"
 ): string {
   if (hasSearchQuery) {
     const totalText = pluralize(totalCount, entitySingular, entityPlural);
-    const foundText = pluralize(filteredCount, "encontrado", "encontrados");
+    const foundText = pluralize(filteredCount, foundSingular, foundPlural);
     return `${filteredCount} de ${totalCount} ${totalText} ${foundText}`;
   } else {
     const countText = pluralize(totalCount, registeredSingular, registeredPlural);
