@@ -315,13 +315,13 @@ export default function Insumos() {
                 <div className="h-[calc(100vh-360px)] border-t scrollbar-thin overflow-y-auto relative">
                   <Table>
                     <TableHeader>
-                      <TableRow className="sticky top-0 bg-background border-b z-10">
-                        <TableHead className="bg-background">Descrição</TableHead>
-                        <TableHead className="bg-background">Unidade Compra</TableHead>
-                        <TableHead className="bg-background">Unidade Uso</TableHead>
-                        <TableHead className="text-right bg-background">Fator</TableHead>
-                        <TableHead className="text-right bg-background">Custo</TableHead>
-                        <TableHead className="w-24 bg-background">Ações</TableHead>
+                      <TableRow>
+                        <TableHead className="sticky top-0 bg-background border-b z-10">Descrição</TableHead>
+                        <TableHead className="sticky top-0 bg-background border-b z-10">Unidade Compra</TableHead>
+                        <TableHead className="sticky top-0 bg-background border-b z-10">Unidade Uso</TableHead>
+                        <TableHead className="text-right sticky top-0 bg-background border-b z-10">Fator</TableHead>
+                        <TableHead className="text-right sticky top-0 bg-background border-b z-10">Custo</TableHead>
+                        <TableHead className="w-24 sticky top-0 bg-background border-b z-10">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
