@@ -93,7 +93,7 @@ export default function RecipeItems({
                     <TableHead>Unidade</TableHead>
                     <TableHead className="text-right">Custo Unit.</TableHead>
                     <TableHead className="text-right">Custo Total</TableHead>
-                    <TableHead className="w-24">Ações</TableHead>
+                    <TableHead className="text-right w-[100px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -124,11 +124,13 @@ export default function RecipeItems({
                           <TableCell className="text-right whitespace-nowrap">{formatCurrency(adjustedUnitCost)}</TableCell>
                           <TableCell className="text-right font-medium whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
                           <TableCell>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 justify-end min-w-[80px]">
                               <Button
                                 size="icon"
                                 variant="ghost"
                                 onClick={() => onEditItem(recipeItem)}
+                                className="h-8 w-8 hover:bg-accent"
+                                title="Editar item"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -137,6 +139,8 @@ export default function RecipeItems({
                                   <Button
                                     size="icon"
                                     variant="ghost"
+                                    className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                                    title="Excluir item"
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
