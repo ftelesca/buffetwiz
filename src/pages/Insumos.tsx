@@ -311,7 +311,7 @@ export default function Insumos() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className="h-[600px]">
+                <ScrollArea className="h-[calc(100vh-280px)]">
                   <div className="p-6">
                     <Table>
                       <TableHeader>
