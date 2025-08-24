@@ -64,6 +64,8 @@ export default function RecipeItems({
     return value < 0.01 ? "< 0,01" : value.toFixed(2).replace('.', ',')
   }
 
+  console.log("RecipeItems: selectedRecipe", selectedRecipe, "recipeItems", recipeItems)
+
   return (
     <Card>
       <CardHeader>
