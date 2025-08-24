@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrencyInput, parseCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 interface EventFormProps {
@@ -111,7 +111,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         type: eventData.type || "",
         status: eventData.status || "planejamento",
         numguests: eventData.numguests?.toString() || "",
-        valor: eventData.valor?.toString() || "",
+        valor: eventData.valor ? formatCurrencyInput((eventData.valor * 100).toString()) : "",
         description: eventData.description || ""
       });
     }
@@ -207,7 +207,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       type: formData.type || null,
       status: formData.status,
       numguests: formData.numguests ? parseInt(formData.numguests) : null,
-      valor: formData.valor ? parseFloat(formData.valor) : null,
+      valor: formData.valor ? parseCurrency(formData.valor) : null,
       description: formData.description || null
     };
 
@@ -349,15 +349,15 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         </div>
 
         <div>
-          <Label htmlFor="valor">Valor (R$)</Label>
+          <Label htmlFor="valor">Valor</Label>
           <Input
             id="valor"
-            type="number"
-            step="0.01"
             value={formData.valor}
-            onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
-            placeholder="0.00"
-            min="0"
+            onChange={(e) => {
+              const formattedValue = formatCurrencyInput(e.target.value);
+              setFormData({ ...formData, valor: formattedValue });
+            }}
+            placeholder="R$ 0,00"
           />
         </div>
       </div>

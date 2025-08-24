@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { MainLayout } from "@/components/layout/MainLayout"
 import { EventForm } from "@/components/events/EventForm"
 import { useToast } from "@/hooks/use-toast"
-import { formatDateWithoutTimezone, formatTimeWithoutSeconds } from "@/lib/utils"
+import { formatDateWithoutTimezone, formatTimeWithoutSeconds, formatCurrency } from "@/lib/utils"
 
 interface Event {
   id: number;
@@ -237,7 +237,7 @@ export default function Events() {
                     <div className="flex items-center gap-1">
                       <DollarSign className="h-3 w-3 text-success" />
                       <span className="font-medium">
-                        R$ {event.valor.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        {formatCurrency(event.valor)}
                       </span>
                     </div>
                   )}

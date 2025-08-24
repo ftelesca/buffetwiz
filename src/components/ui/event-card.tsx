@@ -2,7 +2,7 @@ import { Calendar, MapPin, Users, DollarSign } from "lucide-react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { formatDateWithoutTimezone } from "@/lib/utils"
+import { formatDateWithoutTimezone, formatCurrency } from "@/lib/utils"
 
 interface EventCardProps {
   id: string
@@ -73,7 +73,7 @@ export function EventCard({
           
           <div className="flex items-center gap-2 text-sm">
             <DollarSign className="h-4 w-4 text-secondary" />
-            <span>R$ {budget.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+            <span>{formatCurrency(budget)}</span>
           </div>
         </div>
       </CardContent>
