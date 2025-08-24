@@ -313,7 +313,7 @@ export default function Insumos() {
               <CardContent className="p-0">
                 {/* Table container: 100vh minus header (64px) + padding (64px) + page title/search (120px) + card header (88px) + extra padding = 360px */}
                 <div 
-                  className="h-[calc(100vh-360px)] border-t"
+                  className="h-[calc(100vh-360px)] border-t [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100"
                   style={{
                     overflowY: 'scroll',
                     scrollbarWidth: 'thin',
