@@ -61,6 +61,8 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     valor: "",
     description: ""
   });
+  
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -250,7 +252,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>Data</Label>
-          <Popover>
+          <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -267,7 +269,10 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               <Calendar
                 mode="single"
                 selected={formData.date}
-                onSelect={(date) => setFormData({ ...formData, date })}
+                onSelect={(date) => {
+                  setFormData({ ...formData, date });
+                  setIsDatePickerOpen(false);
+                }}
                 initialFocus
                 className="p-3 pointer-events-auto"
               />
