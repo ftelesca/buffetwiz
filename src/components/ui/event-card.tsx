@@ -72,7 +72,7 @@ export function EventCard({
           
           <div className="flex items-center gap-2 text-sm">
             <DollarSign className="h-4 w-4 text-secondary" />
-            <span>R$ {budget.toLocaleString('pt-BR')}</span>
+            <span>R$ {budget.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
           </div>
         </div>
       </CardContent>
