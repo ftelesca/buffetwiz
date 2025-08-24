@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MainLayout } from "@/components/layout/MainLayout"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { ImportExcel } from "@/components/ImportExcel"
 
 interface Unit {
   id: number
@@ -340,7 +341,7 @@ export default function Insumos() {
           </div>
 
           {/* Units */}
-          <div>
+          <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -390,6 +391,9 @@ export default function Insumos() {
                 ))}
               </CardContent>
             </Card>
+
+            {/* Import Excel Component */}
+            <ImportExcel onImportComplete={fetchItems} />
           </div>
         </div>
 
