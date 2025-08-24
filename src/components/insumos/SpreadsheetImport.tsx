@@ -26,6 +26,8 @@ interface ParsedItem {
   unit_use?: number
   errors: string[]
   rowIndex: number
+  existingId?: number
+  isUpdate?: boolean
 }
 
 interface SpreadsheetImportProps {
@@ -109,8 +111,14 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
       .join(' ')
   }
 
-  const processData = (data: any[][]) => {
+  const processData = async (data: any[][]) => {
     const items: ParsedItem[] = []
+    
+    // Fetch existing items to check for duplicates
+    const { supabase } = await import("@/integrations/supabase/client")
+    const { data: existingItems } = await supabase
+      .from('item')
+      .select('id, description')
     
     // Skip header row and process data
     for (let i = 1; i < data.length; i++) {
@@ -125,6 +133,16 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
         cost: parseSpreadsheetCurrency(row[4]),
         errors: [],
         rowIndex: i + 1
+      }
+
+      // Check if item already exists (case-insensitive)
+      const existingItem = existingItems?.find(existing => 
+        existing.description.toUpperCase() === item.description.toUpperCase()
+      )
+      
+      if (existingItem) {
+        item.existingId = existingItem.id
+        item.isUpdate = true
       }
 
       // Validate and find units
@@ -189,24 +207,47 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
     try {
       const { supabase } = await import("@/integrations/supabase/client")
       
-      // Prepare data for batch insert
-      const itemsToInsert = validItems.map(item => ({
-        description: item.description,
-        unit_purch: item.unit_purch!,
-        unit_use: item.unit_use!,
-        cost: item.cost,
-        factor: item.factor
-      }))
+      // Separate items for update and insert
+      const itemsToUpdate = validItems.filter(item => item.isUpdate)
+      const itemsToInsert = validItems.filter(item => !item.isUpdate)
+      
+      // Handle updates
+      for (const item of itemsToUpdate) {
+        await supabase
+          .from('item')
+          .update({
+            description: item.description,
+            unit_purch: item.unit_purch!,
+            unit_use: item.unit_use!,
+            cost: item.cost,
+            factor: item.factor
+          })
+          .eq('id', item.existingId!)
+      }
+      
+      // Handle inserts
+      if (itemsToInsert.length > 0) {
+        const dataToInsert = itemsToInsert.map(item => ({
+          description: item.description,
+          unit_purch: item.unit_purch!,
+          unit_use: item.unit_use!,
+          cost: item.cost,
+          factor: item.factor
+        }))
 
-      const { error } = await supabase
-        .from('item')
-        .insert(itemsToInsert)
+        const { error } = await supabase
+          .from('item')
+          .insert(dataToInsert)
 
-      if (error) throw error
+        if (error) throw error
+      }
 
+      const updateCount = itemsToUpdate.length
+      const insertCount = itemsToInsert.length
+      
       toast({
         title: "Sucesso",
-        description: `${validItems.length} itens importados com sucesso!`
+        description: `${insertCount} itens inseridos, ${updateCount} itens atualizados!`
       })
 
       onImportComplete()
@@ -248,6 +289,8 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
 
   const validItems = parsedData.filter(item => item.errors.length === 0)
   const invalidItems = parsedData.filter(item => item.errors.length > 0)
+  const updateItems = validItems.filter(item => item.isUpdate)
+  const insertItems = validItems.filter(item => !item.isUpdate)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -310,7 +353,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                 <div>
                   <h3 className="text-lg font-semibold">Prévia da Importação</h3>
                   <p className="text-sm text-muted-foreground">
-                    {validItems.length} itens válidos, {invalidItems.length} com erro
+                    {insertItems.length} novos, {updateItems.length} atualizações, {invalidItems.length} com erro
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -323,7 +366,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                     disabled={validItems.length === 0 || isProcessing}
                   >
                     <Check className="h-4 w-4" />
-                    Importar {validItems.length} itens
+                    Processar ({insertItems.length} novos, {updateItems.length} atualizações)
                   </Button>
                 </div>
               </div>
@@ -338,7 +381,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                       <TableHead>Un. Uso</TableHead>
                       <TableHead>Fator</TableHead>
                       <TableHead>Custo</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>Ação</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -352,9 +395,9 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                         <TableCell>R$ {item.cost.toFixed(2)}</TableCell>
                         <TableCell>
                           {item.errors.length === 0 ? (
-                            <Badge variant="default" className="bg-green-100 text-green-800">
+                            <Badge variant={item.isUpdate ? "secondary" : "default"} className={item.isUpdate ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
                               <Check className="h-3 w-3 mr-1" />
-                              Válido
+                              {item.isUpdate ? "Atualizar" : "Inserir"}
                             </Badge>
                           ) : (
                             <Badge variant="destructive">
