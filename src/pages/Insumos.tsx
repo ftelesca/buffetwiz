@@ -311,31 +311,33 @@ export default function Insumos() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <div style={{ height: '300px', overflowY: 'scroll' }}>
+                {/* Scrollable container with calculated height minus header (64px) + page padding (32px) + card header (~80px) */}
+                <div className="h-[calc(100vh-176px)] overflow-auto">
                   <Table>
-                    <TableHeader style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
+                    {/* Sticky header that stays visible during scroll */}
+                    <TableHeader className="sticky top-0 bg-background z-10 border-b">
                       <TableRow>
-                        <TableHead>Descrição</TableHead>
-                        <TableHead>Unidade Compra</TableHead>
-                        <TableHead>Unidade Uso</TableHead>
-                        <TableHead className="text-right">Fator</TableHead>
-                        <TableHead className="text-right">Custo</TableHead>
-                        <TableHead className="w-24">Ações</TableHead>
+                        <TableHead className="h-12 px-6">Descrição</TableHead>
+                        <TableHead className="h-12 px-4">Unidade Compra</TableHead>
+                        <TableHead className="h-12 px-4">Unidade Uso</TableHead>
+                        <TableHead className="h-12 px-4 text-right">Fator</TableHead>
+                        <TableHead className="h-12 px-4 text-right">Custo</TableHead>
+                        <TableHead className="h-12 px-4 w-24">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredItems.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="font-medium">{item.description}</TableCell>
-                          <TableCell>
+                          <TableCell className="px-6 py-4 font-medium">{item.description}</TableCell>
+                          <TableCell className="px-4 py-4">
                             <Badge variant="outline">{item.unit_purch_desc}</Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-4 py-4">
                             <Badge variant="secondary">{item.unit_use_desc}</Badge>
                           </TableCell>
-                          <TableCell className="text-right">{item.factor || 1}</TableCell>
-                          <TableCell className="text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
-                          <TableCell>
+                          <TableCell className="px-4 py-4 text-right">{item.factor || 1}</TableCell>
+                          <TableCell className="px-4 py-4 text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
+                          <TableCell className="px-4 py-4">
                             <div className="flex gap-1">
                               <Button
                                 size="icon"
@@ -388,7 +390,7 @@ export default function Insumos() {
               </CardContent>
             </Card>
           </div>
-
+          
           {/* Units */}
           <div>
             <Card>
