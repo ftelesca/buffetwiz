@@ -312,16 +312,18 @@ export default function Insumos() {
               </CardHeader>
               <CardContent className="p-0">
                 {/* Table container: 100vh minus header (64px) + padding (64px) + page title/search (120px) + card header (88px) + extra padding = 360px */}
-                <div className="h-[calc(100vh-360px)] border-t scrollbar-thin overflow-y-auto relative">
+                <div 
+                  className="h-[calc(100vh-360px)] border-t scrollbar-thin overflow-y-scroll"
+                >
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="sticky top-0 bg-background z-10 border-b">
                       <TableRow>
-                        <TableHead className="sticky top-0 bg-background border-b z-10">Descrição</TableHead>
-                        <TableHead className="sticky top-0 bg-background border-b z-10">Unidade Compra</TableHead>
-                        <TableHead className="sticky top-0 bg-background border-b z-10">Unidade Uso</TableHead>
-                        <TableHead className="text-right sticky top-0 bg-background border-b z-10">Fator</TableHead>
-                        <TableHead className="text-right sticky top-0 bg-background border-b z-10">Custo</TableHead>
-                        <TableHead className="w-24 sticky top-0 bg-background border-b z-10">Ações</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Unidade Compra</TableHead>
+                        <TableHead>Unidade Uso</TableHead>
+                        <TableHead className="text-right">Fator</TableHead>
+                        <TableHead className="text-right">Custo</TableHead>
+                        <TableHead className="w-24">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -383,9 +385,9 @@ export default function Insumos() {
                           </TableCell>
                         </TableRow>
                       ))}
-                     </TableBody>
-                   </Table>
-                 </div>
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </div>
