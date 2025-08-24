@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MainLayout } from "@/components/layout/MainLayout"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/utils"
 
 interface Unit {
   id: number
@@ -28,6 +29,14 @@ interface Item {
   unit_use_desc?: string
 }
 
+interface ItemFormData {
+  description?: string
+  unit_purch?: number
+  unit_use?: number
+  cost?: string // String for form input, number for database
+  factor?: number
+}
+
 export default function Insumos() {
   const [items, setItems] = useState<Item[]>([])
   const [units, setUnits] = useState<Unit[]>([])
@@ -38,11 +47,11 @@ export default function Insumos() {
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false)
   const { toast } = useToast()
 
-  const [newItem, setNewItem] = useState<Partial<Item>>({
+  const [newItem, setNewItem] = useState<ItemFormData>({
     description: "",
     unit_purch: 0,
     unit_use: 0,
-    cost: 0,
+    cost: "",
     factor: 1
   })
 
@@ -124,7 +133,7 @@ export default function Insumos() {
             description: newItem.description,
             unit_purch: newItem.unit_purch,
             unit_use: newItem.unit_use,
-            cost: newItem.cost,
+            cost: typeof newItem.cost === 'string' ? parseCurrency(newItem.cost) : newItem.cost,
             factor: newItem.factor
           })
           .eq('id', editingItem.id)
@@ -138,7 +147,7 @@ export default function Insumos() {
             description: newItem.description,
             unit_purch: newItem.unit_purch,
             unit_use: newItem.unit_use,
-            cost: newItem.cost,
+            cost: typeof newItem.cost === 'string' ? parseCurrency(newItem.cost) : newItem.cost,
             factor: newItem.factor
           }])
 
@@ -148,7 +157,7 @@ export default function Insumos() {
 
       setIsItemDialogOpen(false)
       setEditingItem(null)
-      setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: 0, factor: 1 })
+      setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
       fetchItems()
     } catch (error) {
       console.error('Erro ao salvar item:', error)
@@ -255,7 +264,7 @@ export default function Insumos() {
               <DialogTrigger asChild>
                 <Button variant="premium" onClick={() => {
                   setEditingItem(null)
-                  setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: 0, factor: 1 })
+                  setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
                 }}>
                   <Plus className="h-4 w-4" />
                   Novo Item
@@ -308,7 +317,7 @@ export default function Insumos() {
                           <Badge variant="secondary">{item.unit_use_desc}</Badge>
                         </TableCell>
                         <TableCell className="text-right">{item.factor || 1}</TableCell>
-                        <TableCell className="text-right">{item.cost?.toFixed(2).replace('.', ',') || '0,00'}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(item.cost || 0)}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             <Button
@@ -316,7 +325,13 @@ export default function Insumos() {
                               variant="ghost"
                               onClick={() => {
                                 setEditingItem(item)
-                                setNewItem(item)
+                setNewItem({
+                  description: item.description,
+                  unit_purch: item.unit_purch,
+                  unit_use: item.unit_use,
+                  cost: formatCurrencyInput((item.cost * 100).toString()),
+                  factor: item.factor
+                })
                                 setIsItemDialogOpen(true)
                               }}
                             >
@@ -465,11 +480,12 @@ export default function Insumos() {
                 <Label htmlFor="item-cost">Custo</Label>
                 <Input
                   id="item-cost"
-                  type="number"
-                  step="0.01"
-                  value={newItem.cost || ''}
-                  onChange={(e) => setNewItem(prev => ({ ...prev, cost: parseFloat(e.target.value) }))}
-                  placeholder="0.00"
+                  value={newItem.cost?.toString() || ''}
+                  onChange={(e) => {
+                    const formattedValue = formatCurrencyInput(e.target.value);
+                    setNewItem(prev => ({ ...prev, cost: formattedValue as any }));
+                  }}
+                  placeholder="R$ 0,00"
                 />
               </div>
               <div className="flex justify-end gap-2">
@@ -478,7 +494,7 @@ export default function Insumos() {
                   onClick={() => {
                     setIsItemDialogOpen(false)
                     setEditingItem(null)
-                    setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: 0, factor: 1 })
+                    setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
                   }}
                 >
                   <X className="h-4 w-4" />
