@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MainLayout } from "@/components/layout/MainLayout"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
-import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getItemCountText } from "@/lib/utils"
+import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText } from "@/lib/utils"
 import { SpreadsheetImport } from "@/components/insumos/SpreadsheetImport"
 
 interface Unit {
@@ -304,7 +304,7 @@ export default function Insumos() {
                 <div>
                   <CardTitle>Itens</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {getItemCountText(items.length, filteredItems.length, !!searchTerm)}
+                    {getCountText(items.length, filteredItems.length, !!searchTerm, "item", "itens", "item cadastrado", "itens cadastrados")}
                   </p>
                 </div>
               </CardHeader>

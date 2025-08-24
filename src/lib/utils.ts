@@ -106,32 +106,21 @@ export function pluralize(count: number, singular: string, plural: string): stri
   return count === 1 ? singular : plural;
 }
 
-export function getCustomerCountText(
+export function getCountText(
   totalCount: number,
   filteredCount: number,
-  hasSearchQuery: boolean
+  hasSearchQuery: boolean,
+  entitySingular: string,
+  entityPlural: string,
+  registeredSingular: string,
+  registeredPlural: string
 ): string {
   if (hasSearchQuery) {
-    const totalText = pluralize(totalCount, "cliente", "clientes");
+    const totalText = pluralize(totalCount, entitySingular, entityPlural);
     const foundText = pluralize(filteredCount, "encontrado", "encontrados");
     return `${filteredCount} de ${totalCount} ${totalText} ${foundText}`;
   } else {
-    const countText = pluralize(totalCount, "cliente cadastrado", "clientes cadastrados");
-    return `${totalCount} ${countText}`;
-  }
-}
-
-export function getItemCountText(
-  totalCount: number,
-  filteredCount: number,
-  hasSearchQuery: boolean
-): string {
-  if (hasSearchQuery) {
-    const totalText = pluralize(totalCount, "item", "itens");
-    const foundText = pluralize(filteredCount, "encontrado", "encontrados");
-    return `${filteredCount} de ${totalCount} ${totalText} ${foundText}`;
-  } else {
-    const countText = pluralize(totalCount, "item cadastrado", "itens cadastrados");
+    const countText = pluralize(totalCount, registeredSingular, registeredPlural);
     return `${totalCount} ${countText}`;
   }
 }

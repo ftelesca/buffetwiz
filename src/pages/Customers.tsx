@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { cn, toTitleCase, getCustomerCountText } from "@/lib/utils";
+import { cn, toTitleCase, getCountText } from "@/lib/utils";
 
 interface Customer {
   id: number;
@@ -317,10 +317,14 @@ const Customers = () => {
         <CardHeader>
           <CardTitle>Clientes</CardTitle>
           <CardDescription>
-            {getCustomerCountText(
+            {getCountText(
               customers?.length || 0,
               filteredCustomers.length,
-              !!searchQuery
+              !!searchQuery,
+              "cliente",
+              "clientes",
+              "cliente cadastrado",
+              "clientes cadastrados"
             )}
           </CardDescription>
         </CardHeader>
