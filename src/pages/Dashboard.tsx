@@ -89,69 +89,81 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
-      <div className="relative">
+    <div className="space-y-12 page-fade-in">
+      {/* Hero Section with Enhanced Styling */}
+      <div className="relative overflow-hidden">
         <div 
-          className="h-48 rounded-xl bg-cover bg-center relative overflow-hidden"
+          className="h-64 rounded-2xl bg-cover bg-center relative overflow-hidden shadow-elegant"
           style={{ backgroundImage: `url(${heroImage})` }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-secondary/80" />
+          <div className="absolute inset-0 gradient-hero opacity-90" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent" />
           <div className="relative h-full flex items-center justify-between p-8">
-            <div className="text-white">
-              <h1 className="text-3xl font-bold mb-2">Bem-vindo ao BuffetWiz</h1>
-              <p className="text-lg opacity-90">Gerencie seus eventos gastronômicos com excelência</p>
+            <div className="text-white space-y-3">
+              <h1 className="text-4xl font-bold mb-2 tracking-tight">
+                Bem-vindo ao <span className="text-gradient">BuffetWiz</span>
+              </h1>
+              <p className="text-xl opacity-95 font-medium">
+                Gerencie seus eventos gastronômicos com excelência
+              </p>
             </div>
             <Button 
-              variant="hero" 
+              variant="secondary" 
               size="lg"
               onClick={handleCreateEvent}
-              className="shadow-2xl"
+              className="shadow-button hover-glow bg-primary/20 backdrop-blur-sm border-primary/30 text-primary-foreground hover:bg-primary/30"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-5 w-5 mr-2" />
               Novo Evento
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Enhanced Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 stagger-children">
         {stats.map((stat, index) => (
-          <Card key={index} className="hover:shadow-card transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+          <Card key={index} className="gradient-card hover-lift shadow-card border-0 group">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 {stat.title}
               </CardTitle>
-              <stat.icon className={`h-5 w-5 ${stat.color}`} />
+              <div className="p-2 rounded-lg bg-accent/50 group-hover:bg-primary/10 transition-colors">
+                <stat.icon className={`h-5 w-5 ${stat.color} group-hover:scale-110 transition-transform`} />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-success">
-                {stat.change} em relação ao mês anterior
-              </p>
+            <CardContent className="space-y-2">
+              <div className="text-3xl font-bold tracking-tight">{stat.value}</div>
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-success font-medium">{stat.change}</span>
+                <span className="text-xs text-muted-foreground">vs mês anterior</span>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Events Section */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Próximos Eventos</h2>
-          <Button variant="outline">
+      {/* Enhanced Events Section */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Próximos Eventos</h2>
+            <p className="text-muted-foreground mt-1">Acompanhe seus eventos mais importantes</p>
+          </div>
+          <Button variant="outline" className="hover-lift shadow-button">
             Ver Todos
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
           {events.map((event) => (
-            <EventCard
-              key={event.id}
-              {...event}
-              onEdit={handleEditEvent}
-              onView={handleViewEvent}
-            />
+            <div key={event.id} className="hover-lift">
+              <EventCard
+                {...event}
+                onEdit={handleEditEvent}
+                onView={handleViewEvent}
+              />
+            </div>
           ))}
         </div>
       </div>

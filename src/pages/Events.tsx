@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, Search, Filter, Edit, Trash2, Eye } from "lucide-react"
+import { Plus, Search, Filter, Edit, Trash2, Eye, Calendar, Users, DollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -137,24 +137,24 @@ export default function Events() {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        {/* Header */}
+      <div className="space-y-8 page-fade-in">
+        {/* Enhanced Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Eventos</h1>
-            <p className="text-muted-foreground">Gerencie eventos gastronômicos</p>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight">Eventos</h1>
+            <p className="text-muted-foreground text-lg">Gerencie eventos gastronômicos</p>
           </div>
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={handleCreateEvent}>
+              <Button onClick={handleCreateEvent} className="shadow-button hover-glow">
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Evento
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-effect">
               <DialogHeader>
-                <DialogTitle>
+                <DialogTitle className="text-2xl">
                   {editingEvent ? "Editar Evento" : "Novo Evento"}
                 </DialogTitle>
               </DialogHeader>
@@ -167,86 +167,105 @@ export default function Events() {
           </Dialog>
         </div>
 
-        {/* Search Bar */}
+        {/* Enhanced Search Bar */}
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar eventos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 glass-effect border-primary/20 focus:border-primary/40 focus:shadow-glow"
           />
         </div>
 
-        {/* Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Enhanced Events Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
           {filteredEvents.map((event) => (
-            <Card key={event.id} className="h-full">
-              <CardHeader>
+            <Card key={event.id} className="h-full gradient-card hover-lift shadow-card border-0 group">
+              <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{event.title}</CardTitle>
-                    <CardDescription>
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                      {event.title}
+                    </CardTitle>
+                    <CardDescription className="font-medium">
                       {event.customer_info?.name}
                     </CardDescription>
                   </div>
-                  <Badge variant={getStatusBadgeVariant(event.status)}>
+                  <Badge 
+                    variant={getStatusBadgeVariant(event.status)}
+                    className="shadow-sm"
+                  >
                     {event.status || "planejamento"}
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 {event.date && (
-                  <div className="text-sm">
-                    <strong>Data:</strong> {format(new Date(event.date), "dd/MM/yyyy", { locale: ptBR })}
-                    {event.time && ` às ${event.time}`}
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span className="font-medium">
+                      {format(new Date(event.date), "dd/MM/yyyy", { locale: ptBR })}
+                      {event.time && ` às ${event.time}`}
+                    </span>
                   </div>
                 )}
                 
                 {event.location && (
-                  <div className="text-sm">
-                    <strong>Local:</strong> {event.location}
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="h-4 w-4 rounded-full bg-accent flex items-center justify-center">
+                      <div className="h-2 w-2 rounded-full bg-primary" />
+                    </div>
+                    <span>{event.location}</span>
                   </div>
                 )}
                 
                 {event.type && (
                   <div className="text-sm">
-                    <strong>Tipo:</strong> {event.type}
+                    <span className="text-muted-foreground">Tipo:</span>{" "}
+                    <span className="font-medium">{event.type}</span>
                   </div>
                 )}
                 
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="grid grid-cols-2 gap-3 text-sm">
                   {event.numguests && (
-                    <div>
-                      <strong>Convidados:</strong> {event.numguests}
+                    <div className="flex items-center gap-1">
+                      <Users className="h-3 w-3 text-primary" />
+                      <span className="font-medium">{event.numguests}</span>
                     </div>
                   )}
                   {event.valor && (
-                    <div>
-                      <strong>Valor:</strong> R$ {event.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="h-3 w-3 text-success" />
+                      <span className="font-medium">
+                        R$ {event.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
                     </div>
                   )}
                 </div>
                 
                 {event.description && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground bg-accent/30 p-3 rounded-lg">
                     {event.description}
                   </div>
                 )}
                 
-                <div className="flex gap-2 pt-4">
+                <div className="flex gap-2 pt-2">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleEditEvent(event)}
+                    className="flex-1 hover:bg-primary/10 hover:border-primary/40"
                   >
-                    <Edit className="h-3 w-3" />
+                    <Edit className="h-3 w-3 mr-1" />
+                    Editar
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleDeleteEvent(event.id)}
                     disabled={deleteMutation.isPending}
+                    className="hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -257,11 +276,19 @@ export default function Events() {
         </div>
 
         {filteredEvents.length === 0 && !isLoading && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">
-              {searchTerm ? `Nenhum evento encontrado para "${searchTerm}"` : "Nenhum evento cadastrado"}
-            </p>
-            <Button onClick={handleCreateEvent} variant="outline" className="mt-4">
+          <div className="text-center py-16 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-accent/30 flex items-center justify-center mx-auto">
+              <Calendar className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-lg font-medium">
+                {searchTerm ? `Nenhum evento encontrado para "${searchTerm}"` : "Nenhum evento cadastrado"}
+              </p>
+              <p className="text-sm text-muted-foreground/60 mt-1">
+                {searchTerm ? "Tente buscar com outros termos" : "Comece criando seu primeiro evento"}
+              </p>
+            </div>
+            <Button onClick={handleCreateEvent} variant="outline" className="mt-6 hover-lift shadow-button">
               <Plus className="h-4 w-4 mr-2" />
               {searchTerm ? "Criar Novo Evento" : "Criar Primeiro Evento"}
             </Button>

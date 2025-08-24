@@ -28,14 +28,17 @@ function LayoutContent({ children }: MainLayoutProps) {
       )}
       
       <main className="flex-1 flex flex-col">
-        <header className="sticky top-0 z-40 h-14 border-b border-border bg-background backdrop-blur-sm supports-[backdrop-filter]:bg-background/95">
-          <div className="flex h-full items-center px-4 gap-4 justify-between">
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold text-foreground">BuffetWiz</h1>
+        <header className="sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
+          <div className="flex h-full items-center px-6 gap-4 justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">BW</span>
+              </div>
+              <h1 className="text-xl font-bold text-gradient tracking-tight">BuffetWiz</h1>
             </div>
           </div>
         </header>
-        <div className="flex-1 p-6 overflow-hidden">
+        <div className="flex-1 p-8 overflow-hidden bg-gradient-to-br from-background via-background to-accent/5">
           {children}
         </div>
       </main>
