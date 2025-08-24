@@ -64,7 +64,7 @@ export default function RecipeItems({
     return value < 0.01 ? "< 0,01" : value.toFixed(2).replace('.', ',')
   }
 
-  console.log("RecipeItems: selectedRecipe", selectedRecipe, "recipeItems", recipeItems, "recipeItems.length", recipeItems.length)
+  
 
   return (
     <Card className="h-fit">
@@ -105,7 +105,7 @@ export default function RecipeItems({
                     </TableRow>
                   ) : (
                     recipeItems.map((recipeItem) => {
-                      console.log("Rendering recipeItem:", recipeItem)
+                      
                       const item = recipeItem.item_detail
                       const unitDescription = item?.unit_use ? getUnitDescription(item.unit_use) : 
                                             item?.unit_purch ? getUnitDescription(item.unit_purch) : ""
@@ -127,12 +127,9 @@ export default function RecipeItems({
                             <div className="flex gap-1 justify-end min-w-[80px]">
                               <Button
                                 size="icon"
-                                variant="outline"
-                                onClick={() => {
-                                  console.log("Edit button clicked for item:", recipeItem.id)
-                                  onEditItem(recipeItem)
-                                }}
-                                className="h-8 w-8 bg-blue-500 text-white hover:bg-blue-600"
+                                variant="ghost"
+                                onClick={() => onEditItem(recipeItem)}
+                                className="h-8 w-8 hover:bg-accent"
                                 title="Editar item"
                               >
                                 <Edit className="h-4 w-4" />
@@ -141,10 +138,9 @@ export default function RecipeItems({
                                 <AlertDialogTrigger asChild>
                                   <Button
                                     size="icon"
-                                    variant="outline"
-                                    className="h-8 w-8 bg-red-500 text-white hover:bg-red-600"
+                                    variant="ghost"
+                                    className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
                                     title="Excluir item"
-                                    onClick={() => console.log("Delete button clicked for item:", recipeItem.id)}
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
