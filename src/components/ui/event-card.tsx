@@ -56,7 +56,7 @@ export function EventCard({
       <CardContent className="space-y-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
-          <span>{new Date(date).toLocaleDateString('pt-BR')}</span>
+          <span>{new Date(date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
         </div>
         
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
