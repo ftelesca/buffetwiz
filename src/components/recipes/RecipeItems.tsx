@@ -93,7 +93,7 @@ export default function RecipeItems({
                     <TableHead>Unidade</TableHead>
                     <TableHead className="text-right">Custo Unit.</TableHead>
                     <TableHead className="text-right">Custo Total</TableHead>
-                    <TableHead className="text-right w-[100px]">Ações</TableHead>
+                    <TableHead className="text-right w-[120px] sticky right-0 bg-background">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -123,13 +123,16 @@ export default function RecipeItems({
                           </TableCell>
                           <TableCell className="text-right whitespace-nowrap">{formatCurrency(adjustedUnitCost)}</TableCell>
                           <TableCell className="text-right font-medium whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
-                          <TableCell>
+                          <TableCell className="sticky right-0 bg-background">
                             <div className="flex gap-1 justify-end min-w-[80px]">
                               <Button
                                 size="icon"
-                                variant="ghost"
-                                onClick={() => onEditItem(recipeItem)}
-                                className="h-8 w-8 hover:bg-accent"
+                                variant="outline"
+                                onClick={() => {
+                                  console.log("Edit button clicked for item:", recipeItem.id)
+                                  onEditItem(recipeItem)
+                                }}
+                                className="h-8 w-8 bg-blue-500 text-white hover:bg-blue-600"
                                 title="Editar item"
                               >
                                 <Edit className="h-4 w-4" />
@@ -138,9 +141,10 @@ export default function RecipeItems({
                                 <AlertDialogTrigger asChild>
                                   <Button
                                     size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                                    variant="outline"
+                                    className="h-8 w-8 bg-red-500 text-white hover:bg-red-600"
                                     title="Excluir item"
+                                    onClick={() => console.log("Delete button clicked for item:", recipeItem.id)}
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
