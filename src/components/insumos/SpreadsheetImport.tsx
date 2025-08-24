@@ -125,8 +125,8 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
       const row = data[i]
       if (!row || row.length === 0) continue
 
-      const unitPurchName = row[1]?.toString().trim() || ''
-      const unitUseName = row[2]?.toString().trim() || ''
+      const unitPurchName = row[1]?.toString().trim() || 'un'
+      const unitUseName = row[2]?.toString().trim() || 'un'
       const rawFactor = parseFloat(row[3]?.toString()) || 1
       
       // Set factor to 1 if purchase and use units are the same
