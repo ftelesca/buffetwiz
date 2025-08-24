@@ -312,11 +312,10 @@ export default function Insumos() {
               </CardHeader>
               <CardContent className="p-0">
                 {/* Table container: 100vh minus header (64px) + padding (64px) + page title/search (120px) + card header (88px) + extra padding = 360px */}
-                <div 
-                  className="h-[calc(100vh-360px)] border-t scrollbar-thin overflow-y-scroll"
-                >
+                <div className="border-t">
+                  {/* Fixed Header */}
                   <Table>
-                    <TableHeader className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 border-b shadow-sm">
+                    <TableHeader className="bg-background border-b">
                       <TableRow>
                         <TableHead>Descrição</TableHead>
                         <TableHead>Unidade Compra</TableHead>
@@ -326,7 +325,12 @@ export default function Insumos() {
                         <TableHead className="w-24">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
-                    <TableBody>
+                  </Table>
+                  
+                  {/* Scrollable Body */}
+                  <div className="h-[calc(100vh-410px)] scrollbar-thin overflow-y-scroll">
+                    <Table>
+                      <TableBody>
                       {filteredItems.map((item) => (
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{item.description}</TableCell>
@@ -385,8 +389,9 @@ export default function Insumos() {
                           </TableCell>
                         </TableRow>
                       ))}
-                    </TableBody>
-                  </Table>
+                     </TableBody>
+                   </Table>
+                  </div>
                 </div>
               </CardContent>
             </Card>
