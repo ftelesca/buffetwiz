@@ -32,6 +32,13 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
+export function formatCurrencyWithCents(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
 export function formatCurrencyInput(value: string): string {
   // Remove all non-digit characters
   const digits = value.replace(/\D/g, '');

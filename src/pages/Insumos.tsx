@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MainLayout } from "@/components/layout/MainLayout"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
-import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/utils"
+import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency } from "@/lib/utils"
 
 interface Unit {
   id: number
@@ -317,7 +317,7 @@ export default function Insumos() {
                           <Badge variant="secondary">{item.unit_use_desc}</Badge>
                         </TableCell>
                         <TableCell className="text-right">{item.factor || 1}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(item.cost || 0)}</TableCell>
+                        <TableCell className="text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             <Button
