@@ -317,7 +317,7 @@ export default function Insumos() {
                   style={{
                     overflowY: 'scroll',
                     scrollbarWidth: 'thin',
-                    scrollbarColor: 'rgba(0,0,0,0.2) transparent'
+                    scrollbarColor: 'rgba(0,0,0,0.5) rgba(0,0,0,0.1)'
                   }}
                 >
                   <Table>
