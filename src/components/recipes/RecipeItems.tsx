@@ -50,13 +50,13 @@ export default function RecipeItems({
     return qty.toString().replace('.', ',')
   }
 
-  // Calculate total recipe cost
+  // Calculate total recipe cost with full precision
   const totalRecipeCost = recipeItems.reduce((total, recipeItem) => {
     const item = recipeItem.item_detail
-    const unitCost = item?.cost || 0
-    const factor = item?.factor || 1
+    const unitCost = Number(item?.cost || 0)
+    const factor = Number(item?.factor || 1)
     const adjustedUnitCost = unitCost / factor
-    const itemTotalCost = adjustedUnitCost * recipeItem.qty
+    const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty)
     return total + itemTotalCost
   }, 0)
 
