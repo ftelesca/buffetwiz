@@ -301,7 +301,12 @@ export default function Insumos() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Itens</CardTitle>
+                <div>
+                  <CardTitle>Itens</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {filteredItems.length} de {items.length} {items.length === 1 ? "item cadastrado" : "itens cadastrados"}
+                  </p>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
