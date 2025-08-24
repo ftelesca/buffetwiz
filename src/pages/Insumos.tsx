@@ -311,8 +311,8 @@ export default function Insumos() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {/* Fixed height container with forced scrollbar */}
-                <div className="h-[calc(100vh-216px)] overflow-y-scroll border-t">
+                {/* Table container: 100vh minus header (64px) + padding (64px) + page title/search (120px) + card header (88px) = 336px */}
+                <div className="h-[calc(100vh-336px)] overflow-y-auto border-t">
                   <Table>
                     <TableHeader className="sticky top-0 bg-background z-10 border-b">
                       <TableRow>
