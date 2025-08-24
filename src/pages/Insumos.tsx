@@ -311,8 +311,8 @@ export default function Insumos() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {/* Table container: 100vh minus header (64px) + padding (64px) + page title/search (120px) + card header (88px) = 336px */}
-                <div className="h-[calc(100vh-336px)] overflow-y-auto border-t">
+                {/* Table container: 100vh minus header (64px) + padding (64px) + page title/search (120px) + card header (88px) + extra padding = 360px */}
+                <div className="h-[calc(100vh-360px)] overflow-y-auto border-t">
                   <Table>
                     <TableHeader className="sticky top-0 bg-background z-10 border-b">
                       <TableRow>
