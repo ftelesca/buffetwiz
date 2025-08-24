@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Upload, FileText, X, Check, AlertCircle, Download } from "lucide-react"
+import { Upload, FileText, X, Check, AlertCircle, Download, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -330,27 +330,34 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
 
               <Card>
                 <CardContent className="pt-6">
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-                    <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <div className="space-y-2">
-                      <p className="text-lg font-medium">Selecione um arquivo</p>
-                      <p className="text-sm text-muted-foreground">
-                        Formatos suportados: CSV, Excel (.xlsx)
-                      </p>
-                      <input
-                        type="file"
-                        accept=".csv,.xlsx,.xls"
-                        onChange={handleFileChange}
-                        className="hidden"
-                        id="file-upload"
-                      />
-                      <label htmlFor="file-upload">
-                        <Button variant="outline" className="cursor-pointer" asChild>
-                          <span>Escolher Arquivo</span>
-                        </Button>
-                      </label>
+                  {isProcessing ? (
+                    <div className="flex flex-col items-center justify-center p-8 space-y-4">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <p className="text-sm text-muted-foreground">Preparando prévia...</p>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+                      <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <div className="space-y-2">
+                        <p className="text-lg font-medium">Selecione um arquivo</p>
+                        <p className="text-sm text-muted-foreground">
+                          Formatos suportados: CSV, Excel (.xlsx)
+                        </p>
+                        <input
+                          type="file"
+                          accept=".csv,.xlsx,.xls"
+                          onChange={handleFileChange}
+                          className="hidden"
+                          id="file-upload"
+                        />
+                        <label htmlFor="file-upload">
+                          <Button variant="outline" className="cursor-pointer" asChild>
+                            <span>Escolher Arquivo</span>
+                          </Button>
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -372,8 +379,17 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                     onClick={handleImport}
                     disabled={validItems.length === 0 || isProcessing}
                   >
-                    <Check className="h-4 w-4" />
-                    Processar ({insertItems.length} novos, {updateItems.length} atualizações)
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Importando...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Processar ({insertItems.length} novos, {updateItems.length} atualizações)
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
