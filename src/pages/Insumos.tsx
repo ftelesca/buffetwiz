@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import "../styles/scrollbar.css"
 import { Plus, Search, Edit, Trash2, Save, X, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -314,7 +313,7 @@ export default function Insumos() {
               <CardContent className="p-0">
                 {/* Table container: 100vh minus header (64px) + padding (64px) + page title/search (120px) + card header (88px) + extra padding = 360px */}
                 <div 
-                  className="h-[calc(100vh-360px)] border-t custom-scrollbar overflow-y-scroll"
+                  className="h-[calc(100vh-360px)] border-t scrollbar-thin overflow-y-scroll"
                 >
                   <Table>
                     <TableHeader className="sticky top-0 bg-background z-10 border-b">
