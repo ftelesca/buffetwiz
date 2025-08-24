@@ -125,11 +125,18 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
       const row = data[i]
       if (!row || row.length === 0) continue
 
+      const unitPurchName = row[1]?.toString().trim() || ''
+      const unitUseName = row[2]?.toString().trim() || ''
+      const rawFactor = parseFloat(row[3]?.toString()) || 1
+      
+      // Set factor to 1 if purchase and use units are the same
+      const factor = unitPurchName.toLowerCase() === unitUseName.toLowerCase() ? 1 : rawFactor
+
       const item: ParsedItem = {
         description: formatTitleCase(row[0]?.toString().trim() || ''),
-        unit_purch_name: row[1]?.toString().trim() || '',
-        unit_use_name: row[2]?.toString().trim() || '',
-        factor: parseFloat(row[3]?.toString()) || 1,
+        unit_purch_name: unitPurchName,
+        unit_use_name: unitUseName,
+        factor: factor,
         cost: parseSpreadsheetCurrency(row[4]),
         errors: [],
         rowIndex: i + 1
