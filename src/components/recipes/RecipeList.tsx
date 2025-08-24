@@ -1,10 +1,11 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { Trash2, Edit, Save, X } from "lucide-react"
+import { getCountText } from "@/lib/utils"
 import type { Recipe } from "@/types/recipe"
 
 interface RecipeListProps {
@@ -12,9 +13,11 @@ interface RecipeListProps {
   selectedRecipe: Recipe | null
   onSelectRecipe: (recipe: Recipe) => void
   onRecipesChange: () => void
+  allRecipes: Recipe[]
+  searchTerm: string
 }
 
-export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, onRecipesChange }: RecipeListProps) {
+export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, onRecipesChange, allRecipes, searchTerm }: RecipeListProps) {
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
   const { toast } = useToast()
 
@@ -53,6 +56,17 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
     <Card>
       <CardHeader>
         <CardTitle>Receitas</CardTitle>
+        <CardDescription>
+          {getCountText(
+            allRecipes.length,
+            recipes.length,
+            !!searchTerm,
+            "receita",
+            "receitas",
+            "receita cadastrada",
+            "receitas cadastradas"
+          )}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">

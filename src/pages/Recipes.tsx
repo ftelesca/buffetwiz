@@ -161,6 +161,8 @@ export default function Recipes() {
             selectedRecipe={selectedRecipe}
             onSelectRecipe={handleSelectRecipe}
             onRecipesChange={handleRecipesChange}
+            allRecipes={recipes}
+            searchTerm={searchTerm}
           />
 
           <RecipeItems
