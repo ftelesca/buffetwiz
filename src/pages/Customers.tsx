@@ -315,9 +315,9 @@ const Customers = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Clientes</CardTitle>
+          <CardTitle>Clientes</CardTitle>
           <CardDescription>
-            {filteredCustomers.length} de {customers?.length || 0} cliente(s) {searchQuery ? "encontrado(s)" : "cadastrado(s)"}
+            {filteredCustomers.length} de {customers?.length || 0} {(customers?.length || 0) === 1 ? "cliente" : "clientes"} {searchQuery ? ((customers?.length || 0) === 1 ? "encontrado" : "encontrados") : ((customers?.length || 0) === 1 ? "cadastrado" : "cadastrados")}
           </CardDescription>
         </CardHeader>
         <CardContent>
