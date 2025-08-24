@@ -2,7 +2,7 @@
 .custom-scrollbar {
   /* Firefox */
   scrollbar-width: thin;
-  scrollbar-color: #6b7280 #f3f4f6;
+  scrollbar-color: #6b7280 transparent;
 }
 
 /* Webkit browsers (Chrome, Safari, Edge) */
@@ -11,7 +11,7 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f3f4f6;
+  background: transparent;
   border-radius: 4px;
 }
 
