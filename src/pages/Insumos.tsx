@@ -316,7 +316,7 @@ export default function Insumos() {
                   className="h-[calc(100vh-360px)] border-t scrollbar-thin overflow-y-scroll"
                 >
                   <Table>
-                    <TableHeader className="sticky top-0 bg-background z-10 border-b">
+                    <TableHeader className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 border-b shadow-sm">
                       <TableRow>
                         <TableHead>Descrição</TableHead>
                         <TableHead>Unidade Compra</TableHead>
