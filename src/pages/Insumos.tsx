@@ -334,7 +334,7 @@ export default function Insumos() {
                             <Badge variant="outline">{item.unit_purch_desc}</Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="secondary">{item.unit_use_desc}</Badge>
+                            <Badge variant="outline">{item.unit_use_desc}</Badge>
                           </TableCell>
                           <TableCell className="text-right">{item.factor || 1}</TableCell>
                           <TableCell className="text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
