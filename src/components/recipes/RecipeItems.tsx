@@ -64,28 +64,27 @@ export default function RecipeItems({
     return value < 0.01 ? "< 0,01" : value.toFixed(2).replace('.', ',')
   }
 
-  console.log("RecipeItems: selectedRecipe", selectedRecipe, "recipeItems", recipeItems)
-
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle>
+    <Card className="h-fit">
+      <CardHeader className="flex-shrink-0">
+        <div className="flex justify-between items-center gap-4">
+          <CardTitle className="flex-shrink-0">
             {selectedRecipe ? "Itens da Receita" : "Selecione uma receita"}
           </CardTitle>
           {selectedRecipe && (
-            <Button onClick={onAddItem} size="sm">
+            <Button onClick={onAddItem} size="sm" className="flex-shrink-0">
               <Plus className="w-4 h-4 mr-2" />
               Adicionar Item
             </Button>
           )}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="overflow-auto max-h-[70vh]">
         {selectedRecipe ? (
           <div className="space-y-4">
 
-            <Table>
+            <div className="overflow-x-auto">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Item</TableHead>
@@ -154,7 +153,8 @@ export default function RecipeItems({
                   )
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
 
             {/* Total Cost Card */}
             <Card className="mt-4">
