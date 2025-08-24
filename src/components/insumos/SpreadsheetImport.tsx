@@ -88,6 +88,27 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
     }
   }
 
+  const formatTitleCase = (text: string): string => {
+    const connectingWords = ['de', 'da', 'do', 'das', 'dos', 'com', 'para', 'por', 'em', 'na', 'no', 'nas', 'nos', 'a', 'e', 'ou']
+    
+    return text
+      .toLowerCase()
+      .split(' ')
+      .map((word, index) => {
+        // Always capitalize first word
+        if (index === 0) {
+          return word.charAt(0).toUpperCase() + word.slice(1)
+        }
+        // Keep connecting words lowercase
+        if (connectingWords.includes(word)) {
+          return word
+        }
+        // Capitalize other words
+        return word.charAt(0).toUpperCase() + word.slice(1)
+      })
+      .join(' ')
+  }
+
   const processData = (data: any[][]) => {
     const items: ParsedItem[] = []
     
@@ -97,7 +118,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
       if (!row || row.length === 0) continue
 
       const item: ParsedItem = {
-        description: row[0]?.toString().trim() || '',
+        description: formatTitleCase(row[0]?.toString().trim() || ''),
         unit_purch_name: row[1]?.toString().trim() || '',
         unit_use_name: row[2]?.toString().trim() || '',
         factor: parseFloat(row[3]?.toString()) || 1,
