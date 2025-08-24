@@ -311,16 +311,16 @@ export default function Insumos() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="max-h-[400px] overflow-y-auto border border-gray-300 rounded-md">
+                <div style={{ height: '300px', overflowY: 'scroll' }}>
                   <Table>
-                    <TableHeader className="sticky top-0 bg-white border-b z-20 shadow-sm">
+                    <TableHeader style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
                       <TableRow>
-                        <TableHead className="bg-white">Descrição</TableHead>
-                        <TableHead className="bg-white">Unidade Compra</TableHead>
-                        <TableHead className="bg-white">Unidade Uso</TableHead>
-                        <TableHead className="text-right bg-white">Fator</TableHead>
-                        <TableHead className="text-right bg-white">Custo</TableHead>
-                        <TableHead className="w-24 bg-white">Ações</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Unidade Compra</TableHead>
+                        <TableHead>Unidade Uso</TableHead>
+                        <TableHead className="text-right">Fator</TableHead>
+                        <TableHead className="text-right">Custo</TableHead>
+                        <TableHead className="w-24">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
