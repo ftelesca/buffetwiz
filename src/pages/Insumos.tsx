@@ -311,16 +311,16 @@ export default function Insumos() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="h-[calc(100vh-16rem-2rem-6rem)] overflow-auto">
+                <div className="h-[calc(100vh-16rem-2rem-6rem)] overflow-y-auto border rounded-md">
                   <Table>
-                    <TableHeader className="sticky top-0 bg-background z-10 border-b">
+                    <TableHeader className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 border-b">
                       <TableRow>
-                        <TableHead>Descrição</TableHead>
-                        <TableHead>Unidade Compra</TableHead>
-                        <TableHead>Unidade Uso</TableHead>
-                        <TableHead className="text-right">Fator</TableHead>
-                        <TableHead className="text-right">Custo</TableHead>
-                        <TableHead className="w-24">Ações</TableHead>
+                        <TableHead className="h-12">Descrição</TableHead>
+                        <TableHead className="h-12">Unidade Compra</TableHead>
+                        <TableHead className="h-12">Unidade Uso</TableHead>
+                        <TableHead className="text-right h-12">Fator</TableHead>
+                        <TableHead className="text-right h-12">Custo</TableHead>
+                        <TableHead className="w-24 h-12">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -342,13 +342,13 @@ export default function Insumos() {
                                 variant="ghost"
                                 onClick={() => {
                                   setEditingItem(item)
-                  setNewItem({
-                    description: item.description,
-                    unit_purch: item.unit_purch,
-                    unit_use: item.unit_use,
-                    cost: formatCurrencyInput((item.cost * 100).toString()),
-                    factor: item.factor
-                  })
+                                  setNewItem({
+                                    description: item.description,
+                                    unit_purch: item.unit_purch,
+                                    unit_use: item.unit_use,
+                                    cost: formatCurrencyInput((item.cost * 100).toString()),
+                                    factor: item.factor
+                                  })
                                   setIsItemDialogOpen(true)
                                 }}
                               >
