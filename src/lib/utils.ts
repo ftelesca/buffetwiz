@@ -120,3 +120,18 @@ export function getCustomerCountText(
     return `${totalCount} ${countText}`;
   }
 }
+
+export function getItemCountText(
+  totalCount: number,
+  filteredCount: number,
+  hasSearchQuery: boolean
+): string {
+  if (hasSearchQuery) {
+    const totalText = pluralize(totalCount, "item", "itens");
+    const foundText = pluralize(filteredCount, "encontrado", "encontrados");
+    return `${filteredCount} de ${totalCount} ${totalText} ${foundText}`;
+  } else {
+    const countText = pluralize(totalCount, "item cadastrado", "itens cadastrados");
+    return `${totalCount} ${countText}`;
+  }
+}
