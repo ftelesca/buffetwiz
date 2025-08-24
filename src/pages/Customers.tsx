@@ -318,7 +318,7 @@ const Customers = () => {
           <CardTitle>Clientes</CardTitle>
           <CardDescription>
             {getCountText(
-              customers?.length || 0,
+              customers.length,
               filteredCustomers.length,
               !!searchQuery,
               "cliente",
