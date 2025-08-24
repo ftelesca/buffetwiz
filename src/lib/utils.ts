@@ -101,3 +101,22 @@ export function parseSpreadsheetCurrency(value: string | number): number {
   
   return parseFloat(cleanValue) || 0;
 }
+
+export function pluralize(count: number, singular: string, plural: string): string {
+  return count === 1 ? singular : plural;
+}
+
+export function getCustomerCountText(
+  totalCount: number,
+  filteredCount: number,
+  hasSearchQuery: boolean
+): string {
+  if (hasSearchQuery) {
+    const totalText = pluralize(totalCount, "cliente", "clientes");
+    const foundText = pluralize(filteredCount, "encontrado", "encontrados");
+    return `${filteredCount} de ${totalCount} ${totalText} ${foundText}`;
+  } else {
+    const countText = pluralize(totalCount, "cliente cadastrado", "clientes cadastrados");
+    return `${totalCount} ${countText}`;
+  }
+}
