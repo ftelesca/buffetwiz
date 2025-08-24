@@ -100,8 +100,8 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
         description: row[0]?.toString().trim() || '',
         unit_purch_name: row[1]?.toString().trim() || '',
         unit_use_name: row[2]?.toString().trim() || '',
-        cost: parseSpreadsheetCurrency(row[3]),
-        factor: parseFloat(row[4]?.toString()) || 1,
+        factor: parseFloat(row[3]?.toString()) || 1,
+        cost: parseSpreadsheetCurrency(row[4]),
         errors: [],
         rowIndex: i + 1
       }
@@ -211,10 +211,10 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
 
   const downloadTemplate = () => {
     const template = [
-      ['Descrição', 'Unidade Compra', 'Unidade Uso', 'Custo', 'Fator'],
-      ['Arroz Branco', 'kg', 'g', '5,99', '0.001'],
-      ['Feijão Preto', 'kg', 'g', '8,50', '0.001'],
-      ['Azeite de Oliva', 'L', 'ml', '15,90', '0.001']
+      ['Descrição', 'Unidade Compra', 'Unidade Uso', 'Fator', 'Custo'],
+      ['Arroz Branco', 'kg', 'g', '0.001', '5,99'],
+      ['Feijão Preto', 'kg', 'g', '0.001', '8,50'],
+      ['Azeite de Oliva', 'L', 'ml', '0.001', '15,90']
     ]
 
     const csv = Papa.unparse(template)
@@ -244,7 +244,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
               <Alert>
                 <FileText className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Formato esperado:</strong> Descrição, Unidade Compra, Unidade Uso, Custo, Fator
+                  <strong>Formato esperado:</strong> Descrição, Unidade Compra, Unidade Uso, Fator, Custo
                   <br />
                   <Button 
                     variant="link" 
@@ -315,8 +315,8 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                       <TableHead>Descrição</TableHead>
                       <TableHead>Un. Compra</TableHead>
                       <TableHead>Un. Uso</TableHead>
-                      <TableHead>Custo</TableHead>
                       <TableHead>Fator</TableHead>
+                      <TableHead>Custo</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -327,8 +327,8 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                         <TableCell>{item.description}</TableCell>
                         <TableCell>{item.unit_purch_name}</TableCell>
                         <TableCell>{item.unit_use_name}</TableCell>
-                        <TableCell>R$ {item.cost.toFixed(2)}</TableCell>
                         <TableCell>{item.factor}</TableCell>
+                        <TableCell>R$ {item.cost.toFixed(2)}</TableCell>
                         <TableCell>
                           {item.errors.length === 0 ? (
                             <Badge variant="default" className="bg-green-100 text-green-800">
