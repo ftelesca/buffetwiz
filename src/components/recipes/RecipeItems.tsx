@@ -93,7 +93,7 @@ export default function RecipeItems({
                     <TableHead>Unidade</TableHead>
                     <TableHead className="text-right">Custo Unit.</TableHead>
                     <TableHead className="text-right">Custo Total</TableHead>
-                    <TableHead className="text-right w-[120px] sticky right-0 bg-background">Ações</TableHead>
+                    <TableHead className="text-right w-[120px] sticky right-0 bg-card">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -123,7 +123,7 @@ export default function RecipeItems({
                           </TableCell>
                           <TableCell className="text-right whitespace-nowrap">{formatCurrency(adjustedUnitCost)}</TableCell>
                           <TableCell className="text-right font-medium whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
-                          <TableCell className="sticky right-0 bg-background">
+                          <TableCell className="sticky right-0 bg-card">
                             <div className="flex gap-1 justify-end min-w-[80px]">
                               <Button
                                 size="icon"
