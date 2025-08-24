@@ -314,7 +314,7 @@ export default function Insumos() {
                 <ScrollArea className="h-[calc(100vh-16rem-2rem-6rem)]">
                   <div className="p-6">
                     <Table>
-                      <TableHeader>
+                      <TableHeader className="sticky top-0 bg-background z-10">
                         <TableRow>
                           <TableHead>Descrição</TableHead>
                           <TableHead>Unidade Compra</TableHead>
