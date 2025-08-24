@@ -311,33 +311,32 @@ export default function Insumos() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {/* Scrollable container with calculated height minus header (64px) + page padding (32px) + card header (~80px) */}
-                <div className="h-[calc(100vh-176px)] overflow-auto">
+                {/* Table container with proper height calculation: 100vh minus MainLayout header (64px) minus page padding (64px) minus card header (88px) */}
+                <div className="relative max-h-[calc(100vh-216px)] overflow-auto border-t">
                   <Table>
-                    {/* Sticky header that stays visible during scroll */}
-                    <TableHeader className="sticky top-0 bg-background z-10 border-b">
+                    <TableHeader className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/95 z-10 shadow-sm">
                       <TableRow>
-                        <TableHead className="h-12 px-6">Descrição</TableHead>
-                        <TableHead className="h-12 px-4">Unidade Compra</TableHead>
-                        <TableHead className="h-12 px-4">Unidade Uso</TableHead>
-                        <TableHead className="h-12 px-4 text-right">Fator</TableHead>
-                        <TableHead className="h-12 px-4 text-right">Custo</TableHead>
-                        <TableHead className="h-12 px-4 w-24">Ações</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Unidade Compra</TableHead>
+                        <TableHead>Unidade Uso</TableHead>
+                        <TableHead className="text-right">Fator</TableHead>
+                        <TableHead className="text-right">Custo</TableHead>
+                        <TableHead className="w-24">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredItems.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="px-6 py-4 font-medium">{item.description}</TableCell>
-                          <TableCell className="px-4 py-4">
+                          <TableCell className="font-medium">{item.description}</TableCell>
+                          <TableCell>
                             <Badge variant="outline">{item.unit_purch_desc}</Badge>
                           </TableCell>
-                          <TableCell className="px-4 py-4">
+                          <TableCell>
                             <Badge variant="secondary">{item.unit_use_desc}</Badge>
                           </TableCell>
-                          <TableCell className="px-4 py-4 text-right">{item.factor || 1}</TableCell>
-                          <TableCell className="px-4 py-4 text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
-                          <TableCell className="px-4 py-4">
+                          <TableCell className="text-right">{item.factor || 1}</TableCell>
+                          <TableCell className="text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
+                          <TableCell>
                             <div className="flex gap-1">
                               <Button
                                 size="icon"
