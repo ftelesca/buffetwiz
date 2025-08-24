@@ -313,12 +313,11 @@ export default function Insumos() {
               <CardContent className="p-0">
                 {/* Table container: 100vh minus header (64px) + padding (64px) + page title/search (120px) + card header (88px) + extra padding = 360px */}
                 <div 
-                  className="h-[calc(100vh-360px)] overflow-y-scroll border-t" 
-                  style={{ 
-                    scrollbarWidth: 'thin', 
-                    scrollbarGutter: 'stable',
-                    scrollbarColor: 'rgba(0,0,0,0.1) transparent',
-                    overflowY: 'scroll'
+                  className="h-[calc(100vh-360px)] border-t"
+                  style={{
+                    overflowY: 'scroll',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgba(0,0,0,0.2) transparent'
                   }}
                 >
                   <Table>
