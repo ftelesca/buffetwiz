@@ -11,6 +11,7 @@ import { MainLayout } from "@/components/layout/MainLayout"
 import { EventForm } from "@/components/events/EventForm"
 import { useToast } from "@/hooks/use-toast"
 import { formatDateWithoutTimezone, formatTimeWithoutSeconds, formatCurrency } from "@/lib/utils"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 interface Event {
   id: number;
@@ -96,9 +97,7 @@ export default function Events() {
   };
 
   const handleDeleteEvent = (id: number) => {
-    if (confirm("Tem certeza que deseja excluir este evento?")) {
-      deleteMutation.mutate(id);
-    }
+    deleteMutation.mutate(id);
   };
 
   const handleFormSuccess = () => {
@@ -259,15 +258,32 @@ export default function Events() {
                     <Edit className="h-3 w-3 mr-1" />
                     Editar
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDeleteEvent(event.id)}
-                    disabled={deleteMutation.isPending}
-                    className="hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={deleteMutation.isPending}
+                        className="hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                         <AlertDialogDescription>
+                           Tem certeza que deseja excluir o evento "{event.title}"? Esta ação não pode ser desfeita.
+                         </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteEvent(event.id)}>
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>

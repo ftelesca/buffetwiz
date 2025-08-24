@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn, toTitleCase, getCountText } from "@/lib/utils";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface Customer {
   id: number;
@@ -190,9 +191,7 @@ const Customers = () => {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Tem certeza que deseja excluir este cliente?")) {
-      deleteMutation.mutate(id);
-    }
+    deleteMutation.mutate(id);
   };
 
   // Filter customers based on search query
@@ -383,14 +382,31 @@ const Customers = () => {
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDelete(customer.id)}
-                          disabled={deleteMutation.isPending}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={deleteMutation.isPending}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir o cliente "{customer.name}"? Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(customer.id)}>
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>

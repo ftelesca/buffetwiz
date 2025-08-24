@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText } from "@/lib/utils"
 import { SpreadsheetImport } from "@/components/insumos/SpreadsheetImport"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 interface Unit {
   id: number
@@ -351,13 +352,30 @@ export default function Insumos() {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => handleDeleteItem(item.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                   <AlertDialogDescription>
+                                     Tem certeza que deseja excluir o insumo "{item.description}"? Esta ação não pode ser desfeita.
+                                   </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteItem(item.id)}>
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -406,14 +424,31 @@ export default function Insumos() {
                       >
                         <Edit className="h-3 w-3" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6"
-                        onClick={() => handleDeleteUnit(unit.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                             <AlertDialogDescription>
+                               Tem certeza que deseja excluir a unidade "{unit.description}"? Esta ação não pode ser desfeita.
+                             </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteUnit(unit.id)}>
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 ))}
