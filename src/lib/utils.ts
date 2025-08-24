@@ -60,3 +60,44 @@ export function parseCurrency(formattedValue: string): number {
   const cleanValue = formattedValue.replace(/[^\d,]/g, '').replace(',', '.');
   return parseFloat(cleanValue) || 0;
 }
+
+export function parseSpreadsheetCurrency(value: string | number): number {
+  if (typeof value === 'number') return value;
+  if (!value || typeof value !== 'string') return 0;
+  
+  // Remove currency symbols and spaces
+  let cleanValue = value.toString().replace(/[R$\s]/g, '');
+  
+  // If no decimal separators, it's a whole number
+  if (!/[.,]/.test(cleanValue)) {
+    return parseFloat(cleanValue) || 0;
+  }
+  
+  // Find the last occurrence of comma or period
+  const lastCommaIndex = cleanValue.lastIndexOf(',');
+  const lastPeriodIndex = cleanValue.lastIndexOf('.');
+  
+  // Determine which is the decimal separator based on position and context
+  if (lastCommaIndex > lastPeriodIndex) {
+    // Comma is the decimal separator (e.g., "1.234,99")
+    // Check if it has exactly 2 digits after comma (typical for currency)
+    const afterComma = cleanValue.substring(lastCommaIndex + 1);
+    if (afterComma.length <= 2) {
+      cleanValue = cleanValue.replace(/\./g, '').replace(',', '.');
+    } else {
+      // Comma is thousands separator
+      cleanValue = cleanValue.replace(/,/g, '');
+    }
+  } else if (lastPeriodIndex > lastCommaIndex) {
+    // Period is the decimal separator (e.g., "1,234.99")
+    const afterPeriod = cleanValue.substring(lastPeriodIndex + 1);
+    if (afterPeriod.length <= 2) {
+      cleanValue = cleanValue.replace(/,/g, '');
+    } else {
+      // Period is thousands separator (unlikely but handle it)
+      cleanValue = cleanValue.replace(/\./g, '');
+    }
+  }
+  
+  return parseFloat(cleanValue) || 0;
+}

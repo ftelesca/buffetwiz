@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Plus, Search, Edit, Trash2, Save, X } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Save, X, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,6 +12,7 @@ import { MainLayout } from "@/components/layout/MainLayout"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency } from "@/lib/utils"
+import { SpreadsheetImport } from "@/components/insumos/SpreadsheetImport"
 
 interface Unit {
   id: number
@@ -45,6 +46,7 @@ export default function Insumos() {
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null)
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false)
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false)
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
   const { toast } = useToast()
 
   const [newItem, setNewItem] = useState<ItemFormData>({
@@ -260,6 +262,13 @@ export default function Insumos() {
             <p className="text-muted-foreground">Gerencie itens e unidades</p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsImportDialogOpen(true)}
+            >
+              <Upload className="h-4 w-4" />
+              Importar Planilha
+            </Button>
             <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="premium" onClick={() => {
@@ -550,6 +559,14 @@ export default function Insumos() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Spreadsheet Import Dialog */}
+        <SpreadsheetImport
+          isOpen={isImportDialogOpen}
+          onClose={() => setIsImportDialogOpen(false)}
+          units={units}
+          onImportComplete={fetchItems}
+        />
       </div>
     </MainLayout>
   )
