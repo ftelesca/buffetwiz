@@ -227,12 +227,6 @@ export default function Events() {
                   </div>
                 )}
                 
-                {event.type && (
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Tipo:</span>{" "}
-                    <span className="font-medium">{event.type}</span>
-                  </div>
-                )}
                 
                 <div className="grid grid-cols-3 gap-3 text-sm">
                   {event.numguests && (
