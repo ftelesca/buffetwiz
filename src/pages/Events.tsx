@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, Search, Filter, Edit, Trash2, Eye, Calendar, Users, DollarSign } from "lucide-react"
+import { Plus, Search, Filter, Edit, Trash2, Eye, Calendar, Users, DollarSign, ChefHat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { MainLayout } from "@/components/layout/MainLayout"
 import { EventForm } from "@/components/events/EventForm"
+import { EventMenu } from "@/components/events/EventMenu"
 import { useToast } from "@/hooks/use-toast"
 import { formatDateWithoutTimezone, formatTimeWithoutSeconds, formatCurrency } from "@/lib/utils"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
@@ -34,7 +35,9 @@ interface Event {
 export default function Events() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isMenuDialogOpen, setIsMenuDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+  const [selectedEventForMenu, setSelectedEventForMenu] = useState<Event | null>(null)
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
@@ -99,6 +102,11 @@ export default function Events() {
 
   const handleDeleteEvent = (id: number) => {
     deleteMutation.mutate(id);
+  };
+
+  const handleOpenMenu = (event: Event) => {
+    setSelectedEventForMenu(event);
+    setIsMenuDialogOpen(true);
   };
 
   const handleFormSuccess = () => {
@@ -266,6 +274,15 @@ export default function Events() {
                     <Edit className="h-3 w-3 mr-1" />
                     Editar
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleOpenMenu(event)}
+                    className="flex-1 hover:bg-accent/20 hover:border-accent"
+                  >
+                    <ChefHat className="h-3 w-3 mr-1" />
+                    Menu
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
@@ -317,6 +334,21 @@ export default function Events() {
             </Button>
           </div>
         )}
+
+        {/* Menu Dialog */}
+        <Dialog open={isMenuDialogOpen} onOpenChange={setIsMenuDialogOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto glass-effect">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">Menu do Evento</DialogTitle>
+            </DialogHeader>
+            {selectedEventForMenu && (
+              <EventMenu
+                eventId={selectedEventForMenu.id}
+                eventTitle={selectedEventForMenu.title}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   )
