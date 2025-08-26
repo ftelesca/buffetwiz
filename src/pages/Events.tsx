@@ -276,9 +276,8 @@ export default function Events() {
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={() => handleOpenMenu(event)}
-                    className="flex-1 hover:bg-accent/20 hover:border-accent"
+                    className="flex-1"
                   >
                     <ChefHat className="h-3 w-3 mr-1" />
                     Menu
