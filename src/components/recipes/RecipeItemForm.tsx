@@ -141,12 +141,12 @@ export default function RecipeItemForm({
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleClose} className="border-foreground text-foreground hover:bg-foreground hover:text-background">
-              Cancelar
-            </Button>
             <Button onClick={saveRecipeItem} className="bg-primary hover:bg-primary/90">
               <Save className="h-4 w-4 mr-2" />
               {editingRecipeItem ? 'Atualizar' : 'Adicionar'}
+            </Button>
+            <Button variant="outline" onClick={handleClose} className="border-foreground text-foreground hover:bg-foreground hover:text-background">
+              Cancelar
             </Button>
           </div>
         </div>
