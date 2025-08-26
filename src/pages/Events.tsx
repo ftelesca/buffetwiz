@@ -260,9 +260,8 @@ export default function Events() {
                 <div className="flex gap-2 pt-2">
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={() => handleEditEvent(event)}
-                    className="flex-1 hover:bg-primary/10 hover:border-primary/40"
+                    className="flex-1"
                   >
                     <Edit className="h-3 w-3 mr-1" />
                     Editar
