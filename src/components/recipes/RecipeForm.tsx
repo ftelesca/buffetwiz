@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Save, X } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -57,10 +58,14 @@ export default function RecipeForm({ isOpen, onOpenChange, onSuccess }: RecipeFo
             />
           </div>
           <div className="flex justify-end gap-2">
+            <Button onClick={addRecipe}>
+              <Save className="h-4 w-4" />
+              Salvar
+            </Button>
             <Button variant="outline" onClick={handleClose}>
+              <X className="h-4 w-4" />
               Cancelar
             </Button>
-            <Button onClick={addRecipe}>Salvar</Button>
           </div>
         </div>
       </DialogContent>
