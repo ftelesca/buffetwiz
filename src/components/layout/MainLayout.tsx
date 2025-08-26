@@ -28,20 +28,22 @@ function LayoutContent({ children }: MainLayoutProps) {
       )}
       
       <main className="flex-1 flex flex-col">
-        <header className="sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
-          <div className="flex h-full items-center px-6 gap-4 justify-between">
-            <div className="flex items-center gap-2">
-              <UtensilsCrossed className="h-8 w-8 text-primary" />
-              <div>
-                <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
-                  BuffetWiz
-                </h1>
-                <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
+        {state === "collapsed" && (
+          <header className="sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
+            <div className="flex h-full items-center px-6 gap-4 justify-between">
+              <div className="flex items-center gap-2">
+                <UtensilsCrossed className="h-8 w-8 text-primary" />
+                <div>
+                  <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
+                    BuffetWiz
+                  </h1>
+                  <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
+                </div>
               </div>
             </div>
-          </div>
-        </header>
-        <div className="flex-1 p-8 overflow-hidden bg-gradient-to-br from-background via-background to-accent/5">
+          </header>
+        )}
+        <div className={`flex-1 p-8 overflow-hidden bg-gradient-to-br from-background via-background to-accent/5 ${state === "collapsed" ? "" : "pt-8"}`}>
           {children}
         </div>
       </main>
