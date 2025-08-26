@@ -12,6 +12,7 @@ import { Plus, Trash2, ChefHat } from "lucide-react";
 interface EventMenuProps {
   eventId: number;
   eventTitle: string;
+  eventDescription?: string;
 }
 
 interface EventMenuRecipe {
@@ -26,7 +27,7 @@ interface Recipe {
   description: string;
 }
 
-export const EventMenu = ({ eventId, eventTitle }: EventMenuProps) => {
+export const EventMenu = ({ eventId, eventTitle, eventDescription }: EventMenuProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>("");
   const { toast } = useToast();
@@ -144,7 +145,10 @@ export const EventMenu = ({ eventId, eventTitle }: EventMenuProps) => {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">Menu do Evento</h2>
-          <p className="text-muted-foreground">{eventTitle}</p>
+          <p className="text-muted-foreground font-medium">{eventTitle}</p>
+          {eventDescription && (
+            <p className="text-sm text-muted-foreground/80">{eventDescription}</p>
+          )}
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
