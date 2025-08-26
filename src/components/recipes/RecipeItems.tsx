@@ -1,89 +1,83 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { supabase } from "@/integrations/supabase/client"
-import { useToast } from "@/hooks/use-toast"
-import { Trash2, Plus, Edit } from "lucide-react"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import type { Recipe, RecipeItem, Unit } from "@/types/recipe"
-
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Trash2, Plus, Edit } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import type { Recipe, RecipeItem, Unit } from "@/types/recipe";
 interface RecipeItemsProps {
-  selectedRecipe: Recipe | null
-  recipeItems: RecipeItem[]
-  units: Unit[]
-  onAddItem: () => void
-  onEditItem: (recipeItem: RecipeItem) => void
-  onRecipeItemsChange: () => void
+  selectedRecipe: Recipe | null;
+  recipeItems: RecipeItem[];
+  units: Unit[];
+  onAddItem: () => void;
+  onEditItem: (recipeItem: RecipeItem) => void;
+  onRecipeItemsChange: () => void;
 }
-
-export default function RecipeItems({ 
-  selectedRecipe, 
-  recipeItems, 
-  units, 
-  onAddItem, 
+export default function RecipeItems({
+  selectedRecipe,
+  recipeItems,
+  units,
+  onAddItem,
   onEditItem,
-  onRecipeItemsChange 
+  onRecipeItemsChange
 }: RecipeItemsProps) {
-  const { toast } = useToast()
-
+  const {
+    toast
+  } = useToast();
   const deleteRecipeItem = async (id: number) => {
-    const { error } = await supabase
-      .from("recipe_item")
-      .delete()
-      .eq("id", id)
-
+    const {
+      error
+    } = await supabase.from("recipe_item").delete().eq("id", id);
     if (error) {
-      toast({ title: "Erro", description: "Erro ao excluir item", variant: "destructive" })
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir item",
+        variant: "destructive"
+      });
     } else {
-      toast({ title: "Sucesso", description: "Item excluído com sucesso" })
-      onRecipeItemsChange()
+      toast({
+        title: "Sucesso",
+        description: "Item excluído com sucesso"
+      });
+      onRecipeItemsChange();
     }
-  }
-
+  };
   const getUnitDescription = (unitId: number) => {
-    const unit = units.find(u => u.id === unitId)
-    return unit?.description || ""
-  }
-
+    const unit = units.find(u => u.id === unitId);
+    return unit?.description || "";
+  };
   const formatQuantity = (qty: number) => {
-    return qty.toString().replace('.', ',')
-  }
+    return qty.toString().replace('.', ',');
+  };
 
   // Calculate total recipe cost with full precision
   const totalRecipeCost = recipeItems.reduce((total, recipeItem) => {
-    const item = recipeItem.item_detail
-    const unitCost = Number(item?.cost || 0)
-    const factor = Number(item?.factor || 1)
-    const adjustedUnitCost = unitCost / factor
-    const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty)
-    return total + itemTotalCost
-  }, 0)
-
+    const item = recipeItem.item_detail;
+    const unitCost = Number(item?.cost || 0);
+    const factor = Number(item?.factor || 1);
+    const adjustedUnitCost = unitCost / factor;
+    const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
+    return total + itemTotalCost;
+  }, 0);
   const formatCurrency = (value: number) => {
-    return value < 0.01 ? "< 0,01" : value.toFixed(2).replace('.', ',')
-  }
-
-  
-
-  return (
-    <Card className="h-fit">
+    return value < 0.01 ? "< 0,01" : value.toFixed(2).replace('.', ',');
+  };
+  return <Card className="h-fit">
       <CardHeader className="flex-shrink-0">
         <div className="flex justify-between items-center gap-4">
           <CardTitle className="flex-shrink-0">
             {selectedRecipe ? "Itens da Receita" : "Selecione uma receita"}
           </CardTitle>
-          {selectedRecipe && (
-            <Button onClick={onAddItem} size="sm" className="flex-shrink-0">
+          {selectedRecipe && <Button onClick={onAddItem} size="sm" className="flex-shrink-0">
               <Plus className="w-4 h-4 mr-2" />
               Adicionar Item
-            </Button>
-          )}
+            </Button>}
         </div>
       </CardHeader>
       <CardContent className="overflow-auto max-h-[70vh]">
-        {selectedRecipe ? (
-          <div className="space-y-4">
+        {selectedRecipe ? <div className="space-y-4">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -97,25 +91,18 @@ export default function RecipeItems({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recipeItems.length === 0 ? (
-                    <TableRow>
+                  {recipeItems.length === 0 ? <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         Nenhum item adicionado à receita. Clique em "Adicionar Item" para começar.
                       </TableCell>
-                    </TableRow>
-                  ) : (
-                    recipeItems.map((recipeItem) => {
-                      
-                      const item = recipeItem.item_detail
-                      const unitDescription = item?.unit_use ? getUnitDescription(item.unit_use) : 
-                                            item?.unit_purch ? getUnitDescription(item.unit_purch) : ""
-                      const unitCost = item?.cost || 0  // custo da unidade de compra
-                      const factor = item?.factor || 1  // fator de conversão
-                      const adjustedUnitCost = unitCost / factor  // custo unitario = custo da unidade de compra / fator
-                      const totalCost = adjustedUnitCost * recipeItem.qty
-
-                      return (
-                        <TableRow key={recipeItem.id}>
+                    </TableRow> : recipeItems.map(recipeItem => {
+                const item = recipeItem.item_detail;
+                const unitDescription = item?.unit_use ? getUnitDescription(item.unit_use) : item?.unit_purch ? getUnitDescription(item.unit_purch) : "";
+                const unitCost = item?.cost || 0; // custo da unidade de compra
+                const factor = item?.factor || 1; // fator de conversão
+                const adjustedUnitCost = unitCost / factor; // custo unitario = custo da unidade de compra / fator
+                const totalCost = adjustedUnitCost * recipeItem.qty;
+                return <TableRow key={recipeItem.id}>
                           <TableCell className="font-medium">{item?.description}</TableCell>
                           <TableCell className="text-right">{formatQuantity(recipeItem.qty)}</TableCell>
                           <TableCell>
@@ -125,23 +112,12 @@ export default function RecipeItems({
                           <TableCell className="text-right font-medium whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
                           <TableCell className="sticky right-0 bg-card">
                             <div className="flex gap-1 justify-end min-w-[80px]">
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => onEditItem(recipeItem)}
-                                className="h-8 w-8 hover:bg-accent"
-                                title="Editar item"
-                              >
+                              <Button size="icon" variant="ghost" onClick={() => onEditItem(recipeItem)} className="h-8 w-8 hover:bg-accent" title="Editar item">
                                 <Edit className="h-4 w-4" />
                               </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                                    title="Excluir item"
-                                  >
+                                  <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" title="Excluir item">
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </AlertDialogTrigger>
@@ -162,10 +138,8 @@ export default function RecipeItems({
                               </AlertDialog>
                             </div>
                           </TableCell>
-                        </TableRow>
-                      )
-                    })
-                  )}
+                        </TableRow>;
+              })}
                 </TableBody>
               </Table>
             </div>
@@ -174,20 +148,16 @@ export default function RecipeItems({
             <Card className="mt-4">
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-medium">Custo Total da Receita:</span>
+                  <span className="text-lg font-medium">Custo Total:</span>
                   <span className="text-xl font-bold text-primary">
                     {formatCurrency(totalRecipeCost)}
                   </span>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        ) : (
-          <p className="text-muted-foreground text-center py-8">
+          </div> : <p className="text-muted-foreground text-center py-8">
             Selecione uma receita para ver seus itens
-          </p>
-        )}
+          </p>}
       </CardContent>
-    </Card>
-  )
+    </Card>;
 }
