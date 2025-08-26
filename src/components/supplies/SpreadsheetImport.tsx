@@ -114,7 +114,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
   const processData = async (data: any[][]) => {
     const items: ParsedItem[] = []
     
-    // Fetch existing items to check for duplicates
+    // Fetch existing insumos to check for duplicates
     const { supabase } = await import("@/integrations/supabase/client")
     const { data: existingItems } = await supabase
       .from('item')
@@ -142,7 +142,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
         rowIndex: i + 1
       }
 
-      // Check if item already exists (case-insensitive)
+      // Check if insumo already exists (case-insensitive)
       const existingItem = existingItems?.find(existing => 
         existing.description.toUpperCase() === item.description.toUpperCase()
       )
@@ -204,7 +204,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
     if (validItems.length === 0) {
       toast({
         title: "Erro",
-        description: "Nenhum item válido para importar",
+        description: "Nenhum insumo válido para importar",
         variant: "destructive"
       })
       return
@@ -214,7 +214,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
     try {
       const { supabase } = await import("@/integrations/supabase/client")
       
-      // Separate items for update and insert
+      // Separate insumos for update and insert
       const itemsToUpdate = validItems.filter(item => item.isUpdate)
       const itemsToInsert = validItems.filter(item => !item.isUpdate)
       
@@ -254,16 +254,16 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
       
       toast({
         title: "Sucesso",
-        description: `${insertCount} itens inseridos, ${updateCount} itens atualizados!`
+        description: `${insertCount} insumos inseridos, ${updateCount} insumos atualizados!`
       })
 
       onImportComplete()
       handleClose()
     } catch (error) {
-      console.error('Erro ao importar itens:', error)
+      console.error('Erro ao importar insumos:', error)
       toast({
         title: "Erro",
-        description: "Erro ao importar itens. Tente novamente.",
+        description: "Erro ao importar insumos. Tente novamente.",
         variant: "destructive"
       })
     } finally {
@@ -438,7 +438,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
               {invalidItems.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-red-600">Itens com Erro</CardTitle>
+                    <CardTitle className="text-red-600">Insumos com Erro</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">

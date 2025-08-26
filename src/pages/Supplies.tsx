@@ -101,10 +101,10 @@ export default function Insumos() {
       
       setItems(itemsWithUnits)
     } catch (error) {
-      console.error('Erro ao carregar itens:', error)
+      console.error('Erro ao carregar insumos:', error)
       toast({
         title: "Erro",
-        description: "Erro ao carregar itens",
+        description: "Erro ao carregar insumos",
         variant: "destructive"
       })
     }
@@ -144,7 +144,7 @@ export default function Insumos() {
           .eq('id', editingItem.id)
 
         if (error) throw error
-        toast({ title: "Sucesso", description: "Item atualizado com sucesso!" })
+        toast({ title: "Sucesso", description: "Insumo atualizado com sucesso!" })
       } else {
         const { error } = await supabase
           .from('item')
@@ -157,7 +157,7 @@ export default function Insumos() {
           }])
 
         if (error) throw error
-        toast({ title: "Sucesso", description: "Item criado com sucesso!" })
+        toast({ title: "Sucesso", description: "Insumo criado com sucesso!" })
       }
 
       setIsItemDialogOpen(false)
@@ -165,10 +165,10 @@ export default function Insumos() {
       setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
       fetchItems()
     } catch (error) {
-      console.error('Erro ao salvar item:', error)
+      console.error('Erro ao salvar insumo:', error)
       toast({
         title: "Erro",
-        description: "Erro ao salvar item",
+        description: "Erro ao salvar insumo",
         variant: "destructive"
       })
     }
@@ -197,7 +197,7 @@ export default function Insumos() {
       setEditingUnit(null)
       setNewUnit({ description: "" })
       fetchUnits()
-      fetchItems() // Atualizar itens para mostrar novas unidades
+      fetchItems() // Atualizar insumos para mostrar novas unidades
     } catch (error) {
       console.error('Erro ao salvar unidade:', error)
       toast({
@@ -217,13 +217,13 @@ export default function Insumos() {
 
       if (error) throw error
       
-      toast({ title: "Sucesso", description: "Item excluído com sucesso!" })
+      toast({ title: "Sucesso", description: "Insumo excluído com sucesso!" })
       fetchItems()
     } catch (error) {
-      console.error('Erro ao excluir item:', error)
+      console.error('Erro ao excluir insumo:', error)
       toast({
         title: "Erro",
-        description: "Erro ao excluir item",
+        description: "Erro ao excluir insumo",
         variant: "destructive"
       })
     }
@@ -261,7 +261,7 @@ export default function Insumos() {
         {/* Header */}
         <PageHeader
           title="Insumos"
-          subtitle="Gerencie itens e unidades"
+          subtitle="Gerencie insumos e unidades"
         >
           <div className="flex gap-2">
             <Button 
@@ -278,7 +278,7 @@ export default function Insumos() {
                   setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
                 }}>
                   <Plus className="h-4 w-4" />
-                  Novo Item
+                  Novo Insumo
                 </Button>
               </DialogTrigger>
             </Dialog>
@@ -290,7 +290,7 @@ export default function Insumos() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar itens..."
+              placeholder="Buscar insumos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -304,9 +304,9 @@ export default function Insumos() {
             <Card>
               <CardHeader>
                 <div>
-                  <CardTitle>Itens</CardTitle>
+                  <CardTitle>Insumos</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {getCountText(items.length, filteredItems.length, !!searchTerm, "item", "itens", "item cadastrado", "itens cadastrados")}
+                    {getCountText(items.length, filteredItems.length, !!searchTerm, "insumo", "insumos", "insumo cadastrado", "insumos cadastrados")}
                   </p>
                 </div>
               </CardHeader>
@@ -481,7 +481,7 @@ export default function Insumos() {
                   id="item-description"
                   value={newItem.description || ''}
                   onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Digite a descrição do item"
+                  placeholder="Digite a descrição do insumo"
                 />
               </div>
               <div>
