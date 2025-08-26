@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -140,10 +141,13 @@ export default function RecipeItemForm({
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleClose}>
+            <Button variant="outline" onClick={handleClose} className="border-foreground text-foreground hover:bg-foreground hover:text-background">
               Cancelar
             </Button>
-            <Button onClick={saveRecipeItem}>{editingRecipeItem ? 'Atualizar' : 'Adicionar'}</Button>
+            <Button onClick={saveRecipeItem} className="bg-primary hover:bg-primary/90">
+              <Save className="h-4 w-4 mr-2" />
+              {editingRecipeItem ? 'Atualizar' : 'Adicionar'}
+            </Button>
           </div>
         </div>
       </DialogContent>
