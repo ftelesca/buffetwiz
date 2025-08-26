@@ -287,7 +287,7 @@ const Customers = () => {
                   disabled={createMutation.isPending || updateMutation.isPending}
                 >
                   <Save className="h-4 w-4" />
-                  {editingCustomer ? "Atualizar" : "Criar"}
+                  Salvar
                 </Button>
                 <Button 
                   type="button" 
