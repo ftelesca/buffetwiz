@@ -28,7 +28,7 @@ function LayoutContent({ children }: MainLayoutProps) {
       )}
       
       <main className="flex-1 flex flex-col">
-        <header className="sticky top-0 z-40 h-16 border-b border-border/30 gradient-glass supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
           <div className="flex h-full items-center px-6 gap-4 justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
