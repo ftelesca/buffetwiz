@@ -337,7 +337,7 @@ const Customers = () => {
                   <TableHead>Nome</TableHead>
                   <TableHead>Contato</TableHead>
                   <TableHead>Endereço</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className="text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -375,8 +375,8 @@ const Customers = () => {
                         <Badge variant="outline">Sem endereço</Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
+                    <TableCell className="text-center">
+                      <div className="flex gap-2 justify-center">
                         <Button
                           size="sm"
                           variant="outline"
