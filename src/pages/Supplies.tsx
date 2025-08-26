@@ -319,8 +319,8 @@ export default function Insumos() {
                     <TableHeader className="sticky top-0 bg-background z-10 border-b">
                       <TableRow>
                         <TableHead>Descrição</TableHead>
-                        <TableHead>Unidade Compra</TableHead>
-                        <TableHead>Unidade Uso</TableHead>
+                        <TableHead className="text-center">Unidade Compra</TableHead>
+                        <TableHead className="text-center">Unidade Uso</TableHead>
                         <TableHead className="text-right">Fator</TableHead>
                         <TableHead className="text-right">Custo</TableHead>
                         <TableHead className="w-24 text-center">Ações</TableHead>
@@ -330,10 +330,10 @@ export default function Insumos() {
                       {filteredItems.map((item) => (
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{item.description}</TableCell>
-                          <TableCell>
+                          <TableCell className="text-center">
                             <Badge variant="outline">{item.unit_purch_desc}</Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-center">
                             <Badge variant="outline">{item.unit_use_desc}</Badge>
                           </TableCell>
                           <TableCell className="text-right">{item.factor || 1}</TableCell>
