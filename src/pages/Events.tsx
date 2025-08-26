@@ -346,6 +346,7 @@ export default function Events() {
                 eventId={selectedEventForMenu.id}
                 eventTitle={selectedEventForMenu.title}
                 eventDescription={selectedEventForMenu.description || undefined}
+                customerName={selectedEventForMenu.customer_info?.name}
               />
             )}
           </DialogContent>
