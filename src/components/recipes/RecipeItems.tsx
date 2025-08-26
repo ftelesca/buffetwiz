@@ -85,14 +85,13 @@ export default function RecipeItems({
                     <TableHead>Item</TableHead>
                     <TableHead className="text-right">Quantidade</TableHead>
                     <TableHead>Unidade</TableHead>
-                    <TableHead className="text-right">Custo Unit.</TableHead>
                     <TableHead className="text-right">Custo Total</TableHead>
                     <TableHead className="text-right w-[120px] sticky right-0">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {recipeItems.length === 0 ? <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                         Nenhum item adicionado à receita. Clique em "Adicionar Item" para começar.
                       </TableCell>
                     </TableRow> : recipeItems.map(recipeItem => {
@@ -108,7 +107,6 @@ export default function RecipeItems({
                           <TableCell>
                             <Badge variant="outline">{unitDescription}</Badge>
                           </TableCell>
-                          <TableCell className="text-right whitespace-nowrap">{formatCurrency(adjustedUnitCost)}</TableCell>
                           <TableCell className="text-right font-medium whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
                           <TableCell className="sticky right-0">
                             <div className="flex gap-1 justify-end min-w-[80px]">
