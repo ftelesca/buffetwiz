@@ -544,6 +544,10 @@ export default function Insumos() {
                 />
               </div>
               <div className="flex justify-end gap-2">
+                <Button onClick={handleSaveItem}>
+                  <Save className="h-4 w-4" />
+                  Salvar
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -554,10 +558,6 @@ export default function Insumos() {
                 >
                   <X className="h-4 w-4" />
                   Cancelar
-                </Button>
-                <Button onClick={handleSaveItem}>
-                  <Save className="h-4 w-4" />
-                  Salvar
                 </Button>
               </div>
             </div>
