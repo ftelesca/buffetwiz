@@ -40,6 +40,7 @@ export type Database = {
       }
       event: {
         Row: {
+          cost: number | null
           customer: number
           date: string | null
           description: string | null
@@ -51,9 +52,9 @@ export type Database = {
           time: string | null
           title: string
           type: string | null
-          valor: number | null
         }
         Insert: {
+          cost?: number | null
           customer: number
           date?: string | null
           description?: string | null
@@ -65,9 +66,9 @@ export type Database = {
           time?: string | null
           title?: string
           type?: string | null
-          valor?: number | null
         }
         Update: {
+          cost?: number | null
           customer?: number
           date?: string | null
           description?: string | null
@@ -79,7 +80,6 @@ export type Database = {
           time?: string | null
           title?: string
           type?: string | null
-          valor?: number | null
         }
         Relationships: [
           {

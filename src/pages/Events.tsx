@@ -23,7 +23,7 @@ interface Event {
   type: string | null;
   status: string | null;
   numguests: number | null;
-  valor: number | null;
+  cost: number | null;
   price: number | null;
   description: string | null;
   customer_info?: {
@@ -233,11 +233,11 @@ export default function Events() {
                       <span className="font-medium">{event.numguests}</span>
                     </div>
                   )}
-                  {event.valor && (
+                  {event.cost && (
                     <div className="flex items-center gap-1">
                       <DollarSign className="h-3 w-3 text-success" />
                       <span className="font-medium">
-                        {formatCurrency(event.valor)}
+                        {formatCurrency(event.cost)}
                       </span>
                     </div>
                   )}

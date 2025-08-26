@@ -28,7 +28,7 @@ interface EventFormData {
   type: string;
   status: string;
   numguests: string;
-  valor: string;
+  cost: string;
   price: string;
   description: string;
 }
@@ -59,7 +59,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     type: "",
     status: "planejamento",
     numguests: "",
-    valor: "",
+    cost: "",
     price: "",
     description: ""
   });
@@ -113,7 +113,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         type: eventData.type || "",
         status: eventData.status || "planejamento",
         numguests: eventData.numguests?.toString() || "",
-        valor: eventData.valor ? formatCurrencyInput((eventData.valor * 100).toString()) : "",
+        cost: eventData.cost ? formatCurrencyInput((eventData.cost * 100).toString()) : "",
         price: eventData.price ? formatCurrencyInput((eventData.price * 100).toString()) : "",
         description: eventData.description || ""
       });
@@ -210,7 +210,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       type: formData.type || null,
       status: formData.status,
       numguests: formData.numguests ? parseInt(formData.numguests) : null,
-      valor: formData.valor ? parseCurrency(formData.valor) : null,
+      cost: formData.cost ? parseCurrency(formData.cost) : null,
       price: formData.price ? parseCurrency(formData.price) : null,
       description: formData.description || null
     };
@@ -353,13 +353,13 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         </div>
 
         <div>
-          <Label htmlFor="valor">Valor</Label>
+          <Label htmlFor="cost">Custo</Label>
           <Input
-            id="valor"
-            value={formData.valor}
+            id="cost"
+            value={formData.cost}
             onChange={(e) => {
               const formattedValue = formatCurrencyInput(e.target.value);
-              setFormData({ ...formData, valor: formattedValue });
+              setFormData({ ...formData, cost: formattedValue });
             }}
             placeholder="R$ 0,00"
           />
