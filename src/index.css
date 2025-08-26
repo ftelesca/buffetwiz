@@ -164,6 +164,45 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  .midnight {
+    --background: 220 15% 16%;
+    --foreground: 210 15% 88%;
+
+    --card: 220 15% 18%;
+    --card-foreground: 210 15% 88%;
+
+    --popover: 220 15% 20%;
+    --popover-foreground: 210 15% 88%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 15% 96%;
+
+    --secondary: 220 20% 25%;
+    --secondary-foreground: 210 15% 88%;
+
+    --muted: 220 20% 22%;
+    --muted-foreground: 215 20% 70%;
+
+    --accent: 220 20% 24%;
+    --accent-foreground: 210 15% 88%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 15% 96%;
+
+    --border: 220 20% 26%;
+    --input: 220 20% 22%;
+    --ring: 217 91% 60%;
+    
+    --sidebar-background: 220 15% 14%;
+    --sidebar-foreground: 210 15% 85%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 210 15% 96%;
+    --sidebar-accent: 220 20% 20%;
+    --sidebar-accent-foreground: 210 15% 85%;
+    --sidebar-border: 220 20% 24%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
 }
 
 @layer base {

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react"
 
-type Theme = "light" | "dark"
+type Theme = "light" | "dark" | "midnight"
 
 interface ThemeContextType {
   theme: Theme
@@ -19,14 +19,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const root = window.document.documentElement
     
-    root.classList.remove("light", "dark")
+    root.classList.remove("light", "dark", "midnight")
     root.classList.add(theme)
     
     localStorage.setItem("buffet-wiz-theme", theme)
   }, [theme])
 
   const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light")
+    setTheme(theme === "light" ? "midnight" : theme === "midnight" ? "dark" : "light")
   }
 
   return (
