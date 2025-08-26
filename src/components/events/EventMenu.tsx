@@ -147,9 +147,6 @@ export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName 
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">{eventTitle}</h2>
           <p className="text-muted-foreground font-medium">{customerName}</p>
-          {eventDescription && (
-            <p className="text-sm text-muted-foreground/80">{eventDescription}</p>
-          )}
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
