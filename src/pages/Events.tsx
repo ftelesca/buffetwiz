@@ -148,7 +148,7 @@ export default function Events() {
         {/* Enhanced Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold text-gradient tracking-tight">Eventos</h1>
+            <h1 className="text-3xl font-bold text-gradient tracking-tight">Eventos</h1>
             <p className="text-muted-foreground text-lg">Gerencie eventos gastronômicos</p>
           </div>
           
