@@ -133,7 +133,7 @@ export default function Recipes() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Receitas</h1>
+            <h1 className="text-3xl font-bold text-gradient tracking-tight">Receitas</h1>
             <p className="text-muted-foreground">Gerencie receitas e seus insumos</p>
           </div>
           <Button onClick={() => setIsAddingRecipe(true)}>
