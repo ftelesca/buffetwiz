@@ -9,7 +9,7 @@ import Index from "./pages/Index";
 import Events from "./pages/Events";
 import Customers from "./pages/Customers";
 import Recipes from "./pages/Recipes";
-import Insumos from "./pages/Insumos";
+import Supplies from "./pages/Supplies";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 
@@ -27,7 +27,7 @@ const App = () => (
             <Route path="/eventos" element={<Events />} />
             <Route path="/clientes" element={<Customers />} />
             <Route path="/cardapios" element={<Recipes />} />
-            <Route path="/insumos" element={<Insumos />} />
+            <Route path="/insumos" element={<Supplies />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
