@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -58,13 +57,10 @@ export default function RecipeForm({ isOpen, onOpenChange, onSuccess }: RecipeFo
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleClose} className="border-foreground text-foreground hover:bg-foreground hover:text-background">
+            <Button variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button onClick={addRecipe} className="bg-primary hover:bg-primary/90">
-              <Save className="h-4 w-4 mr-2" />
-              Salvar
-            </Button>
+            <Button onClick={addRecipe}>Salvar</Button>
           </div>
         </div>
       </DialogContent>

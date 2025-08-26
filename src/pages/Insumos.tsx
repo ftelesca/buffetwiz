@@ -544,10 +544,6 @@ export default function Insumos() {
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <Button onClick={handleSaveItem} className="bg-primary hover:bg-primary/90">
-                  <Save className="h-4 w-4 mr-2" />
-                  {editingItem ? 'Atualizar' : 'Salvar'}
-                </Button>
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -555,9 +551,13 @@ export default function Insumos() {
                     setEditingItem(null)
                     setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
                   }}
-                  className="border-foreground text-foreground hover:bg-foreground hover:text-background"
                 >
+                  <X className="h-4 w-4" />
                   Cancelar
+                </Button>
+                <Button onClick={handleSaveItem}>
+                  <Save className="h-4 w-4" />
+                  Salvar
                 </Button>
               </div>
             </div>

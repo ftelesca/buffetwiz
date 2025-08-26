@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Save } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn, formatCurrencyInput, parseCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -391,11 +391,10 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       </div>
 
       <div className="flex gap-2 pt-4">
-        <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90">
-          <Save className="h-4 w-4 mr-2" />
-          {eventId ? "Atualizar" : "Criar"}
+        <Button type="submit" disabled={isLoading}>
+          {eventId ? "Atualizar" : "Criar"} Evento
         </Button>
-        <Button type="button" variant="outline" onClick={onCancel} className="border-foreground text-foreground hover:bg-foreground hover:text-background">
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
       </div>
