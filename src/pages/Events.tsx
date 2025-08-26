@@ -24,6 +24,7 @@ interface Event {
   status: string | null;
   numguests: number | null;
   valor: number | null;
+  price: number | null;
   description: string | null;
   customer_info?: {
     name: string;
@@ -225,7 +226,7 @@ export default function Events() {
                   </div>
                 )}
                 
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-3 gap-3 text-sm">
                   {event.numguests && (
                     <div className="flex items-center gap-1">
                       <Users className="h-3 w-3 text-primary" />
@@ -237,6 +238,14 @@ export default function Events() {
                       <DollarSign className="h-3 w-3 text-success" />
                       <span className="font-medium">
                         {formatCurrency(event.valor)}
+                      </span>
+                    </div>
+                  )}
+                  {event.price && (
+                    <div className="flex items-center gap-1 text-primary">
+                      <DollarSign className="h-3 w-3" />
+                      <span className="font-medium">
+                        {formatCurrency(event.price)}
                       </span>
                     </div>
                   )}

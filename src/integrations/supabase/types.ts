@@ -46,6 +46,7 @@ export type Database = {
           id: number
           location: string | null
           numguests: number | null
+          price: number | null
           status: string | null
           time: string | null
           title: string
@@ -59,6 +60,7 @@ export type Database = {
           id?: number
           location?: string | null
           numguests?: number | null
+          price?: number | null
           status?: string | null
           time?: string | null
           title?: string
@@ -72,6 +74,7 @@ export type Database = {
           id?: number
           location?: string | null
           numguests?: number | null
+          price?: number | null
           status?: string | null
           time?: string | null
           title?: string

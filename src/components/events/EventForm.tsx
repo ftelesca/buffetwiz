@@ -29,6 +29,7 @@ interface EventFormData {
   status: string;
   numguests: string;
   valor: string;
+  price: string;
   description: string;
 }
 
@@ -59,6 +60,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     status: "planejamento",
     numguests: "",
     valor: "",
+    price: "",
     description: ""
   });
   
@@ -112,6 +114,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         status: eventData.status || "planejamento",
         numguests: eventData.numguests?.toString() || "",
         valor: eventData.valor ? formatCurrencyInput((eventData.valor * 100).toString()) : "",
+        price: eventData.price ? formatCurrencyInput((eventData.price * 100).toString()) : "",
         description: eventData.description || ""
       });
     }
@@ -208,6 +211,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       status: formData.status,
       numguests: formData.numguests ? parseInt(formData.numguests) : null,
       valor: formData.valor ? parseCurrency(formData.valor) : null,
+      price: formData.price ? parseCurrency(formData.price) : null,
       description: formData.description || null
     };
 
@@ -335,7 +339,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div>
           <Label htmlFor="numguests">Número de Convidados</Label>
           <Input
@@ -356,6 +360,19 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             onChange={(e) => {
               const formattedValue = formatCurrencyInput(e.target.value);
               setFormData({ ...formData, valor: formattedValue });
+            }}
+            placeholder="R$ 0,00"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="price">Preço</Label>
+          <Input
+            id="price"
+            value={formData.price}
+            onChange={(e) => {
+              const formattedValue = formatCurrencyInput(e.target.value);
+              setFormData({ ...formData, price: formattedValue });
             }}
             placeholder="R$ 0,00"
           />
