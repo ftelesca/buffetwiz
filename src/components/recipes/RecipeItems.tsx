@@ -85,7 +85,7 @@ export default function RecipeItems({
                     <TableHead>Item</TableHead>
                     <TableHead className="text-right">Quantidade</TableHead>
                     <TableHead>Unidade</TableHead>
-                    <TableHead className="text-right">Custo Total</TableHead>
+                    <TableHead className="text-right">Custo</TableHead>
                     <TableHead className="text-right w-[120px] sticky right-0">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
