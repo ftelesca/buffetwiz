@@ -215,7 +215,6 @@ export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName 
                       {item.recipe.description}
                     </CardTitle>
                   </div>
-                  <Badge variant="secondary">Receita</Badge>
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
