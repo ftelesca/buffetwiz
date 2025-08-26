@@ -144,7 +144,7 @@ export const EventMenu = ({ eventId, eventTitle, eventDescription }: EventMenuPr
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h2 className="text-2xl font-bold tracking-tight">Menu do Evento</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{eventTitle}</h2>
           <p className="text-muted-foreground font-medium">{eventTitle}</p>
           {eventDescription && (
             <p className="text-sm text-muted-foreground/80">{eventDescription}</p>
