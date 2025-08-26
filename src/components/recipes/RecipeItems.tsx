@@ -84,7 +84,7 @@ export default function RecipeItems({
                   <TableRow>
                     <TableHead>Item</TableHead>
                     <TableHead className="text-right">Quantidade</TableHead>
-                    <TableHead>Unidade</TableHead>
+                    <TableHead className="text-center">Unidade</TableHead>
                     <TableHead className="text-right">Custo</TableHead>
                     <TableHead className="text-right w-[120px] sticky right-0">Ações</TableHead>
                   </TableRow>
@@ -104,7 +104,7 @@ export default function RecipeItems({
                 return <TableRow key={recipeItem.id}>
                           <TableCell className="font-medium">{item?.description}</TableCell>
                           <TableCell className="text-right">{formatQuantity(recipeItem.qty)}</TableCell>
-                          <TableCell>
+                          <TableCell className="text-center">
                             <Badge variant="outline">{unitDescription}</Badge>
                           </TableCell>
                           <TableCell className="text-right font-medium whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
