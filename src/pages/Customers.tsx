@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
 import { Plus, Edit, Trash2, Mail, Phone, MapPin, Search, Save, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn, toTitleCase, getCountText } from "@/lib/utils";
@@ -216,14 +217,10 @@ const Customers = () => {
   return (
     <MainLayout>
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gradient tracking-tight">Clientes</h1>
-          <p className="text-muted-foreground mt-2">
-            Gerencie seus clientes e informações de contato
-          </p>
-        </div>
-        
+      <PageHeader
+        title="Clientes"
+        subtitle="Gerencie seus clientes e informações de contato"
+      >
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog}>
@@ -300,8 +297,8 @@ const Customers = () => {
               </div>
             </form>
           </DialogContent>
-        </Dialog>
-      </div>
+          </Dialog>
+        </PageHeader>
 
       {/* Search Bar */}
       <div className="relative max-w-md">

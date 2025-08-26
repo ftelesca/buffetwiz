@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MainLayout } from "@/components/layout/MainLayout"
+import { PageHeader } from "@/components/ui/page-header"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText } from "@/lib/utils"
@@ -258,11 +259,10 @@ export default function Insumos() {
     <MainLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gradient tracking-tight">Insumos</h1>
-            <p className="text-muted-foreground mt-2">Gerencie itens e unidades</p>
-          </div>
+        <PageHeader
+          title="Insumos"
+          subtitle="Gerencie itens e unidades"
+        >
           <div className="flex gap-2">
             <Button 
               variant="outline" 
@@ -283,7 +283,7 @@ export default function Insumos() {
               </DialogTrigger>
             </Dialog>
           </div>
-        </div>
+        </PageHeader>
 
         {/* Search */}
         <div className="flex gap-4">

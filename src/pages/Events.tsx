@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { MainLayout } from "@/components/layout/MainLayout"
+import { PageHeader } from "@/components/ui/page-header"
 import { EventForm } from "@/components/events/EventForm"
 import { EventMenu } from "@/components/events/EventMenu"
 import { useToast } from "@/hooks/use-toast"
@@ -146,12 +147,10 @@ export default function Events() {
     <MainLayout>
       <div className="space-y-8 page-fade-in">
         {/* Enhanced Header */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-gradient tracking-tight">Eventos</h1>
-            <p className="text-muted-foreground mt-2">Gerencie eventos gastronômicos</p>
-          </div>
-          
+        <PageHeader
+          title="Eventos"
+          subtitle="Gerencie eventos gastronômicos"
+        >
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleCreateEvent} className="shadow-button hover-glow">
@@ -172,7 +171,7 @@ export default function Events() {
               />
             </DialogContent>
           </Dialog>
-        </div>
+        </PageHeader>
 
         {/* Enhanced Search Bar */}
         <div className="relative max-w-md">

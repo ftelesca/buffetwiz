@@ -5,6 +5,7 @@ import { toast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Plus, Search } from "lucide-react"
 import { MainLayout } from "@/components/layout/MainLayout"
+import { PageHeader } from "@/components/ui/page-header"
 import RecipeList from "@/components/recipes/RecipeList"
 import RecipeItems from "@/components/recipes/RecipeItems"
 import RecipeForm from "@/components/recipes/RecipeForm"
@@ -131,16 +132,15 @@ export default function Recipes() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gradient tracking-tight">Receitas</h1>
-            <p className="text-muted-foreground mt-2">Gerencie receitas e seus insumos</p>
-          </div>
+        <PageHeader
+          title="Receitas"
+          subtitle="Gerencie receitas e seus insumos"
+        >
           <Button onClick={() => setIsAddingRecipe(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Nova Receita
           </Button>
-        </div>
+        </PageHeader>
 
         {/* Search */}
         <div className="flex gap-4">

@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
+import { PageHeader } from "@/components/ui/page-header"
 import { useTheme } from "@/contexts/ThemeContext"
 import { Moon, Sun } from "lucide-react"
 import { MainLayout } from "@/components/layout/MainLayout"
@@ -12,12 +13,10 @@ export default function Configuracoes() {
   return (
     <MainLayout>
     <div className="page-fade-in max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gradient tracking-tight">Configurações</h1>
-        <p className="text-muted-foreground mt-2">
-          Gerencie as preferências e configurações do sistema
-        </p>
-      </div>
+      <PageHeader
+        title="Configurações"
+        subtitle="Gerencie as preferências e configurações do sistema"
+      />
 
       <div className="space-y-6">
         <Card className="shadow-card hover-lift">
