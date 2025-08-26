@@ -219,7 +219,7 @@ const Customers = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gradient tracking-tight">Clientes</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-2">
             Gerencie seus clientes e informações de contato
           </p>
         </div>

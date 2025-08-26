@@ -261,7 +261,7 @@ export default function Insumos() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gradient tracking-tight">Insumos</h1>
-            <p className="text-muted-foreground">Gerencie itens e unidades</p>
+            <p className="text-muted-foreground mt-2">Gerencie itens e unidades</p>
           </div>
           <div className="flex gap-2">
             <Button 
