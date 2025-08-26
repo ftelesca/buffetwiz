@@ -9,14 +9,14 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* BuffetWiz Design System - Modern Gastronomic Platform */
-    --background: 222 15% 8%;
-    --foreground: 210 15% 96%;
+    --background: 210 20% 98%;
+    --foreground: 222 15% 12%;
 
-    --card: 222 15% 10%;
-    --card-foreground: 210 15% 96%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 15% 12%;
 
-    --popover: 222 15% 12%;
-    --popover-foreground: 210 15% 96%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 15% 12%;
 
     /* Primary Blue - Modern & Professional */
     --primary: 217 91% 60%;
@@ -25,22 +25,22 @@ All colors MUST be HSL.
     --primary-glow: 217 91% 70%;
 
     /* Secondary Deep Blue - Sophistication */
-    --secondary: 222 25% 18%;
-    --secondary-foreground: 210 15% 96%;
-    --secondary-hover: 222 25% 22%;
+    --secondary: 210 15% 94%;
+    --secondary-foreground: 222 15% 12%;
+    --secondary-hover: 210 15% 90%;
 
     /* Neutral Slate Base */
-    --muted: 222 20% 15%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 210 15% 94%;
+    --muted-foreground: 222 15% 45%;
 
-    --accent: 222 20% 20%;
-    --accent-foreground: 210 15% 96%;
+    --accent: 210 15% 92%;
+    --accent-foreground: 222 15% 12%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 15% 96%;
 
-    --border: 222 20% 18%;
-    --input: 222 20% 15%;
+    --border: 210 15% 88%;
+    --input: 210 15% 96%;
     --ring: 217 91% 60%;
 
     --radius: 0.75rem;
