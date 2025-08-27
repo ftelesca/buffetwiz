@@ -72,7 +72,7 @@ export default function RecipeItems({
           </CardTitle>
           {selectedRecipe && <Button onClick={onAddItem} size="sm" className="flex-shrink-0">
               <Plus className="w-4 h-4 mr-2" />
-              Adicionar Item
+              Adicionar Insumo
             </Button>}
         </div>
       </CardHeader>
@@ -92,7 +92,7 @@ export default function RecipeItems({
                 <TableBody>
                   {recipeItems.length === 0 ? <TableRow>
                       <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                        Nenhum item adicionado à receita. Clique em "Adicionar Item" para começar.
+                        Nenhum insumo adicionado à receita. Clique em "Adicionar Insumo" para começar.
                       </TableCell>
                     </TableRow> : recipeItems.map(recipeItem => {
                 const item = recipeItem.item_detail;

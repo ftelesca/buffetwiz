@@ -89,9 +89,9 @@ export default function RecipeItemForm({
         }])
 
       if (error) {
-        toast({ title: "Erro", description: "Erro ao adicionar item", variant: "destructive" })
+        toast({ title: "Erro", description: "Erro ao adicionar insumo", variant: "destructive" })
       } else {
-        toast({ title: "Sucesso", description: "Item adicionado com sucesso" })
+        toast({ title: "Sucesso", description: "Insumo adicionado com sucesso" })
         setNewRecipeItem({ item: "", qty: "" })
         onOpenChange(false)
         onSuccess()
@@ -108,7 +108,7 @@ export default function RecipeItemForm({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editingRecipeItem ? 'Editar Item da Receita' : 'Adicionar Item à Receita'}</DialogTitle>
+          <DialogTitle>{editingRecipeItem ? 'Editar Insumo da Receita' : 'Adicionar Insumo à Receita'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
