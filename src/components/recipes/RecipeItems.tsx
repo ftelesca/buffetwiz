@@ -68,7 +68,7 @@ export default function RecipeItems({
       <CardHeader className="flex-shrink-0">
         <div className="flex justify-between items-center gap-4">
           <CardTitle className="flex-shrink-0">
-            {selectedRecipe ? "Itens da Receita" : "Selecione uma receita"}
+            {selectedRecipe ? "Insumos da Receita" : "Selecione uma receita"}
           </CardTitle>
           {selectedRecipe && <Button onClick={onAddItem} size="sm" className="flex-shrink-0">
               <Plus className="w-4 h-4 mr-2" />

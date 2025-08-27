@@ -86,7 +86,7 @@ export default function Recipes() {
       .eq("recipe", recipeId)
 
     if (error) {
-      toast({ title: "Erro", description: "Erro ao carregar itens da receita", variant: "destructive" })
+      toast({ title: "Erro", description: "Erro ao carregar insumos da receita", variant: "destructive" })
     } else {
       setRecipeItems(data || [])
     }
