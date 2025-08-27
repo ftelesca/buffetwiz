@@ -118,7 +118,7 @@ export default function RecipeItemForm({
               onValueChange={(value) => setNewRecipeItem({ ...newRecipeItem, item: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione um item" />
+                <SelectValue placeholder="Selecione um insumo" />
               </SelectTrigger>
               <SelectContent>
                 {items.map((item) => (
