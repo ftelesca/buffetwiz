@@ -281,10 +281,7 @@ const Customers = () => {
               <div className="pt-4">
                 <SaveCancelButtons
                   onSave={() => handleSubmit(new Event('submit') as any)}
-                  onCancel={() => {
-                    setIsDialogOpen(false);
-                    resetForm();
-                  }}
+                  onCancel={() => setIsDialogOpen(false)}
                   isLoading={createMutation.isPending || updateMutation.isPending}
                 />
               </div>

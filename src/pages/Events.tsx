@@ -167,10 +167,7 @@ export default function Events() {
               <EventForm
                 eventId={editingEvent?.id}
                 onSuccess={handleFormSuccess}
-                onCancel={() => {
-                  setIsDialogOpen(false);
-                  setEditingEvent(null);
-                }}
+                onCancel={() => setIsDialogOpen(false)}
               />
             </DialogContent>
           </Dialog>
