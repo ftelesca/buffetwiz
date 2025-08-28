@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
-import { Plus, Search, Edit, Trash2, Save, X, Upload } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Upload } from "lucide-react"
+import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -144,7 +145,7 @@ export default function Insumos() {
           .eq('id', editingItem.id)
 
         if (error) throw error
-        toast({ title: "Sucesso", description: "Insumo atualizado com sucesso!" })
+        toast({ title: "Insumo atualizado com sucesso" })
       } else {
         const { error } = await supabase
           .from('item')
@@ -543,23 +544,14 @@ export default function Insumos() {
                   placeholder="R$ 0,00"
                 />
               </div>
-              <div className="flex justify-end gap-2">
-                <Button onClick={handleSaveItem}>
-                  <Save className="h-4 w-4" />
-                  Salvar
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsItemDialogOpen(false)
-                    setEditingItem(null)
-                    setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                  Cancelar
-                </Button>
-              </div>
+              <SaveCancelButtons
+                onSave={handleSaveItem}
+                onCancel={() => {
+                  setIsItemDialogOpen(false)
+                  setEditingItem(null)
+                  setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
+                }}
+              />
             </div>
           </DialogContent>
         </Dialog>
@@ -585,23 +577,14 @@ export default function Insumos() {
                   placeholder="Ex: kg, litro, unidade"
                 />
               </div>
-              <div className="flex justify-end gap-2">
-                <Button onClick={handleSaveUnit}>
-                  <Save className="h-4 w-4" />
-                  Salvar
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsUnitDialogOpen(false)
-                    setEditingUnit(null)
-                    setNewUnit({ description: "" })
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                  Cancelar
-                </Button>
-              </div>
+              <SaveCancelButtons
+                onSave={handleSaveUnit}
+                onCancel={() => {
+                  setIsUnitDialogOpen(false)
+                  setEditingUnit(null)
+                  setNewUnit({ description: "" })
+                }}
+              />
             </div>
           </DialogContent>
         </Dialog>

@@ -167,8 +167,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["event", eventId] });
       toast({
-        title: "Evento atualizado",
-        description: "Evento editado com sucesso."
+        title: "Evento atualizado com sucesso"
       });
       onSuccess();
     },
@@ -393,8 +392,14 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
 
       <div className="pt-4">
         <SaveCancelButtons
-          onSave={() => handleSubmit(new Event('submit') as any)}
-          onCancel={onCancel}
+          onSave={() => {
+            console.log("EventForm: Save button clicked");
+            handleSubmit(new Event('submit') as any);
+          }}
+          onCancel={() => {
+            console.log("EventForm: Cancel button clicked");
+            onCancel();
+          }}
           isLoading={isLoading}
         />
       </div>
