@@ -166,10 +166,9 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["event", eventId] });
-      toast({
-        title: "Evento atualizado",
-        description: "Evento editado com sucesso."
-      });
+        toast({
+          title: "Evento atualizado com sucesso"
+        });
       onSuccess();
     },
     onError: (error: any) => {

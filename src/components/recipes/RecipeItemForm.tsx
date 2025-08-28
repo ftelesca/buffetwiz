@@ -60,7 +60,7 @@ export default function RecipeItemForm({
       if (error) {
         toast({ title: "Erro", description: "Erro ao atualizar item", variant: "destructive" })
       } else {
-        toast({ title: "Sucesso", description: "Item atualizado com sucesso" })
+        toast({ title: "Insumo atualizado com sucesso" })
         setNewRecipeItem({ item: "", qty: "" })
         onOpenChange(false)
         onSuccess()

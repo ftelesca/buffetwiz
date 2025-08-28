@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
-import { Plus, Edit, Trash2, Mail, Phone, MapPin, Search, Save, X } from "lucide-react";
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
+import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
 import { cn, toTitleCase, getCountText } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -99,10 +100,9 @@ const Customers = () => {
       resetForm();
       setIsDialogOpen(false);
       setEditingCustomer(null);
-      toast({
-        title: "Cliente atualizado",
-        description: "Cliente editado com sucesso."
-      });
+        toast({
+          title: "Cliente atualizado com sucesso"
+        });
     },
     onError: (error) => {
       toast({
@@ -278,22 +278,12 @@ const Customers = () => {
                 />
               </div>
               
-              <div className="flex justify-end gap-2 pt-4">
-                <Button 
-                  type="submit" 
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                >
-                  <Save className="h-4 w-4" />
-                  Salvar
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-                  Cancelar
-                </Button>
+              <div className="pt-4">
+                <SaveCancelButtons
+                  onSave={() => handleSubmit(new Event('submit') as any)}
+                  onCancel={() => setIsDialogOpen(false)}
+                  isLoading={createMutation.isPending || updateMutation.isPending}
+                />
               </div>
             </form>
           </DialogContent>
