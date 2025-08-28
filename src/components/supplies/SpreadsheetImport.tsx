@@ -252,10 +252,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
       const updateCount = itemsToUpdate.length
       const insertCount = itemsToInsert.length
       
-      toast({
-        title: "Sucesso",
-        description: `${insertCount} insumos inseridos, ${updateCount} insumos atualizados!`
-      })
+      toast({ title: `${insertCount} insumos inseridos, ${updateCount} insumos atualizados` })
 
       onImportComplete()
       handleClose()

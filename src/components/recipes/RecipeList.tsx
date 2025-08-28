@@ -49,7 +49,7 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
     if (error) {
       toast({ title: "Erro", description: "Erro ao excluir receita", variant: "destructive" })
     } else {
-      toast({ title: "Sucesso", description: "Receita excluída com sucesso" })
+      toast({ title: "Receita excluída com sucesso" })
       onRecipesChange()
     }
   }

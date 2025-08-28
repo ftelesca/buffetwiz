@@ -239,7 +239,7 @@ export default function Insumos() {
 
       if (error) throw error
       
-      toast({ title: "Sucesso", description: "Unidade excluída com sucesso!" })
+      toast({ title: "Unidade excluída com sucesso" })
       fetchUnits()
       fetchItems()
     } catch (error) {

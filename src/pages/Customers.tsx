@@ -100,9 +100,7 @@ const Customers = () => {
       resetForm();
       setIsDialogOpen(false);
       setEditingCustomer(null);
-        toast({
-          title: "Cliente atualizado com sucesso"
-        });
+      toast({ title: "Cliente atualizado com sucesso" });
     },
     onError: (error) => {
       toast({

@@ -37,10 +37,7 @@ export default function RecipeItems({
         variant: "destructive"
       });
     } else {
-      toast({
-        title: "Sucesso",
-        description: "Item excluído com sucesso"
-      });
+      toast({ title: "Item excluído com sucesso" });
       onRecipeItemsChange();
     }
   };

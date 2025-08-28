@@ -28,7 +28,7 @@ export default function RecipeForm({ isOpen, onOpenChange, onSuccess }: RecipeFo
     if (error) {
       toast({ title: "Erro", description: "Erro ao criar receita", variant: "destructive" })
     } else {
-      toast({ title: "Sucesso", description: "Receita criada com sucesso" })
+      toast({ title: "Receita criada com sucesso" })
       setNewRecipe({ description: "" })
       onOpenChange(false)
       onSuccess()
