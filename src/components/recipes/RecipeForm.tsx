@@ -1,9 +1,8 @@
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Save, X } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import type { Recipe } from "@/types/recipe"
@@ -57,16 +56,10 @@ export default function RecipeForm({ isOpen, onOpenChange, onSuccess }: RecipeFo
               placeholder="Digite a descrição da receita..."
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button onClick={addRecipe}>
-              <Save className="h-4 w-4" />
-              Salvar
-            </Button>
-            <Button variant="outline" onClick={handleClose}>
-              <X className="h-4 w-4" />
-              Cancelar
-            </Button>
-          </div>
+          <SaveCancelButtons
+            onSave={addRecipe}
+            onCancel={handleClose}
+          />
         </div>
       </DialogContent>
     </Dialog>
