@@ -4,8 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
-import { Trash2, Edit } from "lucide-react"
-import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
+import { Trash2, Edit, Save, X } from "lucide-react"
 import { getCountText } from "@/lib/utils"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import type { Recipe } from "@/types/recipe"
@@ -33,7 +32,7 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
       if (error) {
         toast({ title: "Erro", description: "Erro ao atualizar receita", variant: "destructive" })
       } else {
-        toast({ title: "Receita atualizada com sucesso" })
+        toast({ title: "Sucesso", description: "Receita atualizada com sucesso" })
         setEditingRecipe(null)
         onRecipesChange()
       }
@@ -97,10 +96,16 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
                       }
                       className="flex-1"
                     />
-                     <SaveCancelButtons
-                       onSave={saveRecipe}
-                       onCancel={() => setEditingRecipe(null)}
-                     />
+                    <Button size="sm" onClick={saveRecipe}>
+                      <Save className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEditingRecipe(null)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
                 ) : (
                   <>
