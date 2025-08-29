@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText, getDeletedMessage } from "@/lib/utils"
 import { SpreadsheetImport } from "@/components/supplies/SpreadsheetImport"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { ActionButtons } from "@/components/ui/ActionButtons"
+import { ActionButtons } from "@/components/ui/action-buttons"
 
 interface Unit {
   id: number

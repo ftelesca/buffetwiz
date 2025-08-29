@@ -8,7 +8,7 @@ import { Trash2, Edit } from "lucide-react"
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
 import { getCountText, getDeletedMessage } from "@/lib/utils"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { ActionButtons } from "@/components/ui/ActionButtons"
+import { ActionButtons } from "@/components/ui/action-buttons"
 import type { Recipe } from "@/types/recipe"
 
 interface RecipeListProps {
