@@ -14,8 +14,9 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Plus, Edit, Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
-import { cn, toTitleCase, getCountText } from "@/lib/utils";
+import { cn, toTitleCase, getCountText, getDeletedMessage } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ActionButtons } from "@/components/ui/ActionButtons";
 
 interface Customer {
   id: number;
@@ -124,8 +125,7 @@ const Customers = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       toast({
-        title: "Cliente excluído",
-        description: "Cliente removido com sucesso."
+        title: getDeletedMessage("cliente", "m")
       });
     },
     onError: (error) => {
@@ -364,40 +364,13 @@ const Customers = () => {
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex gap-2 justify-center">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openEditDialog(customer)}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={deleteMutation.isPending}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Tem certeza que deseja excluir o cliente "{customer.name}"? Esta ação não pode ser desfeita.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(customer.id)}>
-                                Excluir
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                      <ActionButtons
+                        onEdit={() => openEditDialog(customer)}
+                        onDelete={() => handleDelete(customer.id)}
+                        itemName={customer.name}
+                        itemType="o cliente"
+                        isDeleting={deleteMutation.isPending}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

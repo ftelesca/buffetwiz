@@ -126,3 +126,8 @@ export function getCountText(
     return `${totalCount} ${countText}`;
   }
 }
+
+export function getDeletedMessage(itemType: string, itemGender: "m" | "f"): string {
+  const suffix = itemGender === "f" ? "excluída" : "excluído";
+  return `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} ${suffix} com sucesso`;
+}

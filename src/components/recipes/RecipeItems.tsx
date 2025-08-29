@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus, Edit } from "lucide-react";
+import { getDeletedMessage } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ActionButtons } from "@/components/ui/ActionButtons";
 import type { Recipe, RecipeItem, Unit } from "@/types/recipe";
 interface RecipeItemsProps {
   selectedRecipe: Recipe | null;
@@ -37,7 +39,7 @@ export default function RecipeItems({
         variant: "destructive"
       });
     } else {
-      toast({ title: "Item excluído com sucesso" });
+      toast({ title: getDeletedMessage("item", "m") });
       onRecipeItemsChange();
     }
   };
@@ -106,32 +108,12 @@ export default function RecipeItems({
                           </TableCell>
                           <TableCell className="text-right font-medium whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
                           <TableCell className="sticky right-0 text-center">
-                            <div className="flex gap-1 justify-center min-w-[80px]">
-                              <Button size="icon" variant="ghost" onClick={() => onEditItem(recipeItem)} className="h-8 w-8 hover:bg-accent" title="Editar item">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" title="Excluir item">
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Tem certeza que deseja excluir este item da receita? Esta ação não pode ser desfeita.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteRecipeItem(recipeItem.id)}>
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
+                            <ActionButtons
+                              onEdit={() => onEditItem(recipeItem)}
+                              onDelete={() => deleteRecipeItem(recipeItem.id)}
+                              itemName={item?.description || "este item"}
+                              itemType="este item da receita"
+                            />
                           </TableCell>
                         </TableRow>;
               })}

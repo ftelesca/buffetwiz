@@ -14,9 +14,10 @@ import { MainLayout } from "@/components/layout/MainLayout"
 import { PageHeader } from "@/components/ui/page-header"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
-import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText } from "@/lib/utils"
+import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText, getDeletedMessage } from "@/lib/utils"
 import { SpreadsheetImport } from "@/components/supplies/SpreadsheetImport"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { ActionButtons } from "@/components/ui/ActionButtons"
 
 interface Unit {
   id: number
@@ -218,7 +219,7 @@ export default function Insumos() {
 
       if (error) throw error
       
-      toast({ title: "Sucesso", description: "Insumo excluído com sucesso!" })
+      toast({ title: getDeletedMessage("insumo", "m") })
       fetchItems()
     } catch (error) {
       console.error('Erro ao excluir insumo:', error)
@@ -239,7 +240,7 @@ export default function Insumos() {
 
       if (error) throw error
       
-      toast({ title: "Unidade excluída com sucesso" })
+      toast({ title: getDeletedMessage("unidade", "f") })
       fetchUnits()
       fetchItems()
     } catch (error) {
@@ -340,49 +341,22 @@ export default function Insumos() {
                           <TableCell className="text-right">{item.factor || 1}</TableCell>
                           <TableCell className="text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
                           <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => {
-                                  setEditingItem(item)
-                                  setNewItem({
-                                    description: item.description,
-                                    unit_purch: item.unit_purch,
-                                    unit_use: item.unit_use,
-                                    cost: formatCurrencyInput((item.cost * 100).toString()),
-                                    factor: item.factor
-                                  })
-                                  setIsItemDialogOpen(true)
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                     <AlertDialogDescription>
-                                       Tem certeza que deseja excluir o insumo "{item.description}"? Esta ação não pode ser desfeita.
-                                     </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDeleteItem(item.id)}>
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
+                            <ActionButtons
+                              onEdit={() => {
+                                setEditingItem(item)
+                                setNewItem({
+                                  description: item.description,
+                                  unit_purch: item.unit_purch,
+                                  unit_use: item.unit_use,
+                                  cost: formatCurrencyInput((item.cost * 100).toString()),
+                                  factor: item.factor
+                                })
+                                setIsItemDialogOpen(true)
+                              }}
+                              onDelete={() => handleDeleteItem(item.id)}
+                              itemName={item.description}
+                              itemType="o insumo"
+                            />
                           </TableCell>
                         </TableRow>
                       ))}
@@ -419,43 +393,16 @@ export default function Insumos() {
                       <span className="font-medium">{unit.description}</span>
                     </div>
                     <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6"
-                        onClick={() => {
+                      <ActionButtons
+                        onEdit={() => {
                           setEditingUnit(unit)
                           setNewUnit(unit)
                           setIsUnitDialogOpen(true)
                         }}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                             <AlertDialogDescription>
-                               Tem certeza que deseja excluir a unidade "{unit.description}"? Esta ação não pode ser desfeita.
-                             </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteUnit(unit.id)}>
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                        onDelete={() => handleDeleteUnit(unit.id)}
+                        itemName={unit.description}
+                        itemType="a unidade"
+                      />
                     </div>
                   </div>
                 ))}

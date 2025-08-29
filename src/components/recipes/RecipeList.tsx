@@ -6,8 +6,9 @@ import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { Trash2, Edit } from "lucide-react"
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
-import { getCountText } from "@/lib/utils"
+import { getCountText, getDeletedMessage } from "@/lib/utils"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { ActionButtons } from "@/components/ui/ActionButtons"
 import type { Recipe } from "@/types/recipe"
 
 interface RecipeListProps {
@@ -33,7 +34,7 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
       if (error) {
         toast({ title: "Erro", description: "Erro ao atualizar receita", variant: "destructive" })
       } else {
-        toast({ title: "Receita atualizada com sucesso" })
+        toast({ title: getDeletedMessage("receita", "f") })
         setEditingRecipe(null)
         onRecipesChange()
       }
@@ -105,42 +106,13 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
                 ) : (
                   <>
                     <span className="font-medium">{recipe.description}</span>
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setEditingRecipe(recipe)
-                        }}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja excluir a receita "{recipe.description}"? Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteRecipe(recipe.id)}>
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ActionButtons
+                        onEdit={() => setEditingRecipe(recipe)}
+                        onDelete={() => deleteRecipe(recipe.id)}
+                        itemName={recipe.description}
+                        itemType="a receita"
+                      />
                     </div>
                   </>
                 )}
