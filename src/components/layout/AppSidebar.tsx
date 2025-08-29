@@ -67,10 +67,9 @@ export function AppSidebar() {
             <Button
               onClick={toggleSidebar}
               variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
+              className="absolute right-0 top-1/2 -translate-y-1/2 h-16 w-3 rounded-l-md bg-primary/20 hover:bg-primary/30 border-l border-t border-b border-primary/30 hover:border-primary/50 shadow-sm transition-all duration-200 flex items-center justify-center p-0"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 text-primary" />
             </Button>
           </>
         ) : (
