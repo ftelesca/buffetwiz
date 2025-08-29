@@ -1,199 +1,247 @@
 import { useState, useEffect } from "react"
-import { supabase } from "@/integrations/supabase/client"
 import { Button } from "@/components/ui/button"
-import { toast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
-import { Plus, Search } from "lucide-react"
-import { MainLayout } from "@/components/layout/MainLayout"
-import { PageHeader } from "@/components/ui/page-header"
-import RecipeList from "@/components/recipes/RecipeList"
-import RecipeItems from "@/components/recipes/RecipeItems"
-import RecipeForm from "@/components/recipes/RecipeForm"
-import RecipeItemForm from "@/components/recipes/RecipeItemForm"
-import type { Recipe, Item, Unit, RecipeItem } from "@/types/recipe"
+import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/hooks/use-toast"
+import type { Recipe, Item, RecipeItem } from "@/types/recipe"
 
-export default function Recipes() {
-  const [recipes, setRecipes] = useState<Recipe[]>([])
-  const [items, setItems] = useState<Item[]>([])
-  const [units, setUnits] = useState<Unit[]>([])
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
-  const [recipeItems, setRecipeItems] = useState<RecipeItem[]>([])
-  const [isAddingRecipe, setIsAddingRecipe] = useState(false)
-  const [isAddingItem, setIsAddingItem] = useState(false)
-  const [editingRecipeItem, setEditingRecipeItem] = useState<RecipeItem | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
+interface RecipeItemFormProps {
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
+  selectedRecipe: Recipe | null
+  items: Item[]
+  recipeItems: RecipeItem[]
+  editingRecipeItem?: RecipeItem | null
+  onSuccess: () => void
+}
 
+export default function RecipeItemForm({
+  isOpen,
+  onOpenChange,
+  selectedRecipe,
+  items,
+  recipeItems,
+  editingRecipeItem = null,
+  onSuccess
+}: RecipeItemFormProps) {
+  const { toast } = useToast()
+  const [formData, setFormData] = useState({
+    item: "",
+    qty: ""
+  })
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Reset form when dialog opens/closes or when editing item changes
   useEffect(() => {
-    fetchRecipes()
-    fetchItems()
-    fetchUnits()
-  }, [])
-
-  useEffect(() => {
-    if (selectedRecipe) {
-      fetchRecipeItems(selectedRecipe.id)
-    } else {
-      setRecipeItems([])
+    if (isOpen) {
+      if (editingRecipeItem) {
+        // Carregar valores para edição
+        setFormData({
+          item: editingRecipeItem.item?.toString() || "",
+          qty: editingRecipeItem.qty?.toString() || ""
+        })
+      } else {
+        // Reset para novo item
+        setFormData({
+          item: "",
+          qty: ""
+        })
+      }
     }
-  }, [selectedRecipe])
+  }, [isOpen, editingRecipeItem])
 
-  const fetchRecipes = async () => {
-    const { data, error } = await supabase
-      .from("recipe")
-      .select("*")
-      .order("description")
-
-    if (error) {
-      toast({ title: "Erro", description: "Erro ao carregar receitas", variant: "destructive" })
-    } else {
-      setRecipes(data || [])
-    }
-  }
-
-  const fetchItems = async () => {
-    const { data, error } = await supabase
-      .from("item")
-      .select("*")
-      .order("description")
-
-    if (error) {
-      toast({ title: "Erro", description: "Erro ao carregar itens", variant: "destructive" })
-    } else {
-      setItems(data || [])
-    }
-  }
-
-  const fetchUnits = async () => {
-    const { data, error } = await supabase
-      .from("unit")
-      .select("*")
-      .order("description")
-
-    if (error) {
-      toast({ title: "Erro", description: "Erro ao carregar unidades", variant: "destructive" })
-    } else {
-      setUnits(data || [])
-    }
-  }
-
-  const fetchRecipeItems = async (recipeId: number) => {
-    const { data, error } = await supabase
-      .from("recipe_item")
-      .select(`
-        *,
-        item_detail:item(*)
-      `)
-      .eq("recipe", recipeId)
-
-    if (error) {
-      toast({ title: "Erro", description: "Erro ao carregar insumos da receita", variant: "destructive" })
-    } else {
-      setRecipeItems(data || [])
-    }
-  }
-
-  const handleSelectRecipe = (recipe: Recipe) => {
-    setSelectedRecipe(recipe)
-  }
-
-  const handleRecipesChange = () => {
-    fetchRecipes()
-    // If current selected recipe was deleted, clear selection
-    if (selectedRecipe) {
-      fetchRecipes().then(() => {
-        const stillExists = recipes.find(r => r.id === selectedRecipe.id)
-        if (!stillExists) {
-          setSelectedRecipe(null)
-        }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!selectedRecipe) {
+      toast({
+        title: "Erro",
+        description: "Nenhuma receita selecionada",
+        variant: "destructive"
       })
+      return
+    }
+
+    if (!formData.item || !formData.qty) {
+      toast({
+        title: "Erro",
+        description: "Todos os campos são obrigatórios",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Verificar se o item já existe na receita (apenas para novos itens)
+    if (!editingRecipeItem) {
+      const existingItem = recipeItems.find(
+        ri => ri.item?.toString() === formData.item
+      )
+      
+      if (existingItem) {
+        toast({
+          title: "Erro",
+          description: "Este item já foi adicionado à receita",
+          variant: "destructive"
+        })
+        return
+      }
+    }
+
+    setIsLoading(true)
+
+    try {
+      const itemData = {
+        recipe: selectedRecipe.id,
+        item: parseInt(formData.item),
+        qty: parseFloat(formData.qty)
+      }
+
+      if (editingRecipeItem) {
+        // Atualizar item existente
+        const { error } = await supabase
+          .from("recipe_item")
+          .update(itemData)
+          .eq("id", editingRecipeItem.id)
+
+        if (error) throw error
+
+        toast({
+          title: "Sucesso",
+          description: "Item da receita atualizado com sucesso"
+        })
+      } else {
+        // Criar novo item
+        const { error } = await supabase
+          .from("recipe_item")
+          .insert([itemData])
+
+        if (error) throw error
+
+        toast({
+          title: "Sucesso", 
+          description: "Item adicionado à receita com sucesso"
+        })
+      }
+
+      onSuccess()
+      handleClose()
+    } catch (error: any) {
+      console.error("Erro ao salvar item da receita:", error)
+      toast({
+        title: "Erro",
+        description: `Erro ao ${editingRecipeItem ? 'atualizar' : 'adicionar'} item: ${error.message}`,
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const handleRecipeItemsChange = () => {
-    if (selectedRecipe) {
-      fetchRecipeItems(selectedRecipe.id)
+  const handleClose = () => {
+    onOpenChange(false)
+    setFormData({
+      item: "",
+      qty: ""
+    })
+  }
+
+  const availableItems = items.filter(item => {
+    if (editingRecipeItem) {
+      // Se está editando, permite o item atual + itens não usados
+      return !recipeItems.some(ri => 
+        ri.item === item.id && ri.id !== editingRecipeItem.id
+      )
+    } else {
+      // Se é novo, só permite itens não usados
+      return !recipeItems.some(ri => ri.item === item.id)
     }
-  }
-
-  const handleEditItem = (recipeItem: RecipeItem) => {
-    setEditingRecipeItem(recipeItem)
-    setIsAddingItem(true)
-  }
-
-  const handleAddItem = () => {
-    setEditingRecipeItem(null)
-    setIsAddingItem(true)
-  }
-
-  const filteredRecipes = recipes.filter(recipe =>
-    recipe.description.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  })
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
-        <PageHeader
-          title="Receitas"
-          subtitle="Gerencie receitas e seus insumos"
-        >
-          <Button onClick={() => setIsAddingRecipe(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Receita
-          </Button>
-        </PageHeader>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>
+            {editingRecipeItem ? "Editar Insumo" : "Adicionar Insumo"}
+          </DialogTitle>
+          <DialogDescription>
+            {editingRecipeItem 
+              ? "Edite as informações do insumo na receita" 
+              : `Adicione um insumo à receita "${selectedRecipe?.description || ''}"`
+            }
+          </DialogDescription>
+        </DialogHeader>
 
-        {/* Search */}
-        <div className="flex gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar receitas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        {!selectedRecipe ? (
+          <div className="text-center py-4">
+            <p className="text-muted-foreground">
+              Selecione uma receita primeiro
+            </p>
           </div>
-        </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="item-select">
+                Insumo *
+              </Label>
+              <Select
+                value={formData.item}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, item: value }))}
+                disabled={isLoading}
+              >
+                <SelectTrigger id="item-select">
+                  <SelectValue placeholder="Selecione um insumo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableItems.length > 0 ? (
+                    availableItems.map((item) => (
+                      <SelectItem key={item.id} value={item.id.toString()}>
+                        {item.description}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-1 text-sm text-muted-foreground">
+                      {editingRecipeItem 
+                        ? "Nenhum insumo disponível" 
+                        : "Todos os insumos já foram adicionados"
+                      }
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <RecipeList
-            recipes={filteredRecipes}
-            selectedRecipe={selectedRecipe}
-            onSelectRecipe={handleSelectRecipe}
-            onRecipesChange={handleRecipesChange}
-            allRecipes={recipes}
-            searchTerm={searchTerm}
-          />
+            <div className="space-y-2">
+              <Label htmlFor="qty-input">
+                Quantidade *
+              </Label>
+              <Input
+                id="qty-input"
+                type="number"
+                step="0.001"
+                min="0"
+                value={formData.qty}
+                onChange={(e) => setFormData(prev => ({ ...prev, qty: e.target.value }))}
+                placeholder="Digite a quantidade"
+                disabled={isLoading}
+              />
+            </div>
 
-          <RecipeItems
-            selectedRecipe={selectedRecipe}
-            recipeItems={recipeItems}
-            units={units}
-            onAddItem={handleAddItem}
-            onEditItem={handleEditItem}
-            onRecipeItemsChange={handleRecipeItemsChange}
-          />
-        </div>
-
-        <RecipeForm
-          isOpen={isAddingRecipe}
-          onOpenChange={setIsAddingRecipe}
-          onSuccess={fetchRecipes}
-        />
-
-        <RecipeItemForm
-          isOpen={isAddingItem}
-          onOpenChange={(open) => {
-            setIsAddingItem(open)
-            if (!open) setEditingRecipeItem(null)
-          }}
-          selectedRecipe={selectedRecipe}
-          items={items}
-          recipeItems={recipeItems}
-          editingRecipeItem={editingRecipeItem}
-          onSuccess={handleRecipeItemsChange}
-        />
-      </div>
-    </MainLayout>
+            <div className="flex justify-end space-x-2 pt-4">
+              <SaveCancelButtons
+                onSave={() => handleSubmit(new Event('submit') as any)}
+                onCancel={handleClose}
+                isLoading={isLoading}
+                saveLabel={editingRecipeItem ? "Atualizar" : "Adicionar"}
+              />
+            </div>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }
