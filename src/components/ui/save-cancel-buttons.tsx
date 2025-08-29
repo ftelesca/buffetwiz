@@ -42,6 +42,7 @@ export function SaveCancelButtons({
   return (
     <div className="flex justify-end gap-2">
       <Button 
+        type="submit"
         onClick={onSave}
         disabled={isLoading || disabled}
         className="order-1"
@@ -50,6 +51,7 @@ export function SaveCancelButtons({
         {saveLabel}
       </Button>
       <Button 
+        type="button"
         variant="outline" 
         onClick={onCancel}
         disabled={isLoading}

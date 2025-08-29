@@ -392,14 +392,8 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
 
       <div className="pt-4">
         <SaveCancelButtons
-          onSave={() => {
-            console.log("EventForm: Save button clicked");
-            handleSubmit(new Event('submit') as any);
-          }}
-          onCancel={() => {
-            console.log("EventForm: Cancel button clicked");
-            onCancel();
-          }}
+          onSave={() => {}} // Form submission handled by type="submit"
+          onCancel={onCancel}
           isLoading={isLoading}
         />
       </div>
