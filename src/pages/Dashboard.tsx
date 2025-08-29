@@ -96,8 +96,7 @@ export default function Dashboard() {
           className="h-64 rounded-2xl bg-cover bg-center relative overflow-hidden shadow-elegant"
           style={{ backgroundImage: `url(${heroImage})` }}
         >
-          <div className="absolute inset-0 gradient-hero opacity-90" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-black/40" />
           <div className="relative h-full flex items-center justify-between p-8">
             <div className="text-white space-y-3">
               <h1 className="text-4xl font-bold mb-2 tracking-tight">
