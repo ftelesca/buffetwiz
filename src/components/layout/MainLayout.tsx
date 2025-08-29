@@ -46,7 +46,6 @@ function LayoutContent({ children }: MainLayoutProps) {
                 </div>
               </div>
               <UserMenu />
-              <UserMenu />
             </div>
           </header>
         )}
@@ -67,6 +66,7 @@ function LayoutContent({ children }: MainLayoutProps) {
                 <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
               </div>
             </div>
+            <UserMenu />
           </div>
         </header>
         <div className="flex-1 p-8 overflow-hidden bg-gradient-to-br from-background via-background to-accent/5">
