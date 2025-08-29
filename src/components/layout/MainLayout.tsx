@@ -29,10 +29,10 @@ function LayoutContent({ children }: MainLayoutProps) {
       )}
       
       <main className="flex-1 flex flex-col">
+        {/* Desktop header - only when sidebar is collapsed */}
         {state === "collapsed" && (
-          <header className="sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
+          <header className="hidden md:block sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
             <div className="flex h-full items-center px-6 gap-4 justify-between">
-              <SidebarTrigger className="md:hidden" />
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <ChefHat className="h-8 w-8 text-primary" />
@@ -45,6 +45,15 @@ function LayoutContent({ children }: MainLayoutProps) {
                   <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
                 </div>
               </div>
+              <UserMenu />
+            </div>
+          </header>
+        )}
+        
+        {/* Desktop header - when sidebar is expanded */}
+        {state === "expanded" && (
+          <header className="hidden md:block sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
+            <div className="flex h-full items-center justify-end px-6">
               <UserMenu />
             </div>
           </header>
