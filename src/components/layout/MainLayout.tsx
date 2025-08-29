@@ -19,11 +19,10 @@ function LayoutContent({ children }: MainLayoutProps) {
       {state === "collapsed" && (
         <Button
           onClick={toggleSidebar}
-          variant="outline"
-          size="icon"
-          className="fixed left-2 top-20 z-50 h-8 w-8 rounded-full shadow-md border-border bg-background hover:bg-accent"
+          variant="ghost"
+          className="fixed left-0 top-1/2 -translate-y-1/2 z-50 h-16 w-3 rounded-r-md bg-primary/20 hover:bg-primary/30 border-r border-t border-b border-primary/30 hover:border-primary/50 shadow-sm transition-all duration-200 flex items-center justify-center p-0"
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4 text-primary" />
         </Button>
       )}
       
