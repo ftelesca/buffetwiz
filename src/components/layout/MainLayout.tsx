@@ -4,6 +4,7 @@ import { ChevronRight, ChefHat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AppSidebar } from "./AppSidebar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { UserMenu } from "@/components/auth/UserMenu"
 
 interface MainLayoutProps {
   children: ReactNode
@@ -44,6 +45,7 @@ function LayoutContent({ children }: MainLayoutProps) {
                   <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
                 </div>
               </div>
+              <UserMenu />
             </div>
           </header>
         )}
@@ -64,6 +66,7 @@ function LayoutContent({ children }: MainLayoutProps) {
                 <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
               </div>
             </div>
+            <UserMenu />
           </div>
         </header>
         <div className={`flex-1 p-8 overflow-hidden bg-gradient-to-br from-background via-background to-accent/5 ${state === "collapsed" ? "" : "pt-8"}`}>
