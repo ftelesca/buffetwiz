@@ -33,7 +33,10 @@ export default function RecipeItemForm({
   // Initialize form when editing
   useEffect(() => {
     if (editingRecipeItem) {
-      toast({ title: "Insumo adicionado com sucesso" })
+      setNewRecipeItem({ 
+        item: editingRecipeItem.item.toString(), 
+        qty: editingRecipeItem.qty.toString() 
+      })
     } else {
       setNewRecipeItem({ item: "", qty: "" })
     }
