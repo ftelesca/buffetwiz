@@ -1,6 +1,6 @@
 import { ReactNode } from "react"
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
-import { ChevronRight, UtensilsCrossed } from "lucide-react"
+import { ChevronRight, ChefHat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AppSidebar } from "./AppSidebar"
 
@@ -31,7 +31,10 @@ function LayoutContent({ children }: MainLayoutProps) {
           <header className="sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
             <div className="flex h-full items-center px-6 gap-4 justify-between">
               <div className="flex items-center gap-2">
-                <UtensilsCrossed className="h-8 w-8 text-primary" />
+                <div className="relative">
+                  <ChefHat className="h-8 w-8 text-primary" />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border border-white shadow-sm" />
+                </div>
                 <div>
                   <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
                     BuffetWiz

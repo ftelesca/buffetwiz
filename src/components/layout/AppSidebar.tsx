@@ -8,7 +8,7 @@ import {
   Users, 
   ShoppingCart,
   Menu as MenuIcon,
-  UtensilsCrossed,
+  ChefHat as LogoIcon,
   ChevronLeft
 } from "lucide-react"
 
@@ -56,7 +56,10 @@ export function AppSidebar() {
         {state !== "collapsed" ? (
           <>
             <div className="flex items-center gap-2">
-              <UtensilsCrossed className="h-8 w-8 text-primary" />
+              <div className="relative">
+                <LogoIcon className="h-8 w-8 text-primary" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border border-white shadow-sm" />
+              </div>
               <div>
                 <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
                   BuffetWiz
@@ -73,7 +76,10 @@ export function AppSidebar() {
             </Button>
           </>
         ) : (
-          <UtensilsCrossed className="h-8 w-8 text-primary" />
+          <div className="relative">
+            <LogoIcon className="h-8 w-8 text-primary" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border border-white shadow-sm" />
+          </div>
         )}
       </div>
 
