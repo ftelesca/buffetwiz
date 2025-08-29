@@ -261,18 +261,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      calculate_event_cost: {
-        Args: { event_id: number }
-        Returns: number
-      }
-      calculate_recipe_cost: {
-        Args: { recipe_id: number }
-        Returns: number
-      }
-      update_events_cost_for_recipe: {
-        Args: { recipe_id: number }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
