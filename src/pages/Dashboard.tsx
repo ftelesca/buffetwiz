@@ -97,11 +97,11 @@ export default function Dashboard() {
         >
           <div className="absolute inset-0 bg-black/20" />
           <div className="relative h-full flex items-center justify-between p-8">
-            <div className="text-white space-y-3">
+            <div className="text-primary space-y-3">
               <h1 className="text-4xl font-bold mb-2 tracking-tight">
                 Bem-vindo ao <span className="text-gradient">BuffetWiz</span>
               </h1>
-              <p className="text-xl opacity-95 font-medium">
+              <p className="text-xl font-medium">
                 Gerencie seus eventos gastronômicos com excelência
               </p>
             </div>
