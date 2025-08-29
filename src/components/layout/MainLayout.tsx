@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { AppSidebar } from "./AppSidebar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { UserMenu } from "@/components/auth/UserMenu"
-import { UserMenu } from "@/components/auth/UserMenu"
 
 interface MainLayoutProps {
   children: ReactNode
