@@ -65,7 +65,6 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
           header: false,
           skipEmptyLines: true
         })
-        return // Exit early for CSV since Papa.parse is async
       } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
         // Parse Excel
         const arrayBuffer = await file.arrayBuffer()
@@ -73,7 +72,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
         const sheetName = workbook.SheetNames[0]
         const worksheet = workbook.Sheets[sheetName]
         data = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-        await processData(data)
+        processData(data)
       } else {
         throw new Error('Formato de arquivo não suportado. Use CSV ou Excel (.xlsx)')
       }
@@ -84,6 +83,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
         description: "Erro ao processar arquivo. Verifique o formato e tente novamente.",
         variant: "destructive"
       })
+    } finally {
       setIsProcessing(false)
     }
   }
@@ -533,3 +533,5 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
     </Dialog>
   )
 }
+
+export { RecipeSpreadsheetImport }
