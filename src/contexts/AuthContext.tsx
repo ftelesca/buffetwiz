@@ -32,45 +32,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false)
   const { toast } = useToast()
 
-  const handleAuthChange = async (session: Session | null) => {
-    try {
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        await fetchProfile(session.user.id)
-      } else {
-        setProfile(null)
-      }
-    } catch (error) {
-      console.error('Error in auth state change:', error)
-      // Even if there's an error, we should clear the loading state
-      setProfile(null)
-    } finally {
-      setLoading(false)
-    }
-  }
   useEffect(() => {
+    let isMounted = true
+
+    const handleAuthChange = async (session: Session | null) => {
+      if (!isMounted) return
+      
+      try {
+        setSession(session)
+        setUser(session?.user ?? null)
+        
+        if (session?.user) {
+          await fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
+        }
+      } catch (error) {
+        console.error('Error in auth state change:', error)
+        if (isMounted) {
+          setProfile(null)
+        }
+      } finally {
+        if (isMounted && !initialized) {
+          setInitialized(true)
+          setLoading(false)
+        }
+      }
+    }
+
     // Get initial session
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
-        return handleAuthChange(session)
+        if (isMounted) {
+          handleAuthChange(session)
+        }
       })
       .catch((error) => {
         console.error('Error getting initial session:', error)
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        handleAuthChange(session)
+        if (initialized) {
+          handleAuthChange(session)
+        }
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const fetchProfile = async (userId: string) => {
