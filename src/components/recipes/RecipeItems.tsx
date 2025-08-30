@@ -94,6 +94,11 @@ export default function RecipeItems({
                         Nenhum insumo adicionado à receita. Clique em "Adicionar Insumo" para começar.
                       </TableCell>
                     </TableRow> : recipeItems.map(recipeItem => {
+                    }).sort((a, b) => {
+                      const itemA = a.item_detail?.description || '';
+                      const itemB = b.item_detail?.description || '';
+                      return itemA.localeCompare(itemB);
+                    }).map(recipeItem => {
                 const item = recipeItem.item_detail;
                 const unitDescription = item?.unit_use ? getUnitDescription(item.unit_use) : item?.unit_purch ? getUnitDescription(item.unit_purch) : "";
                 const unitCost = item?.cost || 0; // custo da unidade de compra
