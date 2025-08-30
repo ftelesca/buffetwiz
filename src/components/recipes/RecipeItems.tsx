@@ -61,7 +61,11 @@ export default function RecipeItems({
     return total + itemTotalCost;
   }, 0);
   const formatCurrency = (value: number) => {
-    return value < 0.01 ? "< 0,01" : value.toFixed(2).replace('.', ',');
+    if (value < 0.01) return "< 0,01";
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
   };
   return <Card className="h-fit">
       <CardHeader className="flex-shrink-0">
@@ -130,8 +134,7 @@ export default function RecipeItems({
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-medium">Custo Total:</span>
-                  <span className="text-xl font-bold text-primary">
-                    {formatCurrency(totalRecipeCost)}
+                  <span className="text-xl font-bold text-primary">R$ {formatCurrency(totalRecipeCost)}
                   </span>
                 </div>
               </CardContent>
