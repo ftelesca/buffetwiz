@@ -110,7 +110,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       setFormData({
         title: eventData.title || "",
         customer: eventData.customer?.toString() || "",
-        date: eventData.date ? new Date(eventData.date) : undefined,
+        date: eventData.date ? new Date(eventData.date + 'T00:00:00') : undefined,
         time: eventData.time || "",
         location: eventData.location || "",
         type: eventData.type || "",
