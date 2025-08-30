@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import { useAuth } from "@/contexts/AuthContext"
 import Papa from "papaparse"
 import * as XLSX from "xlsx"
 
@@ -36,6 +37,7 @@ interface RecipeSpreadsheetImportProps {
 }
 
 export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: RecipeSpreadsheetImportProps) {
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null)
   const [parsedData, setParsedData] = useState<ParsedRecipeItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
@@ -237,7 +239,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
             .from('recipe')
             .insert([{
               description: firstItem.recipeDescription,
-              user_id: '237ed56f-e0c8-428e-aaf7-ed5fafb6eee8'
+              user_id: user?.id
             }])
             .select('id')
             .single()
