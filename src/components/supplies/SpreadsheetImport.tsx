@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
 import { parseSpreadsheetCurrency } from "@/lib/utils"
 import Papa from "papaparse"
 import * as XLSX from "xlsx"
@@ -38,6 +39,7 @@ interface SpreadsheetImportProps {
 }
 
 export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: SpreadsheetImportProps) {
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null)
   const [parsedData, setParsedData] = useState<ParsedItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
@@ -239,7 +241,8 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
           unit_purch: item.unit_purch!,
           unit_use: item.unit_use!,
           cost: item.cost,
-          factor: item.factor
+          factor: item.factor,
+          user_id: user?.id
         }))
 
         const { error } = await supabase

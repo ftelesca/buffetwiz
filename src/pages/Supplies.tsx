@@ -14,6 +14,7 @@ import { MainLayout } from "@/components/layout/MainLayout"
 import { PageHeader } from "@/components/ui/page-header"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
 import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText, getDeletedMessage } from "@/lib/utils"
 import { SpreadsheetImport } from "@/components/supplies/SpreadsheetImport"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
@@ -44,6 +45,7 @@ interface ItemFormData {
 }
 
 export default function Insumos() {
+  const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([])
   const [units, setUnits] = useState<Unit[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -155,7 +157,8 @@ export default function Insumos() {
             unit_purch: newItem.unit_purch,
             unit_use: newItem.unit_use,
             cost: typeof newItem.cost === 'string' ? parseCurrency(newItem.cost) : newItem.cost,
-            factor: newItem.factor
+            factor: newItem.factor,
+            user_id: user?.id
           }])
 
         if (error) throw error

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
 import type { Recipe } from "@/types/recipe"
 
 interface RecipeFormProps {
@@ -16,13 +17,14 @@ interface RecipeFormProps {
 export default function RecipeForm({ isOpen, onOpenChange, onSuccess }: RecipeFormProps) {
   const [newRecipe, setNewRecipe] = useState({ description: "" })
   const { toast } = useToast()
+  const { user } = useAuth()
 
   const addRecipe = async () => {
     if (!newRecipe.description.trim()) return
 
     const { data, error } = await supabase
       .from("recipe")
-      .insert([{ description: newRecipe.description }])
+      .insert([{ description: newRecipe.description, user_id: user?.id }])
       .select()
 
     if (error) {
