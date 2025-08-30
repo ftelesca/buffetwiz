@@ -74,7 +74,7 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto scrollbar-thin">
           {recipes.map((recipe) => (
             <div
               key={recipe.id}
