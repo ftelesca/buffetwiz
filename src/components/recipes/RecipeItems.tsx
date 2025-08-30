@@ -84,8 +84,8 @@ export default function RecipeItems({
                     <TableHead>Item</TableHead>
                     <TableHead className="text-right">Quantidade</TableHead>
                     <TableHead className="text-center">Unidade</TableHead>
-                    <TableHead className="text-right">Custo</TableHead>
-                    <TableHead className="text-center w-[120px] sticky right-0">Ações</TableHead>
+                    <TableHead className="text-right w-20">Custo</TableHead>
+                    <TableHead className="text-center w-16">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -110,8 +110,8 @@ export default function RecipeItems({
                           <TableCell className="text-center">
                             <Badge variant="outline">{unitDescription}</Badge>
                           </TableCell>
-                          <TableCell className="text-right font-medium whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
-                          <TableCell className="sticky right-0 text-center">
+                          <TableCell className="text-right font-medium text-xs">{formatCurrency(totalCost)}</TableCell>
+                          <TableCell className="text-center">
                             <ActionButtons
                               onEdit={() => onEditItem(recipeItem)}
                               onDelete={() => deleteRecipeItem(recipeItem.id)}
