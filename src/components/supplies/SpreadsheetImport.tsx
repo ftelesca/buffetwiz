@@ -45,6 +45,17 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
   const [isProcessing, setIsProcessing] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const { toast } = useToast()
+  
+  // Get existing units for the current user
+  const getUserUnits = async () => {
+    const { supabase } = await import("@/integrations/supabase/client")
+    const { data, error } = await supabase
+      .from('unit')
+      .select('*')
+    
+    if (error) throw error
+    return data || []
+  }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0]
@@ -162,26 +173,26 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
       if (!item.unit_purch_name) {
         item.errors.push('Unidade de compra é obrigatória')
       } else {
-        const purchUnit = units.find(u => 
+        const purchUnit = units.find(u =>
           u.description.toLowerCase() === item.unit_purch_name.toLowerCase()
         )
         if (purchUnit) {
           item.unit_purch = purchUnit.id
         } else {
-          item.errors.push(`Unidade de compra "${item.unit_purch_name}" não encontrada`)
+          item.errors.push(`Unidade de compra "${item.unit_purch_name}" não encontrada. Certifique-se de que a unidade está cadastrada.`)
         }
       }
 
       if (!item.unit_use_name) {
         item.errors.push('Unidade de uso é obrigatória')
       } else {
-        const useUnit = units.find(u => 
+        const useUnit = units.find(u =>
           u.description.toLowerCase() === item.unit_use_name.toLowerCase()
         )
         if (useUnit) {
           item.unit_use = useUnit.id
         } else {
-          item.errors.push(`Unidade de uso "${item.unit_use_name}" não encontrada`)
+          item.errors.push(`Unidade de uso "${item.unit_use_name}" não encontrada. Certifique-se de que a unidade está cadastrada.`)
         }
       }
 

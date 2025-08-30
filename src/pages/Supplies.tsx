@@ -192,7 +192,7 @@ export default function Insumos() {
       } else {
         const { error } = await supabase
           .from('unit')
-          .insert([{ description: newUnit.description }])
+          .insert([{ description: newUnit.description, user_id: user?.id }])
 
         if (error) throw error
         toast({ title: "Sucesso", description: "Unidade criada com sucesso!" })
