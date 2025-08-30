@@ -13,11 +13,13 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { User, Settings, LogOut, ChevronDown } from "lucide-react"
 import { ProfileForm } from "./ProfileForm"
+import Preferences from "./Preferences"
 import { useToast } from "@/hooks/use-toast"
 
 export function UserMenu() {
   const { user, profile, signOut } = useAuth()
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
+  const [isPreferencesDialogOpen, setIsPreferencesDialogOpen] = useState(false)
   const { toast } = useToast()
 
   const handleSignOut = async () => {
@@ -86,7 +88,10 @@ export function UserMenu() {
             <User className="mr-2 h-4 w-4" />
             <span>Minha Conta</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer">
+          <DropdownMenuItem 
+            onClick={() => setIsPreferencesDialogOpen(true)}
+            className="cursor-pointer"
+          >
             <Settings className="mr-2 h-4 w-4" />
             <span>Preferências</span>
           </DropdownMenuItem>
@@ -108,6 +113,16 @@ export function UserMenu() {
             <DialogTitle>Minha Conta</DialogTitle>
           </DialogHeader>
           <ProfileForm onClose={() => setIsProfileDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Preferences Dialog */}
+      <Dialog open={isPreferencesDialogOpen} onOpenChange={setIsPreferencesDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-effect">
+          <DialogHeader>
+            <DialogTitle>Preferências</DialogTitle>
+          </DialogHeader>
+          <Preferences />
         </DialogContent>
       </Dialog>
     </>

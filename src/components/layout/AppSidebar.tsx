@@ -4,7 +4,6 @@ import {
   Calendar, 
   ChefHat, 
   Home, 
-  Settings, 
   Users, 
   ShoppingCart,
   Menu as MenuIcon,
@@ -31,7 +30,6 @@ const navigationItems = [
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Receitas", url: "/cardapios", icon: ChefHat },
   { title: "Insumos", url: "/insumos", icon: ShoppingCart },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
 ]
 
 export function AppSidebar() {

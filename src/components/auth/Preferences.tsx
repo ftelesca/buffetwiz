@@ -2,21 +2,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { PageHeader } from "@/components/ui/page-header"
 import { useTheme } from "@/contexts/ThemeContext"
 import { Moon, Sun } from "lucide-react"
-import { MainLayout } from "@/components/layout/MainLayout"
 
-export default function Configuracoes() {
+export default function Preferences() {
   const { theme, toggleTheme } = useTheme()
 
   return (
-    <MainLayout>
-    <div className="page-fade-in max-w-4xl">
-      <PageHeader
-        title="Configurações"
-        subtitle="Gerencie as preferências e configurações do sistema"
-      />
+    <div className="page-fade-in max-w-4xl space-y-6">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold tracking-tight">Preferências</h2>
+        <p className="text-muted-foreground">
+          Gerencie as preferências e configurações do sistema
+        </p>
+      </div>
 
       <div className="space-y-6">
         <Card className="shadow-card hover-lift">
@@ -65,6 +64,5 @@ export default function Configuracoes() {
         </Card>
       </div>
     </div>
-    </MainLayout>
   )
 }
