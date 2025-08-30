@@ -51,18 +51,17 @@ export default function RecipeItems({
     return qty.toString().replace('.', ',');
   };
 
-  // Calculate total recipe cost with full precision for each item, only round final result
+  // Calculate total recipe cost with full precision - don't round individual items
   const totalRecipeCost = recipeItems.reduce((total, recipeItem) => {
     const item = recipeItem.item_detail;
     const unitCost = Number(item?.cost || 0);
     const factor = Number(item?.factor || 1);
     const adjustedUnitCost = unitCost / factor;
-    const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty); // Keep full precision
+    const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
     return total + itemTotalCost;
   }, 0);
   
   const formatCurrency = (value: number) => {
-    // Only round the final display value, not intermediate calculations
     return value < 0.01 ? "< R$ 0,01" : `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
   
@@ -72,7 +71,6 @@ export default function RecipeItems({
     const factor = Number(item?.factor || 1);
     const adjustedUnitCost = unitCost / factor;
     const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
-    // Round individual item costs for display only
     return itemTotalCost < 0.01 ? "< R$ 0,01" : `R$ ${itemTotalCost.toFixed(2).replace('.', ',')}`;
   };
   
