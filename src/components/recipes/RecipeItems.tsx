@@ -51,18 +51,31 @@ export default function RecipeItems({
     return qty.toString().replace('.', ',');
   };
 
-  // Calculate total recipe cost with full precision
+  // Calculate total recipe cost with full precision for each item, only round final result
   const totalRecipeCost = recipeItems.reduce((total, recipeItem) => {
     const item = recipeItem.item_detail;
     const unitCost = Number(item?.cost || 0);
     const factor = Number(item?.factor || 1);
     const adjustedUnitCost = unitCost / factor;
-    const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
+    const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty); // Keep full precision
     return total + itemTotalCost;
   }, 0);
+  
   const formatCurrency = (value: number) => {
-    return value < 0.01 ? "< 0,01" : value.toFixed(2).replace('.', ',');
+    // Only round the final display value, not intermediate calculations
+    return value < 0.01 ? "< R$ 0,01" : `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
+  
+  const formatItemCost = (recipeItem: RecipeItem) => {
+    const item = recipeItem.item_detail;
+    const unitCost = Number(item?.cost || 0);
+    const factor = Number(item?.factor || 1);
+    const adjustedUnitCost = unitCost / factor;
+    const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
+    // Round individual item costs for display only
+    return itemTotalCost < 0.01 ? "< R$ 0,01" : `R$ ${itemTotalCost.toFixed(2).replace('.', ',')}`;
+  };
+  
   return <Card className="h-fit">
       <CardHeader className="flex-shrink-0">
         <div className="flex justify-between items-center gap-4">
@@ -96,17 +109,13 @@ export default function RecipeItems({
                     </TableRow> : recipeItems.map(recipeItem => {
                 const item = recipeItem.item_detail;
                 const unitDescription = item?.unit_use ? getUnitDescription(item.unit_use) : item?.unit_purch ? getUnitDescription(item.unit_purch) : "";
-                const unitCost = item?.cost || 0; // custo da unidade de compra
-                const factor = item?.factor || 1; // fator de conversão
-                const adjustedUnitCost = unitCost / factor; // custo unitario = custo da unidade de compra / fator
-                const totalCost = adjustedUnitCost * recipeItem.qty;
                 return <TableRow key={recipeItem.id}>
                           <TableCell className="font-medium">{item?.description}</TableCell>
                           <TableCell className="text-right">{formatQuantity(recipeItem.qty)}</TableCell>
                           <TableCell className="text-center">
                             <Badge variant="outline">{unitDescription}</Badge>
                           </TableCell>
-                          <TableCell className="text-right font-medium whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
+                          <TableCell className="text-right font-medium whitespace-nowrap">{formatItemCost(recipeItem)}</TableCell>
                           <TableCell className="sticky right-0 text-center">
                             <ActionButtons
                               onEdit={() => onEditItem(recipeItem)}
