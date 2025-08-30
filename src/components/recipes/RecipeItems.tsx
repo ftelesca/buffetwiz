@@ -93,8 +93,7 @@ export default function RecipeItems({
                       <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                         Nenhum insumo adicionado à receita. Clique em "Adicionar Insumo" para começar.
                       </TableCell>
-                    </TableRow> : recipeItems.map(recipeItem => {
-                    }).sort((a, b) => {
+                    </TableRow> : recipeItems.sort((a, b) => {
                       const itemA = a.item_detail?.description || '';
                       const itemB = b.item_detail?.description || '';
                       return itemA.localeCompare(itemB);
