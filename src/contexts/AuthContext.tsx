@@ -34,39 +34,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
-  const handleAuthChange = async (session: Session | null) => {
-    try {
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        await fetchProfile(session.user.id)
-      } else {
-        setProfile(null)
-      }
-    } catch (error) {
-      console.error('Error in auth state change:', error)
-      // Even if there's an error, we should clear the loading state
-      setProfile(null)
-    } finally {
-      setLoading(false)
-    }
-  }
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        return handleAuthChange(session)
-      })
-      .catch((error) => {
-        console.error('Error getting initial session:', error)
-        setLoading(false)
-      })
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+      }
+      setLoading(false)
+    })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        handleAuthChange(session)
+      async (event, session) => {
+        setSession(session)
+        setUser(session?.user ?? null)
+        
+        if (session?.user) {
+          await fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
+        }
+        
+        setLoading(false)
       }
     )
 
