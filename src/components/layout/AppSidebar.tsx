@@ -54,10 +54,7 @@ export function AppSidebar() {
         {state !== "collapsed" ? (
           <>
             <div className="flex items-center gap-2">
-              <div className="relative">
-                <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border border-white shadow-sm" />
-              </div>
+              <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
               <div>
                 <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
                   BuffetWiz
@@ -74,10 +71,7 @@ export function AppSidebar() {
             </Button>
           </>
         ) : (
-          <div className="relative">
-            <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border border-white shadow-sm" />
-          </div>
+          <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
         )}
       </div>
 
