@@ -35,7 +35,7 @@ function LayoutContent({ children }: MainLayoutProps) {
             <div className="flex h-full items-center px-6 gap-4 justify-between">
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <ChefHat className="h-8 w-8 text-primary" />
+                  <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border border-white shadow-sm" />
                 </div>
                 <div>
@@ -65,7 +65,7 @@ function LayoutContent({ children }: MainLayoutProps) {
             <SidebarTrigger />
             <div className="flex items-center gap-2">
               <div className="relative">
-                <ChefHat className="h-8 w-8 text-primary" />
+                <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border border-white shadow-sm" />
               </div>
               <div>
