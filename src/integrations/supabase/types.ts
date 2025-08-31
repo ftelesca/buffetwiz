@@ -219,20 +219,17 @@ export type Database = {
       }
       recipe_item: {
         Row: {
-          id: number
-          item: number | null
+          item: number
           qty: number | null
           recipe: number
         }
         Insert: {
-          id?: number
-          item?: number | null
+          item: number
           qty?: number | null
           recipe: number
         }
         Update: {
-          id?: number
-          item?: number | null
+          item?: number
           qty?: number | null
           recipe?: number
         }
@@ -257,14 +254,17 @@ export type Database = {
         Row: {
           description: string
           id: number
+          user_id: string
         }
         Insert: {
           description: string
           id?: number
+          user_id: string
         }
         Update: {
           description?: string
           id?: number
+          user_id?: string
         }
         Relationships: []
       }
