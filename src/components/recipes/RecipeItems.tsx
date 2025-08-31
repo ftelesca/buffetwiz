@@ -28,10 +28,10 @@ export default function RecipeItems({
   const {
     toast
   } = useToast();
-  const deleteRecipeItem = async (id: number) => {
+  const deleteRecipeItem = async (recipe: number, item: number) => {
     const {
       error
-    } = await supabase.from("recipe_item").delete().eq("id", id);
+    } = await supabase.from("recipe_item").delete().eq("recipe", recipe).eq("item", item);
     if (error) {
       toast({
         title: "Erro",
@@ -108,7 +108,7 @@ export default function RecipeItems({
                 const factor = item?.factor || 1; // fator de conversão
                 const adjustedUnitCost = unitCost / factor; // custo unitario = custo da unidade de compra / fator
                 const totalCost = adjustedUnitCost * recipeItem.qty;
-                return <TableRow key={recipeItem.id}>
+                return <TableRow key={`${recipeItem.recipe}-${recipeItem.item}`}>
                           <TableCell className="font-medium">{item?.description}</TableCell>
                           <TableCell className="text-right">{formatQuantity(recipeItem.qty)}</TableCell>
                           <TableCell className="text-center">
@@ -118,7 +118,7 @@ export default function RecipeItems({
                           <TableCell className="text-center">
                             <ActionButtons
                               onEdit={() => onEditItem(recipeItem)}
-                              onDelete={() => deleteRecipeItem(recipeItem.id)}
+                              onDelete={() => deleteRecipeItem(recipeItem.recipe, recipeItem.item)}
                               itemName={item?.description || "este item"}
                               itemType="este item da receita"
                             />

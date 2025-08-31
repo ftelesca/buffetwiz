@@ -125,7 +125,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
 
     const { data: existingRecipeItems } = await supabase
       .from('recipe_item')
-      .select('id, recipe, item')
+      .select('recipe, item')
     
     // Skip header row and process data
     for (let i = 1; i < data.length; i++) {
@@ -185,7 +185,6 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
         )
         
         if (existingRecipeItem) {
-          item.existingRecipeItemId = existingRecipeItem.id
           item.isRecipeItemUpdate = true
         }
       }
@@ -258,12 +257,13 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
 
         // Process recipe items
         for (const item of recipeItems) {
-          if (item.existingRecipeItemId) {
+          if (item.isRecipeItemUpdate) {
             // Update existing recipe item
             await supabase
               .from('recipe_item')
               .update({ qty: item.qty })
-              .eq('id', item.existingRecipeItemId)
+              .eq('recipe', recipeId)
+              .eq('item', item.itemId!)
             updatedRecipeItemsCount++
           } else {
             // Create new recipe item
