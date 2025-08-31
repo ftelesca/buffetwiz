@@ -116,8 +116,8 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         type: eventData.type || "",
         status: eventData.status || "planejamento",
         numguests: eventData.numguests?.toString() || "",
-        cost: eventData.cost ? eventData.cost.toFixed(2).replace('.', ',') : "",
-        price: eventData.price ? eventData.price.toFixed(2).replace('.', ',') : "",
+        cost: eventData.cost ? formatCurrencyInput((eventData.cost * 100).toString()) : "",
+        price: eventData.price ? formatCurrencyInput((eventData.price * 100).toString()) : "",
         description: eventData.description || ""
       });
     }
