@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(null)
         }
       } finally {
-        if (isMounted && !initialized) {
+        if (isMounted) {
           setInitialized(true)
           setLoading(false)
         }
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (initialized) {
+        if (isMounted) {
           handleAuthChange(session)
         }
       }
