@@ -227,6 +227,7 @@ export const EventMenu = ({
               <CalendarIntegration 
                 event={{
                   title: eventTitle,
+                  client: customerName,
                   description: eventDescription,
                   location: eventLocation,
                   date: eventDate,
