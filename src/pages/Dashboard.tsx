@@ -21,6 +21,7 @@ interface Event {
   status: "confirmado" | "planejamento" | "concluido"
   description: string | null
   duration: number | null
+  customerName?: string
 }
 
 interface DashboardStats {
@@ -67,7 +68,8 @@ export default function Dashboard() {
           cost,
           price,
           status,
-          description
+          description,
+          customer_info:customer(name)
         `)
         .gte('date', new Date().toISOString().split('T')[0])
         .order('date', { ascending: true })
@@ -85,7 +87,8 @@ export default function Dashboard() {
         budget: event.cost || event.price || 0,
         status: (event.status as "confirmado" | "planejamento" | "concluido") || "planejamento",
         description: event.description || '',
-        duration: event.duration || null
+        duration: event.duration || null,
+        customerName: (event as any).customer_info?.name
       })) as Event[] || []
     }
   })
@@ -280,6 +283,7 @@ export default function Dashboard() {
             <div key={event.id} className="hover-lift">
               <EventCard
                 {...event}
+                customerName={event.customerName}
                 onEdit={handleEditEvent}
                 onView={handleViewEvent}
               />

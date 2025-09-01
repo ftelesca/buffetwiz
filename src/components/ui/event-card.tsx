@@ -17,6 +17,7 @@ interface EventCardProps {
   status: "planejamento" | "confirmado" | "concluido" | "cancelado"
   description?: string
   duration?: number
+  customerName?: string
   onEdit?: (id: string) => void
   onView?: (id: string) => void
 }
@@ -39,6 +40,7 @@ export function EventCard({
   status, 
   description,
   duration,
+  customerName,
   onEdit,
   onView 
 }: EventCardProps) {
@@ -104,7 +106,7 @@ export function EventCard({
         <CalendarIntegration 
           event={{
             title,
-            client: "Cliente não especificado",
+            client: customerName,
             description,
             location,
             startDate: date,
