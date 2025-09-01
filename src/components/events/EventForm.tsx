@@ -325,9 +325,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
             placeholder="02:00"
           />
-          <p className="text-xs text-muted-foreground mt-1">
-            Formato HH:MM
-          </p>
         </div>
       </div>
       
