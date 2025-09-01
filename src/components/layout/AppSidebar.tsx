@@ -4,11 +4,10 @@ import {
   Calendar, 
   ChefHat, 
   Home, 
-  Settings, 
   Users, 
   ShoppingCart,
   Menu as MenuIcon,
-  UtensilsCrossed,
+  ChefHat as LogoIcon,
   ChevronLeft
 } from "lucide-react"
 
@@ -31,7 +30,6 @@ const navigationItems = [
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Receitas", url: "/cardapios", icon: ChefHat },
   { title: "Insumos", url: "/insumos", icon: ShoppingCart },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
 ]
 
 export function AppSidebar() {
@@ -56,7 +54,7 @@ export function AppSidebar() {
         {state !== "collapsed" ? (
           <>
             <div className="flex items-center gap-2">
-              <UtensilsCrossed className="h-8 w-8 text-primary" />
+              <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
               <div>
                 <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
                   BuffetWiz
@@ -67,14 +65,13 @@ export function AppSidebar() {
             <Button
               onClick={toggleSidebar}
               variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
+              className="absolute right-0 top-1/2 -translate-y-1/2 h-16 w-3 rounded-l-md bg-primary/20 hover:bg-primary/30 border-l border-t border-b border-primary/30 hover:border-primary/50 shadow-sm transition-all duration-200 flex items-center justify-center p-0"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 text-primary" />
             </Button>
           </>
         ) : (
-          <UtensilsCrossed className="h-8 w-8 text-primary" />
+          <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
         )}
       </div>
 

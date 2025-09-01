@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,7 @@ import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
 import { cn, toTitleCase, getCountText, getDeletedMessage } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ActionButtons } from "@/components/ui/ActionButtons";
+import { ActionButtons } from "@/components/ui/action-buttons"
 
 interface Customer {
   id: number;
@@ -27,6 +28,7 @@ interface Customer {
 }
 
 const Customers = () => {
+  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,7 +60,7 @@ const Customers = () => {
     mutationFn: async (customerData: Omit<Customer, "id">) => {
       const { data, error } = await supabase
         .from("customer")
-        .insert([customerData])
+        .insert([{ ...customerData, user_id: user?.id }])
         .select()
         .single();
       

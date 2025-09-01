@@ -7,55 +7,42 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
-import { parseSpreadsheetCurrency } from "@/lib/utils"
 import Papa from "papaparse"
 import * as XLSX from "xlsx"
 
-interface Unit {
+interface Item {
   id: number
   description: string
 }
 
-interface ParsedItem {
-  description: string
-  unit_purch_name: string
-  unit_use_name: string
-  cost: number
-  factor: number
-  unit_purch?: number
-  unit_use?: number
+interface ParsedRecipeItem {
+  recipeDescription: string
+  itemDescription: string
+  qty: number
   errors: string[]
   rowIndex: number
-  existingId?: number
-  isUpdate?: boolean
+  recipeId?: number
+  itemId?: number
+  existingRecipeItemId?: number
+  isRecipeUpdate?: boolean
+  isRecipeItemUpdate?: boolean
 }
 
-interface SpreadsheetImportProps {
+interface RecipeSpreadsheetImportProps {
   isOpen: boolean
   onClose: () => void
-  units: Unit[]
   onImportComplete: () => void
 }
 
-export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: SpreadsheetImportProps) {
+export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: RecipeSpreadsheetImportProps) {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null)
-  const [parsedData, setParsedData] = useState<ParsedItem[]>([])
+  const [parsedData, setParsedData] = useState<ParsedRecipeItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const { toast } = useToast()
-  
-  // Get existing units for the current user
-  const getUserUnits = async () => {
-    const { supabase } = await import("@/integrations/supabase/client")
-    const { data, error } = await supabase
-      .from('unit')
-      .select('*')
-    
-    if (error) throw error
-    return data || []
-  }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0]
@@ -125,83 +112,81 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
   }
 
   const processData = async (data: any[][]) => {
-    const items: ParsedItem[] = []
+    const items: ParsedRecipeItem[] = []
     
-    // Fetch existing insumos to check for duplicates
-    const { supabase } = await import("@/integrations/supabase/client")
+    // Fetch existing recipes and items
+    const { data: existingRecipes } = await supabase
+      .from('recipe')
+      .select('id, description')
+    
     const { data: existingItems } = await supabase
       .from('item')
       .select('id, description')
+
+    const { data: existingRecipeItems } = await supabase
+      .from('recipe_item')
+      .select('recipe, item')
     
     // Skip header row and process data
     for (let i = 1; i < data.length; i++) {
       const row = data[i]
       if (!row || row.length === 0) continue
 
-      const unitPurchName = row[1]?.toString().trim() || 'un'
-      const unitUseName = row[2]?.toString().trim() || 'un'
-      const rawFactor = parseFloat(row[3]?.toString()) || 1
-      
-      // Set factor to 1 if purchase and use units are the same
-      const factor = unitPurchName.toLowerCase() === unitUseName.toLowerCase() ? 1 : rawFactor
+      const recipeDescription = formatTitleCase(row[0]?.toString().trim() || '')
+      const itemDescription = row[1]?.toString().trim() || ''
+      const qty = parseFloat(row[2]?.toString()) || 0
 
-      const item: ParsedItem = {
-        description: formatTitleCase(row[0]?.toString().trim() || ''),
-        unit_purch_name: unitPurchName,
-        unit_use_name: unitUseName,
-        factor: factor,
-        cost: parseSpreadsheetCurrency(row[4]),
+      const item: ParsedRecipeItem = {
+        recipeDescription,
+        itemDescription,
+        qty,
         errors: [],
         rowIndex: i + 1
       }
 
-      // Check if insumo already exists (case-insensitive)
-      const existingItem = existingItems?.find(existing => 
-        existing.description.toUpperCase() === item.description.toUpperCase()
+      // Validate required fields
+      if (!item.recipeDescription) {
+        item.errors.push('Descrição da receita é obrigatória')
+      }
+
+      if (!item.itemDescription) {
+        item.errors.push('Descrição do insumo é obrigatória')
+      }
+
+      if (isNaN(item.qty) || item.qty <= 0) {
+        item.errors.push('Quantidade deve ser um número válido e maior que zero')
+      }
+
+      // Find or identify recipe
+      const existingRecipe = existingRecipes?.find(recipe => 
+        recipe.description.toUpperCase() === item.recipeDescription.toUpperCase()
+      )
+      
+      if (existingRecipe) {
+        item.recipeId = existingRecipe.id
+        item.isRecipeUpdate = true
+      }
+
+      // Find item
+      const existingItem = existingItems?.find(itemRecord => 
+        itemRecord.description.toUpperCase() === item.itemDescription.toUpperCase()
       )
       
       if (existingItem) {
-        item.existingId = existingItem.id
-        item.isUpdate = true
-      }
-
-      // Validate and find units
-      if (!item.description) {
-        item.errors.push('Descrição é obrigatória')
-      }
-
-      if (!item.unit_purch_name) {
-        item.errors.push('Unidade de compra é obrigatória')
+        item.itemId = existingItem.id
       } else {
-        const purchUnit = units.find(u =>
-          u.description.toLowerCase() === item.unit_purch_name.toLowerCase()
+        item.errors.push(`Insumo "${item.itemDescription}" não encontrado`)
+      }
+
+      // Check if recipe item already exists
+      if (item.recipeId && item.itemId) {
+        const existingRecipeItem = existingRecipeItems?.find(ri => 
+          ri.recipe === item.recipeId && ri.item === item.itemId
         )
-        if (purchUnit) {
-          item.unit_purch = purchUnit.id
-        } else {
-          item.errors.push(`Unidade de compra "${item.unit_purch_name}" não encontrada. Certifique-se de que a unidade está cadastrada.`)
+        
+        if (existingRecipeItem) {
+          item.isRecipeItemUpdate = true
         }
-      }
-
-      if (!item.unit_use_name) {
-        item.errors.push('Unidade de uso é obrigatória')
-      } else {
-        const useUnit = units.find(u =>
-          u.description.toLowerCase() === item.unit_use_name.toLowerCase()
-        )
-        if (useUnit) {
-          item.unit_use = useUnit.id
-        } else {
-          item.errors.push(`Unidade de uso "${item.unit_use_name}" não encontrada. Certifique-se de que a unidade está cadastrada.`)
-        }
-      }
-
-      if (isNaN(item.cost) || item.cost < 0) {
-        item.errors.push('Custo deve ser um número válido e positivo')
-      }
-
-      if (isNaN(item.factor) || item.factor <= 0) {
-        item.errors.push('Fator deve ser um número válido e maior que zero')
       }
 
       items.push(item)
@@ -217,7 +202,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
     if (validItems.length === 0) {
       toast({
         title: "Erro",
-        description: "Nenhum insumo válido para importar",
+        description: "Nenhum item válido para importar",
         variant: "destructive"
       })
       return
@@ -225,56 +210,87 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
 
     setIsProcessing(true)
     try {
-      const { supabase } = await import("@/integrations/supabase/client")
+      // Group by recipe to process efficiently
+      const recipeGroups = new Map<string, ParsedRecipeItem[]>()
       
-      // Separate insumos for update and insert
-      const itemsToUpdate = validItems.filter(item => item.isUpdate)
-      const itemsToInsert = validItems.filter(item => !item.isUpdate)
-      
-      // Handle updates
-      for (const item of itemsToUpdate) {
-        await supabase
-          .from('item')
-          .update({
-            description: item.description,
-            unit_purch: item.unit_purch!,
-            unit_use: item.unit_use!,
-            cost: item.cost,
-            factor: item.factor
-          })
-          .eq('id', item.existingId!)
+      validItems.forEach(item => {
+        const key = item.recipeDescription.toUpperCase()
+        if (!recipeGroups.has(key)) {
+          recipeGroups.set(key, [])
+        }
+        recipeGroups.get(key)!.push(item)
+      })
+
+      let newRecipesCount = 0
+      let updatedRecipesCount = 0
+      let newRecipeItemsCount = 0
+      let updatedRecipeItemsCount = 0
+
+      // Process each recipe group
+      for (const [recipeKey, recipeItems] of recipeGroups) {
+        const firstItem = recipeItems[0]
+        let recipeId = firstItem.recipeId
+
+        // Create or update recipe
+        if (!recipeId) {
+          // Create new recipe
+          const { data: newRecipe, error: recipeError } = await supabase
+            .from('recipe')
+            .insert([{
+              description: firstItem.recipeDescription,
+              user_id: user?.id
+            }])
+            .select('id')
+            .single()
+
+          if (recipeError) throw recipeError
+          recipeId = newRecipe.id
+          newRecipesCount++
+        } else {
+          // Update existing recipe (just to ensure it's current)
+          await supabase
+            .from('recipe')
+            .update({ description: firstItem.recipeDescription })
+            .eq('id', recipeId)
+          updatedRecipesCount++
+        }
+
+        // Process recipe items
+        for (const item of recipeItems) {
+          if (item.isRecipeItemUpdate) {
+            // Update existing recipe item
+            await supabase
+              .from('recipe_item')
+              .update({ qty: item.qty })
+              .eq('recipe', recipeId)
+              .eq('item', item.itemId!)
+            updatedRecipeItemsCount++
+          } else {
+            // Create new recipe item
+            await supabase
+              .from('recipe_item')
+              .insert([{
+                recipe: recipeId,
+                item: item.itemId!,
+                qty: item.qty
+              }])
+            newRecipeItemsCount++
+          }
+        }
       }
-      
-      // Handle inserts
-      if (itemsToInsert.length > 0) {
-        const dataToInsert = itemsToInsert.map(item => ({
-          description: item.description,
-          unit_purch: item.unit_purch!,
-          unit_use: item.unit_use!,
-          cost: item.cost,
-          factor: item.factor,
-          user_id: user?.id
-        }))
 
-        const { error } = await supabase
-          .from('item')
-          .insert(dataToInsert)
-
-        if (error) throw error
-      }
-
-      const updateCount = itemsToUpdate.length
-      const insertCount = itemsToInsert.length
-      
-      toast({ title: `${insertCount} insumos inseridos, ${updateCount} insumos atualizados` })
+      toast({ 
+        title: `Importação concluída`,
+        description: `${newRecipesCount} receitas criadas, ${updatedRecipesCount} receitas atualizadas, ${newRecipeItemsCount} itens adicionados, ${updatedRecipeItemsCount} itens atualizados`
+      })
 
       onImportComplete()
       handleClose()
     } catch (error) {
-      console.error('Erro ao importar insumos:', error)
+      console.error('Erro ao importar receitas:', error)
       toast({
         title: "Erro",
-        description: "Erro ao importar insumos. Tente novamente.",
+        description: "Erro ao importar receitas. Tente novamente.",
         variant: "destructive"
       })
     } finally {
@@ -291,32 +307,35 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
 
   const downloadTemplate = () => {
     const template = [
-      ['Descrição', 'Unidade Compra', 'Unidade Uso', 'Fator', 'Custo'],
-      ['Arroz Branco', 'kg', 'g', '0.001', '5,99'],
-      ['Feijão Preto', 'kg', 'g', '0.001', '8,50'],
-      ['Azeite de Oliva', 'L', 'ml', '0.001', '15,90']
+      ['Receita', 'Insumo', 'Qtd'],
+      ['Arroz de Festa', 'Arroz Branco', '500'],
+      ['Arroz de Festa', 'Azeite de Oliva', '50'],
+      ['Feijão Tropeiro', 'Feijão Preto', '300'],
+      ['Feijão Tropeiro', 'Bacon', '100']
     ]
 
     const csv = Papa.unparse(template)
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    link.download = 'modelo_insumos.csv'
+    link.download = 'modelo_receitas.csv'
     link.click()
   }
 
   const validItems = parsedData.filter(item => item.errors.length === 0)
   const invalidItems = parsedData.filter(item => item.errors.length > 0)
-  const updateItems = validItems.filter(item => item.isUpdate)
-  const insertItems = validItems.filter(item => !item.isUpdate)
+  const newRecipes = [...new Set(validItems.filter(item => !item.isRecipeUpdate).map(item => item.recipeDescription))]
+  const updatedRecipes = [...new Set(validItems.filter(item => item.isRecipeUpdate).map(item => item.recipeDescription))]
+  const newRecipeItems = validItems.filter(item => !item.isRecipeItemUpdate)
+  const updatedRecipeItems = validItems.filter(item => item.isRecipeItemUpdate)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Importar Planilha de Insumos</DialogTitle>
+          <DialogTitle>Importar Planilha de Receitas</DialogTitle>
           <DialogDescription>
-            Faça upload de um arquivo CSV ou Excel com os dados dos insumos
+            Faça upload de um arquivo CSV ou Excel com receitas e seus insumos
           </DialogDescription>
         </DialogHeader>
 
@@ -326,7 +345,9 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
               <Alert>
                 <FileText className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Formato esperado:</strong> Descrição, Unidade Compra, Unidade Uso, Fator, Custo
+                  <strong>Formato esperado:</strong> Receita, Insumo, Qtd
+                  <br />
+                  <strong>Importante:</strong> Os insumos devem estar previamente cadastrados no sistema
                   <br />
                   <Button 
                     variant="link" 
@@ -359,9 +380,9 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                           accept=".csv,.xlsx,.xls"
                           onChange={handleFileChange}
                           className="hidden"
-                          id="file-upload"
+                          id="recipe-file-upload"
                         />
-                        <label htmlFor="file-upload">
+                        <label htmlFor="recipe-file-upload">
                           <Button variant="outline" className="cursor-pointer" asChild>
                             <span>Escolher Arquivo</span>
                           </Button>
@@ -378,7 +399,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                 <div>
                   <h3 className="text-lg font-semibold">Prévia da Importação</h3>
                   <p className="text-sm text-muted-foreground">
-                    {insertItems.length} novos, {updateItems.length} atualizações, {invalidItems.length} com erro
+                    {newRecipes.length} receitas novas, {updatedRecipes.length} receitas atualizadas, {newRecipeItems.length} itens novos, {updatedRecipeItems.length} itens atualizados, {invalidItems.length} com erro
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -398,7 +419,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                     ) : (
                       <>
                         <Check className="h-4 w-4" />
-                        Processar ({insertItems.length} novos, {updateItems.length} atualizações)
+                        Processar ({validItems.length} itens válidos)
                       </>
                     )}
                   </Button>
@@ -410,29 +431,29 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">Linha</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Un. Compra</TableHead>
-                      <TableHead>Un. Uso</TableHead>
-                      <TableHead>Fator</TableHead>
-                      <TableHead>Custo</TableHead>
-                      <TableHead>Ação</TableHead>
+                      <TableHead>Receita</TableHead>
+                      <TableHead>Insumo</TableHead>
+                      <TableHead>Quantidade</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {parsedData.map((item, index) => (
                       <TableRow key={index}>
                         <TableCell>{item.rowIndex}</TableCell>
-                        <TableCell>{item.description}</TableCell>
-                        <TableCell>{item.unit_purch_name}</TableCell>
-                        <TableCell>{item.unit_use_name}</TableCell>
-                        <TableCell>{item.factor}</TableCell>
-                        <TableCell>R$ {item.cost.toFixed(2)}</TableCell>
+                        <TableCell>{item.recipeDescription}</TableCell>
+                        <TableCell>{item.itemDescription}</TableCell>
+                        <TableCell>{item.qty}</TableCell>
                         <TableCell>
                           {item.errors.length === 0 ? (
-                            <Badge variant={item.isUpdate ? "secondary" : "default"} className={item.isUpdate ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
-                              <Check className="h-3 w-3 mr-1" />
-                              {item.isUpdate ? "Atualizar" : "Inserir"}
-                            </Badge>
+                            <div className="space-y-1">
+                              <Badge variant={item.isRecipeUpdate ? "secondary" : "default"} className={item.isRecipeUpdate ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
+                                {item.isRecipeUpdate ? "Receita: Atualizar" : "Receita: Criar"}
+                              </Badge>
+                              <Badge variant={item.isRecipeItemUpdate ? "secondary" : "default"} className={item.isRecipeItemUpdate ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
+                                {item.isRecipeItemUpdate ? "Item: Atualizar" : "Item: Criar"}
+                              </Badge>
+                            </div>
                           ) : (
                             <Badge variant="destructive">
                               <AlertCircle className="h-3 w-3 mr-1" />
@@ -449,13 +470,13 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
               {invalidItems.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-red-600">Insumos com Erro</CardTitle>
+                    <CardTitle className="text-red-600">Itens com Erro</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       {invalidItems.map((item, index) => (
                         <div key={index} className="border-l-4 border-red-500 pl-3">
-                          <p className="font-medium">Linha {item.rowIndex}: {item.description}</p>
+                          <p className="font-medium">Linha {item.rowIndex}: {item.recipeDescription} - {item.itemDescription}</p>
                           <ul className="text-sm text-red-600 list-disc list-inside">
                             {item.errors.map((error, errorIndex) => (
                               <li key={errorIndex}>{error}</li>
@@ -466,6 +487,46 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                     </div>
                   </CardContent>
                 </Card>
+              )}
+
+              {validItems.length > 0 && (
+                <div className="grid grid-cols-2 gap-4">
+                  {newRecipes.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-green-600">Receitas Novas ({newRecipes.length})</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="text-sm space-y-1">
+                          {newRecipes.map((recipe, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                              <Check className="h-3 w-3 text-green-600" />
+                              {recipe}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {updatedRecipes.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-blue-600">Receitas Atualizadas ({updatedRecipes.length})</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="text-sm space-y-1">
+                          {updatedRecipes.map((recipe, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                              <Check className="h-3 w-3 text-blue-600" />
+                              {recipe}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               )}
             </div>
           )}

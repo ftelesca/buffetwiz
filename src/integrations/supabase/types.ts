@@ -21,6 +21,7 @@ export type Database = {
           id: number
           name: string
           phone: string | null
+          user_id: string | null
         }
         Insert: {
           address?: string | null
@@ -28,6 +29,7 @@ export type Database = {
           id?: number
           name: string
           phone?: string | null
+          user_id?: string | null
         }
         Update: {
           address?: string | null
@@ -35,6 +37,7 @@ export type Database = {
           id?: number
           name?: string
           phone?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -52,6 +55,7 @@ export type Database = {
           time: string | null
           title: string
           type: string | null
+          user_id: string | null
         }
         Insert: {
           cost?: number | null
@@ -66,6 +70,7 @@ export type Database = {
           time?: string | null
           title?: string
           type?: string | null
+          user_id?: string | null
         }
         Update: {
           cost?: number | null
@@ -80,6 +85,7 @@ export type Database = {
           time?: string | null
           title?: string
           type?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -129,6 +135,7 @@ export type Database = {
           id: number
           unit_purch: number
           unit_use: number
+          user_id: string | null
         }
         Insert: {
           cost?: number | null
@@ -137,6 +144,7 @@ export type Database = {
           id?: number
           unit_purch: number
           unit_use: number
+          user_id?: string | null
         }
         Update: {
           cost?: number | null
@@ -145,6 +153,7 @@ export type Database = {
           id?: number
           unit_purch?: number
           unit_use?: number
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -194,33 +203,33 @@ export type Database = {
         Row: {
           description: string
           id: number
+          user_id: string | null
         }
         Insert: {
           description: string
           id?: number
+          user_id?: string | null
         }
         Update: {
           description?: string
           id?: number
+          user_id?: string | null
         }
         Relationships: []
       }
       recipe_item: {
         Row: {
-          id: number
-          item: number | null
+          item: number
           qty: number | null
           recipe: number
         }
         Insert: {
-          id?: number
-          item?: number | null
+          item: number
           qty?: number | null
           recipe: number
         }
         Update: {
-          id?: number
-          item?: number | null
+          item?: number
           qty?: number | null
           recipe?: number
         }
@@ -245,14 +254,17 @@ export type Database = {
         Row: {
           description: string
           id: number
+          user_id: string
         }
         Insert: {
           description: string
           id?: number
+          user_id: string
         }
         Update: {
           description?: string
           id?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -265,13 +277,26 @@ export type Database = {
         Args: { event_id: number }
         Returns: number
       }
-      calculate_recipe_cost: {
+      recalculate_all_events: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          event_id: number
+          new_cost: number
+          old_cost: number
+          updated: boolean
+        }[]
+      }
+      test_triggers_health: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      update_event_cost: {
+        Args: { event_id: number }
+        Returns: boolean
+      }
+      update_events_by_recipe: {
         Args: { recipe_id: number }
         Returns: number
-      }
-      update_events_cost_for_recipe: {
-        Args: { recipe_id: number }
-        Returns: undefined
       }
     }
     Enums: {
