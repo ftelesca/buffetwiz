@@ -55,8 +55,7 @@ export default function RecipeItemForm({
           item: itemId,
           qty: parseFloat(newRecipeItem.qty)
         })
-        .eq("recipe", editingRecipeItem.recipe)
-        .eq("item", editingRecipeItem.item)
+        .eq("id", editingRecipeItem.id)
 
       if (error) {
         toast({ title: "Erro", description: "Erro ao atualizar item", variant: "destructive" })

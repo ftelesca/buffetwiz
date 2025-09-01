@@ -1,202 +1,91 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Plus, Calendar, Users, DollarSign, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { EventCard } from "@/components/ui/event-card"
-import { useQuery } from "@tanstack/react-query"
-import { supabase } from "@/integrations/supabase/client"
-import { useNavigate } from "react-router-dom"
-import { format, startOfMonth, endOfMonth, subMonths } from "date-fns"
-import { ptBR } from "date-fns/locale"
 
-interface Event {
-  id: string
-  title: string
-  date: string
-  location: string | null
-  guests: number
-  budget: number
-  status: "confirmado" | "planejamento" | "concluido"
-  description: string | null
-}
+// Mock data - will be replaced with real data later
+const mockEvents = [
+  {
+    id: "1",
+    title: "Casamento Silva & Santos",
+    date: "2024-09-15",
+    location: "Quinta da Baronesa, São Paulo",
+    guests: 150,
+    budget: 25000,
+    status: "confirmado" as const,
+    description: "Cerimônia e recepção com cardápio executivo e open bar premium"
+  },
+  {
+    id: "2", 
+    title: "Festa de Aniversário - 50 Anos",
+    date: "2024-09-22",
+    location: "Clube Athletico, Rio de Janeiro",
+    guests: 80,
+    budget: 12000,
+    status: "planejamento" as const,
+    description: "Festa temática anos 80 com DJ e cardápio de finger foods"
+  },
+  {
+    id: "3",
+    title: "Evento Corporativo - Tech Summit",
+    date: "2024-08-28",
+    location: "Centro de Convenções, Brasília",
+    guests: 300,
+    budget: 45000,
+    status: "concluido" as const,
+    description: "Coffee break, almoço executivo e cocktail de encerramento"
+  }
+]
 
-interface DashboardStats {
-  eventsThisMonth: number
-  eventsLastMonth: number
-  totalGuests: number
-  totalRevenue: number
-  previousRevenue: number
-}
-
-// Helper functions
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-
-const calculatePercentageChange = (current: number, previous: number) => {
-  if (previous === 0) return current > 0 ? "+100%" : "0%"
-  const change = ((current - previous) / previous) * 100
-  return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`
-}
+const stats = [
+  {
+    title: "Eventos este Mês",
+    value: "12",
+    change: "+20%",
+    icon: Calendar,
+    color: "text-primary"
+  },
+  {
+    title: "Total de Convidados",
+    value: "1,847",
+    change: "+12%", 
+    icon: Users,
+    color: "text-secondary"
+  },
+  {
+    title: "Receita Total",
+    value: "R$ 287.5K",
+    change: "+18%",
+    icon: DollarSign,
+    color: "text-success"
+  },
+  {
+    title: "Taxa de Crescimento",
+    value: "15.3%",
+    change: "+3%",
+    icon: TrendingUp,
+    color: "text-warning"
+  }
+]
 
 export default function Dashboard() {
-  const navigate = useNavigate()
-
-  // Fetch upcoming events
-  const { data: events = [], isLoading: eventsLoading } = useQuery({
-    queryKey: ['dashboard-events'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('event')
-        .select(`
-          id,
-          title,
-          date,
-          location,
-          numguests,
-          cost,
-          price,
-          status,
-          description
-        `)
-        .gte('date', new Date().toISOString().split('T')[0])
-        .order('date', { ascending: true })
-        .limit(6)
-
-      if (error) throw error
-
-      return data?.map(event => ({
-        id: event.id.toString(),
-        title: event.title || 'Evento sem título',
-        date: event.date || '',
-        location: event.location || 'Local não definido',
-        guests: event.numguests || 0,
-        budget: event.cost || event.price || 0,
-        status: (event.status as "confirmado" | "planejamento" | "concluido") || "planejamento",
-        description: event.description || ''
-      })) as Event[] || []
-    }
-  })
-
-  // Fetch dashboard statistics
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: async (): Promise<DashboardStats> => {
-      const now = new Date()
-      const currentMonthStart = startOfMonth(now)
-      const currentMonthEnd = endOfMonth(now)
-      const lastMonth = subMonths(now, 1)
-      const lastMonthStart = startOfMonth(lastMonth)
-      const lastMonthEnd = endOfMonth(lastMonth)
-
-      // Events this month
-      const { data: eventsThisMonth } = await supabase
-        .from('event')
-        .select('id')
-        .gte('date', format(currentMonthStart, 'yyyy-MM-dd'))
-        .lte('date', format(currentMonthEnd, 'yyyy-MM-dd'))
-
-      // Events last month
-      const { data: eventsLastMonth } = await supabase
-        .from('event')
-        .select('id')
-        .gte('date', format(lastMonthStart, 'yyyy-MM-dd'))
-        .lte('date', format(lastMonthEnd, 'yyyy-MM-dd'))
-
-      // Total guests for upcoming events
-      const { data: upcomingEvents } = await supabase
-        .from('event')
-        .select('numguests')
-        .gte('date', format(now, 'yyyy-MM-dd'))
-
-      // Revenue this month (completed events)
-      const { data: revenueThisMonth } = await supabase
-        .from('event')
-        .select('price')
-        .eq('status', 'concluido')
-        .gte('date', format(currentMonthStart, 'yyyy-MM-dd'))
-        .lte('date', format(currentMonthEnd, 'yyyy-MM-dd'))
-
-      // Revenue last month
-      const { data: revenueLastMonth } = await supabase
-        .from('event')
-        .select('price')
-        .eq('status', 'concluido')
-        .gte('date', format(lastMonthStart, 'yyyy-MM-dd'))
-        .lte('date', format(lastMonthEnd, 'yyyy-MM-dd'))
-
-      const totalGuests = upcomingEvents?.reduce((sum, event) => sum + (event.numguests || 0), 0) || 0
-      const totalRevenue = revenueThisMonth?.reduce((sum, event) => sum + (event.price || 0), 0) || 0
-      const previousRevenue = revenueLastMonth?.reduce((sum, event) => sum + (event.price || 0), 0) || 0
-
-      return {
-        eventsThisMonth: eventsThisMonth?.length || 0,
-        eventsLastMonth: eventsLastMonth?.length || 0,
-        totalGuests,
-        totalRevenue,
-        previousRevenue,
-      }
-    }
-  })
+  const [events] = useState(mockEvents)
 
   const handleEditEvent = (id: string) => {
-    navigate(`/eventos?edit=${id}`)
+    console.log("Edit event:", id)
+    // TODO: Navigate to edit page
   }
 
   const handleViewEvent = (id: string) => {
-    navigate(`/eventos?view=${id}`)
+    console.log("View event:", id)
+    // TODO: Navigate to event details
   }
 
   const handleCreateEvent = () => {
-    navigate('/eventos')
+    console.log("Create new event")
+    // TODO: Navigate to create event page
   }
-
-  const handleViewAllEvents = () => {
-    navigate('/eventos')
-  }
-
-  // Calculate growth rate (overall business growth)
-  const growthRate = stats ? 
-    calculatePercentageChange(
-      stats.eventsThisMonth + stats.totalRevenue / 1000, 
-      stats.eventsLastMonth + stats.previousRevenue / 1000
-    ) : "0%"
-
-  const dashboardStats = stats ? [
-    {
-      title: "Eventos este Mês",
-      value: stats.eventsThisMonth.toString(),
-      change: calculatePercentageChange(stats.eventsThisMonth, stats.eventsLastMonth),
-      icon: Calendar,
-      color: "text-primary"
-    },
-    {
-      title: "Total de Convidados",
-      value: stats.totalGuests.toLocaleString('pt-BR'),
-      change: "+12%", // This would need historical data to calculate properly
-      icon: Users,
-      color: "text-secondary"
-    },
-    {
-      title: "Receita este Mês",
-      value: formatCurrency(stats.totalRevenue),
-      change: calculatePercentageChange(stats.totalRevenue, stats.previousRevenue),
-      icon: DollarSign,
-      color: "text-success"
-    },
-    {
-      title: "Taxa de Crescimento",
-      value: growthRate.replace('+', '').replace('%', '') + '%',
-      change: growthRate,
-      icon: TrendingUp,
-      color: "text-warning"
-    }
-  ] : []
 
   return (
     <div className="space-y-12 page-fade-in">
@@ -231,7 +120,7 @@ export default function Dashboard() {
 
       {/* Enhanced Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 stagger-children">
-        {dashboardStats.map((stat, index) => (
+        {stats.map((stat, index) => (
           <Card key={index} className="gradient-card hover-lift shadow-card border-0 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
@@ -259,11 +148,7 @@ export default function Dashboard() {
             <h2 className="text-3xl font-bold tracking-tight">Próximos Eventos</h2>
             <p className="text-muted-foreground mt-1">Acompanhe seus eventos mais importantes</p>
           </div>
-          <Button 
-            variant="outline" 
-            className="hover-lift shadow-button"
-            onClick={handleViewAllEvents}
-          >
+          <Button variant="outline" className="hover-lift shadow-button">
             Ver Todos
           </Button>
         </div>

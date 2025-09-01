@@ -7,7 +7,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
-import { useAuth } from "@/contexts/AuthContext"
 import { parseSpreadsheetCurrency } from "@/lib/utils"
 import Papa from "papaparse"
 import * as XLSX from "xlsx"
@@ -39,23 +38,11 @@ interface SpreadsheetImportProps {
 }
 
 export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: SpreadsheetImportProps) {
-  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null)
   const [parsedData, setParsedData] = useState<ParsedItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const { toast } = useToast()
-  
-  // Get existing units for the current user
-  const getUserUnits = async () => {
-    const { supabase } = await import("@/integrations/supabase/client")
-    const { data, error } = await supabase
-      .from('unit')
-      .select('*')
-    
-    if (error) throw error
-    return data || []
-  }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0]
@@ -173,26 +160,26 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
       if (!item.unit_purch_name) {
         item.errors.push('Unidade de compra é obrigatória')
       } else {
-        const purchUnit = units.find(u =>
+        const purchUnit = units.find(u => 
           u.description.toLowerCase() === item.unit_purch_name.toLowerCase()
         )
         if (purchUnit) {
           item.unit_purch = purchUnit.id
         } else {
-          item.errors.push(`Unidade de compra "${item.unit_purch_name}" não encontrada. Certifique-se de que a unidade está cadastrada.`)
+          item.errors.push(`Unidade de compra "${item.unit_purch_name}" não encontrada`)
         }
       }
 
       if (!item.unit_use_name) {
         item.errors.push('Unidade de uso é obrigatória')
       } else {
-        const useUnit = units.find(u =>
+        const useUnit = units.find(u => 
           u.description.toLowerCase() === item.unit_use_name.toLowerCase()
         )
         if (useUnit) {
           item.unit_use = useUnit.id
         } else {
-          item.errors.push(`Unidade de uso "${item.unit_use_name}" não encontrada. Certifique-se de que a unidade está cadastrada.`)
+          item.errors.push(`Unidade de uso "${item.unit_use_name}" não encontrada`)
         }
       }
 
@@ -252,8 +239,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
           unit_purch: item.unit_purch!,
           unit_use: item.unit_use!,
           cost: item.cost,
-          factor: item.factor,
-          user_id: user?.id
+          factor: item.factor
         }))
 
         const { error } = await supabase

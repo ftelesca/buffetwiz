@@ -122,11 +122,10 @@ export function ResetPasswordPage() {
       <div className="w-full max-w-md space-y-8">
         {/* Logo and Brand */}
         <div className="text-center space-y-4">
-          <img 
-            src="https://loolieventos.com/wp-content/uploads/2025/07/logo.png" 
-            alt="BuffetWiz Logo" 
-            className="h-16 w-16 mx-auto object-contain"
-          />
+          <div className="relative mx-auto w-16 h-16">
+            <ChefHat className="h-16 w-16 text-primary mx-auto" />
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border-2 border-white shadow-sm" />
+          </div>
           <div>
             <h1 className="text-3xl font-bold text-gradient tracking-tight">
               BuffetWiz

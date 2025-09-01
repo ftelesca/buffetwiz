@@ -18,6 +18,7 @@ export interface Unit {
 }
 
 export interface RecipeItem {
+  id: number
   recipe: number
   item: number
   qty: number

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,7 +51,6 @@ const eventStatuses = [
 ];
 
 export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
-  const { user } = useAuth();
   const [formData, setFormData] = useState<EventFormData>({
     title: "",
     customer: "",
@@ -110,14 +108,14 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       setFormData({
         title: eventData.title || "",
         customer: eventData.customer?.toString() || "",
-        date: eventData.date ? new Date(eventData.date + 'T00:00:00') : undefined,
+        date: eventData.date ? new Date(eventData.date) : undefined,
         time: eventData.time || "",
         location: eventData.location || "",
         type: eventData.type || "",
         status: eventData.status || "planejamento",
         numguests: eventData.numguests?.toString() || "",
-        cost: eventData.cost ? formatCurrencyInput((eventData.cost * 100).toString()) : "",
-        price: eventData.price ? formatCurrencyInput((eventData.price * 100).toString()) : "",
+        cost: eventData.cost ? eventData.cost.toFixed(2).replace('.', ',') : "",
+        price: eventData.price ? eventData.price.toFixed(2).replace('.', ',') : "",
         description: eventData.description || ""
       });
     }
@@ -214,8 +212,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       numguests: formData.numguests ? parseInt(formData.numguests) : null,
       cost: formData.cost ? parseCurrency(formData.cost) : null,
       price: formData.price ? parseCurrency(formData.price) : null,
-      description: formData.description || null,
-      ...(eventId ? {} : { user_id: user?.id })
+      description: formData.description || null
     };
 
     if (eventId) {

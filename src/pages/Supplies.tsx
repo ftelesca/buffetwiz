@@ -14,7 +14,6 @@ import { MainLayout } from "@/components/layout/MainLayout"
 import { PageHeader } from "@/components/ui/page-header"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
-import { useAuth } from "@/contexts/AuthContext"
 import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText, getDeletedMessage } from "@/lib/utils"
 import { SpreadsheetImport } from "@/components/supplies/SpreadsheetImport"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
@@ -45,7 +44,6 @@ interface ItemFormData {
 }
 
 export default function Insumos() {
-  const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([])
   const [units, setUnits] = useState<Unit[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -157,8 +155,7 @@ export default function Insumos() {
             unit_purch: newItem.unit_purch,
             unit_use: newItem.unit_use,
             cost: typeof newItem.cost === 'string' ? parseCurrency(newItem.cost) : newItem.cost,
-            factor: newItem.factor,
-            user_id: user?.id
+            factor: newItem.factor
           }])
 
         if (error) throw error
@@ -192,7 +189,7 @@ export default function Insumos() {
       } else {
         const { error } = await supabase
           .from('unit')
-          .insert([{ description: newUnit.description, user_id: user?.id }])
+          .insert([{ description: newUnit.description }])
 
         if (error) throw error
         toast({ title: "Sucesso", description: "Unidade criada com sucesso!" })
@@ -324,10 +321,10 @@ export default function Insumos() {
                     <TableHeader className="sticky top-0 bg-background z-10 border-b">
                       <TableRow>
                         <TableHead>Descrição</TableHead>
-                        <TableHead className="text-center">Unidade Uso</TableHead>
-                        <TableHead className="text-right">x Fator</TableHead>
                         <TableHead className="text-center">Unidade Compra</TableHead>
-                        <TableHead className="text-right w-24">Custo Compra</TableHead>
+                        <TableHead className="text-center">Unidade Uso</TableHead>
+                        <TableHead className="text-right">Fator</TableHead>
+                        <TableHead className="text-right">Custo</TableHead>
                         <TableHead className="w-24 text-center">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -336,12 +333,12 @@ export default function Insumos() {
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{item.description}</TableCell>
                           <TableCell className="text-center">
+                            <Badge variant="outline">{item.unit_purch_desc}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
                             <Badge variant="outline">{item.unit_use_desc}</Badge>
                           </TableCell>
                           <TableCell className="text-right">{item.factor || 1}</TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline">{item.unit_purch_desc}</Badge>
-                          </TableCell>
                           <TableCell className="text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
                           <TableCell>
                             <ActionButtons

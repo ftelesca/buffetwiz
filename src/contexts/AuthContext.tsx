@@ -32,16 +32,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const [initialized, setInitialized] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
-    let isMounted = true
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+      }
+      setLoading(false)
+    })
 
-    const handleAuthChange = async (session: Session | null) => {
-      if (!isMounted) return
-      
-      try {
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
         
@@ -50,46 +56,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setProfile(null)
         }
-      } catch (error) {
-        console.error('Error in auth state change:', error)
-        if (isMounted) {
-          setProfile(null)
-        }
-      } finally {
-        if (isMounted) {
-          setInitialized(true)
-          setLoading(false)
-        }
-      }
-    }
-
-    // Get initial session
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        if (isMounted) {
-          handleAuthChange(session)
-        }
-      })
-      .catch((error) => {
-        console.error('Error getting initial session:', error)
-        if (isMounted) {
-          setLoading(false)
-        }
-      })
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (isMounted) {
-          handleAuthChange(session)
-        }
+        
+        setLoading(false)
       }
     )
 
-    return () => {
-      isMounted = false
-      subscription.unsubscribe()
-    }
+    return () => subscription.unsubscribe()
   }, [])
 
   const fetchProfile = async (userId: string) => {
@@ -115,7 +87,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
         data: {
           full_name: fullName
         }

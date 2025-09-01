@@ -3,14 +3,13 @@ import { supabase } from "@/integrations/supabase/client"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
-import { Plus, Search, Upload } from "lucide-react"
+import { Plus, Search } from "lucide-react"
 import { MainLayout } from "@/components/layout/MainLayout"
 import { PageHeader } from "@/components/ui/page-header"
 import RecipeList from "@/components/recipes/RecipeList"
 import RecipeItems from "@/components/recipes/RecipeItems"
 import RecipeForm from "@/components/recipes/RecipeForm"
 import RecipeItemForm from "@/components/recipes/RecipeItemForm"
-import { RecipeSpreadsheetImport } from "@/components/recipes/RecipeSpreadsheetImport"
 import type { Recipe, Item, Unit, RecipeItem } from "@/types/recipe"
 
 export default function Recipes() {
@@ -23,7 +22,6 @@ export default function Recipes() {
   const [isAddingItem, setIsAddingItem] = useState(false)
   const [editingRecipeItem, setEditingRecipeItem] = useState<RecipeItem | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
 
   useEffect(() => {
     fetchRecipes()
@@ -138,19 +136,10 @@ export default function Recipes() {
           title="Receitas"
           subtitle="Gerencie receitas e seus insumos"
         >
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsImportDialogOpen(true)}
-            >
-              <Upload className="h-4 w-4" />
-              Importar Planilha
-            </Button>
-            <Button onClick={() => setIsAddingRecipe(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Receita
-            </Button>
-          </div>
+          <Button onClick={() => setIsAddingRecipe(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Receita
+          </Button>
         </PageHeader>
 
         {/* Search */}
@@ -203,17 +192,6 @@ export default function Recipes() {
           recipeItems={recipeItems}
           editingRecipeItem={editingRecipeItem}
           onSuccess={handleRecipeItemsChange}
-        />
-
-        <RecipeSpreadsheetImport
-          isOpen={isImportDialogOpen}
-          onClose={() => setIsImportDialogOpen(false)}
-          onImportComplete={() => {
-            fetchRecipes()
-            if (selectedRecipe) {
-              fetchRecipeItems(selectedRecipe.id)
-            }
-          }}
         />
       </div>
     </MainLayout>

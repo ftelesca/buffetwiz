@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +27,6 @@ interface Customer {
 }
 
 const Customers = () => {
-  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,7 +58,7 @@ const Customers = () => {
     mutationFn: async (customerData: Omit<Customer, "id">) => {
       const { data, error } = await supabase
         .from("customer")
-        .insert([{ ...customerData, user_id: user?.id }])
+        .insert([customerData])
         .select()
         .single();
       
