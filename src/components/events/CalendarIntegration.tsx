@@ -3,6 +3,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Calendar, Download, ExternalLink } from "lucide-react";
 import { GoogleCalendarUtils } from "@/utils/googleCalendar";
 import { useToast } from "@/hooks/use-toast";
+import { formatTimeWithoutSeconds } from "@/lib/utils";
 
 interface CalendarIntegrationProps {
   event: {
@@ -38,7 +39,7 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
         description: event.description || undefined,
         location: event.location || undefined,
         startDate: event.startDate,
-        startTime: event.startTime,
+        startTime: event.startTime ? formatTimeWithoutSeconds(event.startTime) : undefined,
         duration: event.duration || undefined
       });
       
@@ -72,7 +73,7 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
         description: event.description || undefined,
         location: event.location || undefined,
         startDate: event.startDate,
-        startTime: event.startTime,
+        startTime: event.startTime ? formatTimeWithoutSeconds(event.startTime) : undefined,
         duration: event.duration || undefined
       });
       
