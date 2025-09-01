@@ -77,6 +77,7 @@ export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event-menu", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
       toast({
         title: "Receita adicionada",
         description: "Receita adicionada ao menu do evento."
@@ -106,6 +107,7 @@ export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event-menu", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
       toast({
         title: "Receita removida",
         description: "Receita removida do menu do evento."
