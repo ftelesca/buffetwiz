@@ -27,6 +27,7 @@ interface EventFormData {
   customer: string;
   date: Date | undefined;
   time: string;
+  duration: string;
   location: string;
   type: string;
   status: string;
@@ -59,6 +60,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     customer: "",
     date: undefined,
     time: "",
+    duration: "120", // Default 2 hours
     location: "",
     type: "",
     status: "planejamento",
@@ -113,6 +115,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         customer: eventData.customer?.toString() || "",
         date: eventData.date ? new Date(eventData.date + 'T00:00:00') : undefined,
         time: eventData.time || "",
+        duration: eventData.duration?.toString() || "120",
         location: eventData.location || "",
         type: eventData.type || "",
         status: eventData.status || "planejamento",
@@ -209,6 +212,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       customer: parseInt(formData.customer),
       date: formData.date ? format(formData.date, "yyyy-MM-dd") : null,
       time: formData.time || null,
+      duration: formData.duration ? parseInt(formData.duration) : 120,
       location: formData.location || null,
       type: formData.type || null,
       status: formData.status,
@@ -299,6 +303,21 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         </div>
       </div>
 
+      <div>
+        <Label htmlFor="duration">Duração (minutos)</Label>
+        <Input
+          id="duration"
+          type="number"
+          value={formData.duration}
+          onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+          placeholder="120"
+          min="15"
+          step="15"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Duração em minutos (ex: 120 = 2 horas)
+        </p>
+      </div>
       <div>
         <Label htmlFor="location">Local</Label>
         <Input
@@ -410,7 +429,8 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
                   description: formData.description,
                   location: formData.location,
                   date: formData.date ? format(formData.date, "yyyy-MM-dd") : null,
-                  time: formData.time
+                  time: formData.time,
+                  duration: formData.duration ? parseInt(formData.duration) : 120
                 }}
                 variant="default"
                 size="default"

@@ -11,6 +11,7 @@ interface CalendarIntegrationProps {
     location?: string | null;
     date?: string | null;
     time?: string | null;
+    duration?: number | null; // in minutes
   };
   variant?: "default" | "outline" | "ghost";
   size?: "default" | "sm" | "lg";
@@ -35,7 +36,8 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
         description: event.description || undefined,
         location: event.location || undefined,
         startDate: event.date,
-        startTime: event.time || undefined
+        startTime: event.time || undefined,
+        duration: event.duration || undefined
       });
       
       toast({
@@ -67,7 +69,8 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
         description: event.description || undefined,
         location: event.location || undefined,
         startDate: event.date,
-        startTime: event.time || undefined
+        startTime: event.time || undefined,
+        duration: event.duration || undefined
       });
       
       toast({

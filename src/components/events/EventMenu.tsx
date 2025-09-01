@@ -18,6 +18,7 @@ interface EventMenuProps {
   customerName?: string;
   eventDate?: string | null;
   eventTime?: string | null;
+  eventDuration?: number | null;
   eventLocation?: string | null;
 }
 
@@ -40,6 +41,7 @@ export const EventMenu = ({
   customerName,
   eventDate,
   eventTime,
+  eventDuration,
   eventLocation 
 }: EventMenuProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -228,7 +230,8 @@ export const EventMenu = ({
                   description: eventDescription,
                   location: eventLocation,
                   date: eventDate,
-                  time: eventTime
+                  time: eventTime,
+                  duration: eventDuration
                 }}
                 variant="outline"
                 size="sm"

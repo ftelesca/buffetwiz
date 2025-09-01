@@ -23,6 +23,7 @@ interface Event {
   customer: number;
   date: string | null;
   time: string | null;
+  duration: number | null;
   location: string | null;
   type: string | null;
   status: string | null;
@@ -272,7 +273,14 @@ export default function Events() {
                     Menu
                   </Button>
                   <CalendarIntegration 
-                    event={event}
+                    event={{
+                      title: event.title,
+                      description: event.description,
+                      location: event.location,
+                      date: event.date,
+                      time: event.time,
+                      duration: event.duration
+                    }}
                     size="sm"
                     variant="outline"
                   />
@@ -331,6 +339,7 @@ export default function Events() {
                 customerName={selectedEventForMenu.customer_info?.name}
                 eventDate={selectedEventForMenu.date}
                 eventTime={selectedEventForMenu.time}
+                eventDuration={selectedEventForMenu.duration}
                 eventLocation={selectedEventForMenu.location}
               />
             )}

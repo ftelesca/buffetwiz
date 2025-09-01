@@ -14,6 +14,7 @@ interface EventCardProps {
   budget: number
   status: "planejamento" | "confirmado" | "concluido" | "cancelado"
   description?: string
+  duration?: number
   onEdit?: (id: string) => void
   onView?: (id: string) => void
 }
@@ -34,11 +35,20 @@ export function EventCard({
   budget, 
   status, 
   description,
+  duration,
   onEdit,
   onView 
 }: EventCardProps) {
   const statusInfo = statusConfig[status]
 
+  const formatDuration = (minutes?: number) => {
+    if (!minutes) return null;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins}min`;
+    if (mins === 0) return `${hours}h`;
+    return `${hours}h${mins}min`;
+  };
   return (
     <Card className="hover:shadow-card transition-all duration-300 border-border/50 hover:border-primary/30">
       <CardHeader className="pb-3">
@@ -58,7 +68,14 @@ export function EventCard({
       <CardContent className="space-y-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
-          <span>{formatDateWithoutTimezone(date)}</span>
+          <span>
+            {formatDateWithoutTimezone(date)}
+            {duration && (
+              <span className="ml-2 text-xs bg-accent/50 px-2 py-1 rounded">
+                {formatDuration(duration)}
+              </span>
+            )}
+          </span>
         </div>
         
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -86,7 +103,8 @@ export function EventCard({
             description,
             location,
             date,
-            time: undefined // EventCard doesn't have time info
+            time: undefined, // EventCard doesn't have time info
+            duration
           }}
           size="sm"
           variant="ghost"

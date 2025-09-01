@@ -19,6 +19,7 @@ interface Event {
   budget: number
   status: "confirmado" | "planejamento" | "concluido"
   description: string | null
+  duration: number | null
 }
 
 interface DashboardStats {
@@ -58,6 +59,7 @@ export default function Dashboard() {
           id,
           title,
           date,
+          duration,
           location,
           numguests,
           cost,
@@ -79,7 +81,8 @@ export default function Dashboard() {
         guests: event.numguests || 0,
         budget: event.cost || event.price || 0,
         status: (event.status as "confirmado" | "planejamento" | "concluido") || "planejamento",
-        description: event.description || ''
+        description: event.description || '',
+        duration: event.duration || null
       })) as Event[] || []
     }
   })

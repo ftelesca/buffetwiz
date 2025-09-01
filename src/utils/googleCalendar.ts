@@ -6,6 +6,7 @@ export interface CalendarEvent {
   startTime?: string;
   endDate?: string;
   endTime?: string;
+  duration?: number; // in minutes
 }
 
 export class GoogleCalendarUtils {
@@ -14,10 +15,12 @@ export class GoogleCalendarUtils {
     
     // Format dates for Google Calendar
     const startDateTime = this.formatDateTime(event.startDate, event.startTime);
-    const endDateTime = this.formatDateTime(
-      event.endDate || event.startDate, 
-      event.endTime || this.addHours(event.startTime || '12:00', 2)
-    );
+    const endDateTime = event.endTime 
+      ? this.formatDateTime(event.endDate || event.startDate, event.endTime)
+      : this.formatDateTime(
+          event.endDate || event.startDate, 
+          this.addMinutes(event.startTime || '12:00', event.duration || 120)
+        );
     
     const params = new URLSearchParams({
       text: event.title,
@@ -43,6 +46,14 @@ export class GoogleCalendarUtils {
     return `${newHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   }
   
+  private static addMinutes(time: string, minutes: number): string {
+    const [hour, minute] = time.split(':').map(Number);
+    const totalMinutes = hour * 60 + minute + minutes;
+    const newHour = Math.floor(totalMinutes / 60) % 24;
+    const newMinute = totalMinutes % 60;
+    return `${newHour.toString().padStart(2, '0')}:${newMinute.toString().padStart(2, '0')}`;
+  }
+  
   static openCalendarEvent(event: CalendarEvent): void {
     const url = this.generateCalendarUrl(event);
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -50,10 +61,12 @@ export class GoogleCalendarUtils {
   
   static generateICSFile(event: CalendarEvent): string {
     const startDateTime = this.formatDateTime(event.startDate, event.startTime);
-    const endDateTime = this.formatDateTime(
-      event.endDate || event.startDate, 
-      event.endTime || this.addHours(event.startTime || '12:00', 2)
-    );
+    const endDateTime = event.endTime 
+      ? this.formatDateTime(event.endDate || event.startDate, event.endTime)
+      : this.formatDateTime(
+          event.endDate || event.startDate, 
+          this.addMinutes(event.startTime || '12:00', event.duration || 120)
+        );
     
     const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     
