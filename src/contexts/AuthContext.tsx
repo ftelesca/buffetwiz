@@ -65,13 +65,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Get initial session
     supabase.auth.getSession()
-      .then(({ data: { session } }) => {
+      .then(({ data: { session }, error }) => {
+        if (error) {
+          console.error('Error getting initial session:', error)
+          // Clear corrupted session data
+          supabase.auth.signOut()
+          if (isMounted) {
+            setLoading(false)
+          }
+          return
+        }
         if (isMounted) {
           handleAuthChange(session)
         }
       })
       .catch((error) => {
         console.error('Error getting initial session:', error)
+        // Clear corrupted session data
+        supabase.auth.signOut()
         if (isMounted) {
           setLoading(false)
         }
@@ -79,7 +90,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        // Handle token refresh errors
+        if (event === 'TOKEN_REFRESHED' && !session) {
+          console.warn('Token refresh failed, signing out user')
+          await supabase.auth.signOut()
+          return
+        }
+        
         if (isMounted) {
           handleAuthChange(session)
         }
