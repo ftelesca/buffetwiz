@@ -434,10 +434,10 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                               {item.isUpdate ? "Atualizar" : "Inserir"}
                             </Badge>
                           ) : (
+                            <Badge variant="destructive">
+                              <AlertCircle className="h-3 w-3 mr-1" />
                               {item.errors.length} erro(s)
                             </Badge>
-                        <TableHead>Un. Compra</TableHead>
-                        <TableHead>Descrição</TableHead>
                           )}
                         </TableCell>
                       </TableRow>
