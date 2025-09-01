@@ -138,15 +138,15 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
       const row = data[i]
       if (!row || row.length === 0) continue
 
-      const unitPurchName = row[1]?.toString().trim() || 'un'
-      const unitUseName = row[2]?.toString().trim() || 'un'
-      const rawFactor = parseFloat(row[3]?.toString()) || 1
+      const unitUseName = row[0]?.toString().trim() || 'un'
+      const rawFactor = parseFloat(row[1]?.toString()) || 1
+      const unitPurchName = row[2]?.toString().trim() || 'un'
       
       // Set factor to 1 if purchase and use units are the same
       const factor = unitPurchName.toLowerCase() === unitUseName.toLowerCase() ? 1 : rawFactor
 
       const item: ParsedItem = {
-        description: formatTitleCase(row[0]?.toString().trim() || ''),
+        description: formatTitleCase(row[3]?.toString().trim() || ''),
         unit_purch_name: unitPurchName,
         unit_use_name: unitUseName,
         factor: factor,
@@ -291,10 +291,10 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
 
   const downloadTemplate = () => {
     const template = [
-      ['Descrição', 'Unidade Compra', 'Unidade Uso', 'Fator', 'Custo'],
-      ['Arroz Branco', 'kg', 'g', '0.001', '5,99'],
-      ['Feijão Preto', 'kg', 'g', '0.001', '8,50'],
-      ['Azeite de Oliva', 'L', 'ml', '0.001', '15,90']
+      ['Unidade Uso', 'Fator', 'Unidade Compra', 'Descrição', 'Custo'],
+      ['g', '0.001', 'kg', 'Arroz Branco', '5,99'],
+      ['g', '0.001', 'kg', 'Feijão Preto', '8,50'],
+      ['ml', '0.001', 'L', 'Azeite de Oliva', '15,90']
     ]
 
     const csv = Papa.unparse(template)
@@ -326,7 +326,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
               <Alert>
                 <FileText className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Formato esperado:</strong> Descrição, Unidade Compra, Unidade Uso, Fator, Custo
+                  <strong>Formato esperado:</strong> Unidade Uso, Fator, Unidade Compra, Descrição, Custo
                   <br />
                   <Button 
                     variant="link" 
@@ -422,10 +422,10 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                     {parsedData.map((item, index) => (
                       <TableRow key={index}>
                         <TableCell>{item.rowIndex}</TableCell>
-                        <TableCell>{item.description}</TableCell>
-                        <TableCell>{item.unit_purch_name}</TableCell>
                         <TableCell>{item.unit_use_name}</TableCell>
                         <TableCell>{item.factor}</TableCell>
+                        <TableCell>{item.unit_purch_name}</TableCell>
+                        <TableCell>{item.description}</TableCell>
                         <TableCell>R$ {item.cost.toFixed(2)}</TableCell>
                         <TableCell>
                           {item.errors.length === 0 ? (
@@ -434,10 +434,10 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                               {item.isUpdate ? "Atualizar" : "Inserir"}
                             </Badge>
                           ) : (
-                            <Badge variant="destructive">
-                              <AlertCircle className="h-3 w-3 mr-1" />
                               {item.errors.length} erro(s)
                             </Badge>
+                        <TableHead>Un. Compra</TableHead>
+                        <TableHead>Descrição</TableHead>
                           )}
                         </TableCell>
                       </TableRow>
