@@ -190,7 +190,7 @@ export default function Events() {
         </div>
 
         {/* Enhanced Events Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 stagger-children">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
           {filteredEvents.map((event) => (
             <Card key={event.id} className="h-full gradient-card hover-lift shadow-card border-0 group">
               <CardHeader className="pb-4">
@@ -218,6 +218,11 @@ export default function Events() {
                     <span className="font-medium">
                       {formatDateWithoutTimezone(event.date)}
                       {event.time && ` às ${formatTimeWithoutSeconds(event.time)}`}
+                      {event.duration && (
+                        <span className="ml-2 text-xs bg-accent/50 px-2 py-1 rounded">
+                          {Math.floor(event.duration / 60)}h{event.duration % 60 > 0 ? `${event.duration % 60}min` : ''}
+                        </span>
+                      )}
                     </span>
                   </div>
                 )}
@@ -272,19 +277,6 @@ export default function Events() {
                     <ChefHat className="h-3 w-3 mr-1" />
                     Menu
                   </Button>
-                  <CalendarIntegration 
-                    event={{
-                      title: event.title,
-                      client: event.customer_info?.name,
-                      description: event.description,
-                      location: event.location,
-                      date: event.date,
-                      time: event.time,
-                      duration: event.duration
-                    }}
-                    size="sm"
-                    variant="outline"
-                  />
                   <Button
                     size="sm"
                     onClick={() => handleEditEvent(event)}
