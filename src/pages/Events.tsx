@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { formatDateWithoutTimezone, formatTimeWithoutSeconds, formatCurrency, getDeletedMessage } from "@/lib/utils"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { ActionButtons } from "@/components/ui/action-buttons"
+import { CalendarIntegration } from "@/components/events/CalendarIntegration"
 
 interface Event {
   id: number;
@@ -22,6 +23,7 @@ interface Event {
   customer: number;
   date: string | null;
   time: string | null;
+  duration: number | null;
   location: string | null;
   type: string | null;
   status: string | null;
@@ -216,6 +218,11 @@ export default function Events() {
                     <span className="font-medium">
                       {formatDateWithoutTimezone(event.date)}
                       {event.time && ` às ${formatTimeWithoutSeconds(event.time)}`}
+                      {event.duration && (
+                        <span className="ml-2 text-xs bg-accent/50 px-2 py-1 rounded">
+                          {Math.floor(event.duration / 60)}h{event.duration % 60 > 0 ? `${event.duration % 60}min` : ''}
+                        </span>
+                      )}
                     </span>
                   </div>
                 )}
@@ -323,6 +330,10 @@ export default function Events() {
                 eventTitle={selectedEventForMenu.title}
                 eventDescription={selectedEventForMenu.description || undefined}
                 customerName={selectedEventForMenu.customer_info?.name}
+                eventDate={selectedEventForMenu.date}
+                eventTime={selectedEventForMenu.time}
+                eventDuration={selectedEventForMenu.duration}
+                eventLocation={selectedEventForMenu.location}
               />
             )}
           </DialogContent>

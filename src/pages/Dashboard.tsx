@@ -8,16 +8,19 @@ import { supabase } from "@/integrations/supabase/client"
 import { useNavigate } from "react-router-dom"
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { CalendarIntegration } from "@/components/events/CalendarIntegration"
 
 interface Event {
   id: string
   title: string
   date: string
+  time: string | null
   location: string | null
   guests: number
   budget: number
   status: "confirmado" | "planejamento" | "concluido"
   description: string | null
+  duration: number | null
 }
 
 interface DashboardStats {
@@ -57,6 +60,8 @@ export default function Dashboard() {
           id,
           title,
           date,
+          time,
+          duration,
           location,
           numguests,
           cost,
@@ -74,11 +79,13 @@ export default function Dashboard() {
         id: event.id.toString(),
         title: event.title || 'Evento sem título',
         date: event.date || '',
+        time: event.time,
         location: event.location || 'Local não definido',
         guests: event.numguests || 0,
         budget: event.cost || event.price || 0,
         status: (event.status as "confirmado" | "planejamento" | "concluido") || "planejamento",
-        description: event.description || ''
+        description: event.description || '',
+        duration: event.duration || null
       })) as Event[] || []
     }
   })

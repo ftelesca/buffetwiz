@@ -9,12 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, ChefHat, Eye } from "lucide-react";
+import { CalendarIntegration } from "./CalendarIntegration";
 
 interface EventMenuProps {
   eventId: number;
   eventTitle: string;
   eventDescription?: string;
   customerName?: string;
+  eventDate?: string | null;
+  eventTime?: string | null;
+  eventDuration?: number | null;
+  eventLocation?: string | null;
 }
 
 interface EventMenuRecipe {
@@ -29,7 +34,16 @@ interface Recipe {
   description: string;
 }
 
-export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName }: EventMenuProps) => {
+export const EventMenu = ({ 
+  eventId, 
+  eventTitle, 
+  eventDescription, 
+  customerName,
+  eventDate,
+  eventTime,
+  eventDuration,
+  eventLocation 
+}: EventMenuProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isRecipeItemsDialogOpen, setIsRecipeItemsDialogOpen] = useState(false);
   const [selectedRecipeForItems, setSelectedRecipeForItems] = useState<Recipe | null>(null);
@@ -208,6 +222,23 @@ export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName 
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">{eventTitle}</h2>
           <p className="text-muted-foreground font-medium">{customerName}</p>
+          {eventDate && (
+            <div className="flex items-center gap-4 mt-3">
+              <CalendarIntegration 
+                event={{
+                  title: eventTitle,
+                  client: customerName,
+                  description: eventDescription,
+                  location: eventLocation,
+                  date: eventDate,
+                  time: eventTime,
+                  duration: eventDuration
+                }}
+                variant="outline"
+                size="sm"
+              />
+            </div>
+          )}
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
