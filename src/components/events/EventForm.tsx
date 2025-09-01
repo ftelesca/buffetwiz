@@ -440,8 +440,8 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
                   client: customers?.find(c => c.id.toString() === formData.customer)?.name,
                   description: formData.description,
                   location: formData.location,
-                  date: formData.date ? format(formData.date, "yyyy-MM-dd") : null,
-                  time: formData.time,
+                  startDate: formData.date ? format(formData.date, "yyyy-MM-dd") : "",
+                  startTime: formData.time,
                   duration: timeFormatToMinutes(formData.duration)
                 }}
                 variant="default"

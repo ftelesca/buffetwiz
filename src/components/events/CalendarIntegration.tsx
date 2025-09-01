@@ -10,8 +10,8 @@ interface CalendarIntegrationProps {
     client?: string;
     description?: string | null;
     location?: string | null;
-    date?: string | null;
-    time?: string | null;
+    startDate: string;
+    startTime?: string;
     duration?: number | null; // in minutes
   };
   variant?: "default" | "outline" | "ghost";
@@ -22,7 +22,7 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
   const { toast } = useToast();
 
   const handleGoogleCalendar = () => {
-    if (!event.date) {
+    if (!event.startDate) {
       toast({
         title: "Data necessária",
         description: "O evento precisa ter uma data para ser adicionado ao calendário.",
@@ -37,8 +37,8 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
         client: event.client,
         description: event.description || undefined,
         location: event.location || undefined,
-        startDate: event.date,
-        startTime: event.time || undefined,
+        startDate: event.startDate,
+        startTime: event.startTime,
         duration: event.duration || undefined
       });
       
@@ -56,7 +56,7 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
   };
 
   const handleDownloadICS = () => {
-    if (!event.date) {
+    if (!event.startDate) {
       toast({
         title: "Data necessária",
         description: "O evento precisa ter uma data para gerar o arquivo de calendário.",
@@ -71,8 +71,8 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
         client: event.client,
         description: event.description || undefined,
         location: event.location || undefined,
-        startDate: event.date,
-        startTime: event.time || undefined,
+        startDate: event.startDate,
+        startTime: event.startTime,
         duration: event.duration || undefined
       });
       
@@ -89,7 +89,7 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
     }
   };
 
-  if (!event.date) {
+  if (!event.startDate) {
     return (
       <Button variant="ghost" size={size} disabled className="opacity-50">
         <Calendar className="h-4 w-4 mr-2" />

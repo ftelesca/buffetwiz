@@ -230,8 +230,8 @@ export const EventMenu = ({
                   client: customerName,
                   description: eventDescription,
                   location: eventLocation,
-                  date: eventDate,
-                  time: eventTime,
+                  startDate: eventDate || "",
+                  startTime: eventTime || undefined,
                   duration: eventDuration
                 }}
                 variant="outline"

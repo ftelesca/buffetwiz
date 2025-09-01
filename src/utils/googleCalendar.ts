@@ -14,16 +14,16 @@ export class GoogleCalendarUtils {
   static generateCalendarUrl(event: CalendarEvent): string {
     const baseUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
     
-    // Create detailed description with client, title and description
+    // Create detailed description with client and event details
     let description = '';
     if (event.client) {
-      description += `Cliente: ${event.client}\n\n`;
-    }
-    if (event.title) {
-      description += `Evento: ${event.title}\n\n`;
+      description += `Cliente: ${event.client}`;
     }
     if (event.description) {
-      description += `Descrição: ${event.description}`;
+      description += event.client ? `\n\nDescrição: ${event.description}` : `Descrição: ${event.description}`;
+    }
+    if (event.location) {
+      description += `\n\nLocal: ${event.location}`;
     }
     
     // Format dates for Google Calendar
@@ -73,16 +73,16 @@ export class GoogleCalendarUtils {
   }
   
   static generateICSFile(event: CalendarEvent): string {
-    // Create detailed description with client, title and description
+    // Create detailed description with client and event details
     let description = '';
     if (event.client) {
-      description += `Cliente: ${event.client}\\n\\n`;
-    }
-    if (event.title) {
-      description += `Evento: ${event.title}\\n\\n`;
+      description += `Cliente: ${event.client}`;
     }
     if (event.description) {
-      description += `Descrição: ${event.description}`;
+      description += event.client ? `\\n\\nDescrição: ${event.description}` : `Descrição: ${event.description}`;
+    }
+    if (event.location) {
+      description += `\\n\\nLocal: ${event.location}`;
     }
     
     const startDateTime = this.formatDateTime(event.startDate, event.startTime);

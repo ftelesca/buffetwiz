@@ -104,11 +104,11 @@ export function EventCard({
         <CalendarIntegration 
           event={{
             title,
-            client: undefined, // EventCard doesn't have customer info
+            client: "Cliente não especificado",
             description,
             location,
-            date,
-            time: undefined, // EventCard doesn't have time info
+            startDate: date,
+            startTime: time,
             duration
           }}
           size="sm"
