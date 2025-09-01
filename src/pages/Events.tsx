@@ -190,7 +190,7 @@ export default function Events() {
         </div>
 
         {/* Enhanced Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 stagger-children">
           {filteredEvents.map((event) => (
             <Card key={event.id} className="h-full gradient-card hover-lift shadow-card border-0 group">
               <CardHeader className="pb-4">
