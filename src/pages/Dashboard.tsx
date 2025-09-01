@@ -14,6 +14,7 @@ interface Event {
   id: string
   title: string
   date: string
+  time: string | null
   location: string | null
   guests: number
   budget: number
@@ -59,6 +60,7 @@ export default function Dashboard() {
           id,
           title,
           date,
+          time,
           duration,
           location,
           numguests,
@@ -77,6 +79,7 @@ export default function Dashboard() {
         id: event.id.toString(),
         title: event.title || 'Evento sem título',
         date: event.date || '',
+        time: event.time,
         location: event.location || 'Local não definido',
         guests: event.numguests || 0,
         budget: event.cost || event.price || 0,

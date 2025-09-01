@@ -3,12 +3,14 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { formatDateWithoutTimezone, formatCurrency } from "@/lib/utils"
+import { formatTimeWithoutSeconds } from "@/lib/utils"
 import { CalendarIntegration } from "@/components/events/CalendarIntegration"
 
 interface EventCardProps {
   id: string
   title: string
   date: string
+  time?: string
   location: string
   guests: number
   budget: number
@@ -30,6 +32,7 @@ export function EventCard({
   id, 
   title, 
   date, 
+  time,
   location, 
   guests, 
   budget, 
@@ -70,6 +73,7 @@ export function EventCard({
           <Calendar className="h-4 w-4" />
           <span>
             {formatDateWithoutTimezone(date)}
+            {time && ` às ${formatTimeWithoutSeconds(time)}`}
             {duration && (
               <span className="ml-2 text-xs bg-accent/50 px-2 py-1 rounded">
                 {formatDuration(duration)}
