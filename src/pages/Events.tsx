@@ -275,6 +275,7 @@ export default function Events() {
                   <CalendarIntegration 
                     event={{
                       title: event.title,
+                      client: event.customer_info?.name,
                       description: event.description,
                       location: event.location,
                       date: event.date,

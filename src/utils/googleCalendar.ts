@@ -1,5 +1,6 @@
 export interface CalendarEvent {
   title: string;
+  client?: string;
   description?: string;
   location?: string;
   startDate: string;
@@ -13,6 +14,18 @@ export class GoogleCalendarUtils {
   static generateCalendarUrl(event: CalendarEvent): string {
     const baseUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
     
+    // Create detailed description with client, title and description
+    let description = '';
+    if (event.client) {
+      description += `Cliente: ${event.client}\n\n`;
+    }
+    if (event.title) {
+      description += `Evento: ${event.title}\n\n`;
+    }
+    if (event.description) {
+      description += `Descrição: ${event.description}`;
+    }
+    
     // Format dates for Google Calendar
     const startDateTime = this.formatDateTime(event.startDate, event.startTime);
     const endDateTime = event.endTime 
@@ -25,7 +38,7 @@ export class GoogleCalendarUtils {
     const params = new URLSearchParams({
       text: event.title,
       dates: `${startDateTime}/${endDateTime}`,
-      details: event.description || '',
+      details: description.trim(),
       location: event.location || '',
       sf: 'true',
       output: 'xml'
@@ -60,6 +73,18 @@ export class GoogleCalendarUtils {
   }
   
   static generateICSFile(event: CalendarEvent): string {
+    // Create detailed description with client, title and description
+    let description = '';
+    if (event.client) {
+      description += `Cliente: ${event.client}\\n\\n`;
+    }
+    if (event.title) {
+      description += `Evento: ${event.title}\\n\\n`;
+    }
+    if (event.description) {
+      description += `Descrição: ${event.description}`;
+    }
+    
     const startDateTime = this.formatDateTime(event.startDate, event.startTime);
     const endDateTime = event.endTime 
       ? this.formatDateTime(event.endDate || event.startDate, event.endTime)
@@ -80,7 +105,7 @@ export class GoogleCalendarUtils {
       `DTSTART:${startDateTime}`,
       `DTEND:${endDateTime}`,
       `SUMMARY:${event.title}`,
-      `DESCRIPTION:${event.description || ''}`,
+      `DESCRIPTION:${description.trim()}`,
       `LOCATION:${event.location || ''}`,
       'END:VEVENT',
       'END:VCALENDAR'

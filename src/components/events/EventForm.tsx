@@ -415,17 +415,19 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
 
       <div className="pt-4">
         {eventData && (
-          <div className="mb-4 p-4 bg-accent/20 rounded-lg">
-            <div className="flex items-center justify-between">
+          <div className="mb-4 p-4 bg-accent/20 rounded-lg w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h4 className="font-medium mb-1">Agendar no Calendário</h4>
                 <p className="text-sm text-muted-foreground">
                   Adicione este evento ao seu Google Calendar ou baixe um arquivo .ics
                 </p>
               </div>
-              <CalendarIntegration 
+              <div className="flex-shrink-0">
+                <CalendarIntegration 
                 event={{
                   title: formData.title,
+                  client: customers?.find(c => c.id.toString() === formData.customer)?.name,
                   description: formData.description,
                   location: formData.location,
                   date: formData.date ? format(formData.date, "yyyy-MM-dd") : null,
@@ -434,7 +436,8 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
                 }}
                 variant="default"
                 size="default"
-              />
+                />
+              </div>
             </div>
           </div>
         )}

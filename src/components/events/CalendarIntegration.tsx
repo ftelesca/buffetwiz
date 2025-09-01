@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 interface CalendarIntegrationProps {
   event: {
     title: string;
+    client?: string;
     description?: string | null;
     location?: string | null;
     date?: string | null;
@@ -33,6 +34,7 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
     try {
       GoogleCalendarUtils.openCalendarEvent({
         title: event.title,
+        client: event.client,
         description: event.description || undefined,
         location: event.location || undefined,
         startDate: event.date,
@@ -66,6 +68,7 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
     try {
       GoogleCalendarUtils.downloadICSFile({
         title: event.title,
+        client: event.client,
         description: event.description || undefined,
         location: event.location || undefined,
         startDate: event.date,

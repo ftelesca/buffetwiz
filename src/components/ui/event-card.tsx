@@ -100,6 +100,7 @@ export function EventCard({
         <CalendarIntegration 
           event={{
             title,
+            client: undefined, // EventCard doesn't have customer info
             description,
             location,
             date,
