@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus, Edit } from "lucide-react";
 import { getDeletedMessage } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ActionButtons } from "@/components/ui/action-buttons";
+import { ActionButtons } from "@/components/ui/ActionButtons";
 import type { Recipe, RecipeItem, Unit } from "@/types/recipe";
 interface RecipeItemsProps {
   selectedRecipe: Recipe | null;

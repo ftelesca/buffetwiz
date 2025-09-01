@@ -3,6 +3,7 @@ import { Plus, Calendar, Users, DollarSign, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { EventCard } from "@/components/ui/event-card"
+import heroImage from "@/assets/hero-buffet.jpg"
 
 // Mock data - will be replaced with real data later
 const mockEvents = [
@@ -93,15 +94,16 @@ export default function Dashboard() {
       <div className="relative overflow-hidden">
         <div 
           className="h-64 rounded-2xl bg-cover bg-center relative overflow-hidden shadow-elegant"
-          style={{ backgroundImage: `url(https://images.unsplash.com/photo-1555244162-803834f70033?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80)` }}
+          style={{ backgroundImage: `url(${heroImage})` }}
         >
-          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 gradient-hero opacity-90" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent" />
           <div className="relative h-full flex items-center justify-between p-8">
-            <div className="text-primary space-y-3">
+            <div className="text-white space-y-3">
               <h1 className="text-4xl font-bold mb-2 tracking-tight">
                 Bem-vindo ao <span className="text-gradient">BuffetWiz</span>
               </h1>
-              <p className="text-xl font-medium">
+              <p className="text-xl opacity-95 font-medium">
                 Gerencie seus eventos gastronômicos com excelência
               </p>
             </div>

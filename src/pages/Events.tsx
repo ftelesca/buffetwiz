@@ -14,7 +14,7 @@ import { EventMenu } from "@/components/events/EventMenu"
 import { useToast } from "@/hooks/use-toast"
 import { formatDateWithoutTimezone, formatTimeWithoutSeconds, formatCurrency, getDeletedMessage } from "@/lib/utils"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { ActionButtons } from "@/components/ui/action-buttons"
+import { ActionButtons } from "@/components/ui/ActionButtons"
 
 interface Event {
   id: number;
@@ -246,7 +246,7 @@ export default function Events() {
                     </div>
                   )}
                   {event.price && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 text-primary">
                       <DollarSign className="h-3 w-3" />
                       <span className="font-medium">
                         {formatCurrency(event.price)}

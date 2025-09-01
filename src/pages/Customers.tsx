@@ -16,7 +16,7 @@ import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
 import { cn, toTitleCase, getCountText, getDeletedMessage } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ActionButtons } from "@/components/ui/action-buttons"
+import { ActionButtons } from "@/components/ui/ActionButtons";
 
 interface Customer {
   id: number;
