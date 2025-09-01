@@ -267,7 +267,7 @@ export default function Events() {
                   <Button
                     size="sm"
                     onClick={() => handleOpenMenu(event)}
-                    className="flex-1 min-w-0"
+                    className="flex-1"
                   >
                     <ChefHat className="h-3 w-3 mr-1" />
                     Menu
@@ -288,7 +288,7 @@ export default function Events() {
                   <Button
                     size="sm"
                     onClick={() => handleEditEvent(event)}
-                    className="flex-1 min-w-0"
+                    className="flex-1"
                   >
                     <Edit className="h-3 w-3 mr-1" />
                     Editar
