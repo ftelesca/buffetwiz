@@ -37,6 +37,20 @@ interface EventFormData {
   description: string;
 }
 
+// Helper function to convert minutes to HH:MM format
+const minutesToTimeFormat = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+};
+
+// Helper function to convert HH:MM format to minutes
+const timeFormatToMinutes = (timeString: string): number => {
+  if (!timeString) return 120; // Default 2 hours
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return (hours * 60) + minutes;
+};
+
 const eventTypes = [
   "Casamento",
   "Aniversário", 
@@ -60,7 +74,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     customer: "",
     date: undefined,
     time: "",
-    duration: "120", // Default 2 hours
+    duration: "02:00", // Default 2 hours in HH:MM format
     location: "",
     type: "",
     status: "planejamento",
@@ -115,7 +129,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         customer: eventData.customer?.toString() || "",
         date: eventData.date ? new Date(eventData.date + 'T00:00:00') : undefined,
         time: eventData.time || "",
-        duration: eventData.duration?.toString() || "120",
+        duration: eventData.duration ? minutesToTimeFormat(eventData.duration) : "02:00",
         location: eventData.location || "",
         type: eventData.type || "",
         status: eventData.status || "planejamento",
@@ -212,7 +226,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       customer: parseInt(formData.customer),
       date: formData.date ? format(formData.date, "yyyy-MM-dd") : null,
       time: formData.time || null,
-      duration: formData.duration ? parseInt(formData.duration) : 120,
+      duration: timeFormatToMinutes(formData.duration),
       location: formData.location || null,
       type: formData.type || null,
       status: formData.status,
@@ -261,7 +275,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <div>
           <Label>Data</Label>
           <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
@@ -301,22 +315,21 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             onChange={(e) => setFormData({ ...formData, time: e.target.value })}
           />
         </div>
-      </div>
 
-      <div>
-        <Label htmlFor="duration">Duração (minutos)</Label>
-        <Input
-          id="duration"
-          type="number"
-          value={formData.duration}
-          onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-          placeholder="120"
-          min="15"
-          step="15"
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          Duração em minutos (ex: 120 = 2 horas)
-        </p>
+        
+        <div>
+          <Label htmlFor="duration">Duração</Label>
+          <Input
+            id="duration"
+            type="time"
+            value={formData.duration}
+            onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+            placeholder="02:00"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Formato HH:MM
+          </p>
+        </div>
       </div>
       <div>
         <Label htmlFor="location">Local</Label>
@@ -432,7 +445,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
                   location: formData.location,
                   date: formData.date ? format(formData.date, "yyyy-MM-dd") : null,
                   time: formData.time,
-                  duration: formData.duration ? parseInt(formData.duration) : 120
+                  duration: timeFormatToMinutes(formData.duration)
                 }}
                 variant="default"
                 size="default"
