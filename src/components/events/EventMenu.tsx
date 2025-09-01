@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, ChefHat } from "lucide-react";
+import { Plus, Trash2, ChefHat, Eye } from "lucide-react";
 
 interface EventMenuProps {
   eventId: number;
@@ -30,6 +31,8 @@ interface Recipe {
 
 export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName }: EventMenuProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isRecipeItemsDialogOpen, setIsRecipeItemsDialogOpen] = useState(false);
+  const [selectedRecipeForItems, setSelectedRecipeForItems] = useState<Recipe | null>(null);
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -61,6 +64,40 @@ export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName 
       
       if (error) throw error;
       return data as Recipe[];
+    }
+  });
+
+  // Fetch recipe items for selected recipe
+  const { data: recipeItems } = useQuery({
+    queryKey: ["recipe-items", selectedRecipeForItems?.id],
+    queryFn: async () => {
+      if (!selectedRecipeForItems) return [];
+      
+      const { data, error } = await supabase
+        .from("recipe_item")
+        .select(`
+          *,
+          item_detail:item(*)
+        `)
+        .eq("recipe", selectedRecipeForItems.id);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedRecipeForItems
+  });
+
+  // Fetch units for recipe items display
+  const { data: units } = useQuery({
+    queryKey: ["units"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("unit")
+        .select("*")
+        .order("description");
+      
+      if (error) throw error;
+      return data;
     }
   });
 
@@ -136,6 +173,28 @@ export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName 
 
   const handleRemoveRecipe = (recipeId: number) => {
     removeRecipeMutation.mutate(recipeId);
+  };
+
+  const handleViewRecipeItems = (recipe: Recipe) => {
+    setSelectedRecipeForItems(recipe);
+    setIsRecipeItemsDialogOpen(true);
+  };
+
+  const getUnitDescription = (unitId: number) => {
+    const unit = units?.find(u => u.id === unitId);
+    return unit?.description || "";
+  };
+
+  const formatQuantity = (qty: number) => {
+    return qty.toString().replace('.', ',');
+  };
+
+  const formatCurrency = (value: number) => {
+    if (value < 0.01) return "< 0,01";
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
   };
 
   // Filter out recipes that are already in the event menu
@@ -220,16 +279,27 @@ export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName 
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleRemoveRecipe(item.recipe.id)}
-                  disabled={removeRecipeMutation.isPending}
-                  className="w-full hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive"
-                >
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  Remover
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleViewRecipeItems(item.recipe)}
+                    className="flex-1"
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Visualizar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleRemoveRecipe(item.recipe.id)}
+                    disabled={removeRecipeMutation.isPending}
+                    className="flex-1 hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive"
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Remover
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -265,6 +335,89 @@ export const EventMenu = ({ eventId, eventTitle, eventDescription, customerName 
           </p>
         </div>
       )}
+
+      {/* Recipe Items Dialog */}
+      <Dialog open={isRecipeItemsDialogOpen} onOpenChange={setIsRecipeItemsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-effect">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              Itens da Receita: {selectedRecipeForItems?.description}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {recipeItems && recipeItems.length > 0 ? (
+              <>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Item</TableHead>
+                        <TableHead className="text-right">Quantidade</TableHead>
+                        <TableHead className="text-center">Unidade</TableHead>
+                        <TableHead className="text-right w-20">Custo</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recipeItems
+                        .sort((a, b) => {
+                          const itemA = a.item_detail?.description || '';
+                          const itemB = b.item_detail?.description || '';
+                          return itemA.localeCompare(itemB);
+                        })
+                        .map((recipeItem) => {
+                          const item = recipeItem.item_detail;
+                          const unitDescription = item?.unit_use ? getUnitDescription(item.unit_use) : item?.unit_purch ? getUnitDescription(item.unit_purch) : "";
+                          const unitCost = item?.cost || 0;
+                          const factor = item?.factor || 1;
+                          const adjustedUnitCost = unitCost / factor;
+                          const totalCost = adjustedUnitCost * recipeItem.qty;
+                          
+                          return (
+                            <TableRow key={`${recipeItem.recipe}-${recipeItem.item}`}>
+                              <TableCell className="font-medium">{item?.description}</TableCell>
+                              <TableCell className="text-right">{formatQuantity(recipeItem.qty)}</TableCell>
+                              <TableCell className="text-center">
+                                <Badge variant="outline">{unitDescription}</Badge>
+                              </TableCell>
+                              <TableCell className="text-right font-medium text-xs">R$ {formatCurrency(totalCost)}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Total Cost Card */}
+                <Card className="mt-4">
+                  <CardContent className="pt-6">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-medium">Custo Total:</span>
+                      <span className="text-xl font-bold text-primary">
+                        R$ {formatCurrency(
+                          recipeItems.reduce((total, recipeItem) => {
+                            const item = recipeItem.item_detail;
+                            const unitCost = Number(item?.cost || 0);
+                            const factor = Number(item?.factor || 1);
+                            const adjustedUnitCost = unitCost / factor;
+                            const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
+                            return total + itemTotalCost;
+                          }, 0)
+                        )}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  Esta receita não possui itens cadastrados.
+                </p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
