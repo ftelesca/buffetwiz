@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { formatDateWithoutTimezone, formatTimeWithoutSeconds, formatCurrency, getDeletedMessage } from "@/lib/utils"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { ActionButtons } from "@/components/ui/action-buttons"
+import { CalendarIntegration } from "@/components/events/CalendarIntegration"
 
 interface Event {
   id: number;
@@ -270,6 +271,11 @@ export default function Events() {
                     <ChefHat className="h-3 w-3 mr-1" />
                     Menu
                   </Button>
+                  <CalendarIntegration 
+                    event={event}
+                    size="sm"
+                    variant="outline"
+                  />
                   <Button
                     size="sm"
                     onClick={() => handleEditEvent(event)}
@@ -323,6 +329,9 @@ export default function Events() {
                 eventTitle={selectedEventForMenu.title}
                 eventDescription={selectedEventForMenu.description || undefined}
                 customerName={selectedEventForMenu.customer_info?.name}
+                eventDate={selectedEventForMenu.date}
+                eventTime={selectedEventForMenu.time}
+                eventLocation={selectedEventForMenu.location}
               />
             )}
           </DialogContent>

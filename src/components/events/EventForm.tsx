@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { cn, formatCurrencyInput, parseCurrency } from "@/lib/utils";
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
+import { CalendarIntegration } from "./CalendarIntegration";
 
 interface EventFormProps {
   eventId?: number;
@@ -394,6 +395,29 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       </div>
 
       <div className="pt-4">
+        {eventData && (
+          <div className="mb-4 p-4 bg-accent/20 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium mb-1">Agendar no Calendário</h4>
+                <p className="text-sm text-muted-foreground">
+                  Adicione este evento ao seu Google Calendar ou baixe um arquivo .ics
+                </p>
+              </div>
+              <CalendarIntegration 
+                event={{
+                  title: formData.title,
+                  description: formData.description,
+                  location: formData.location,
+                  date: formData.date ? format(formData.date, "yyyy-MM-dd") : null,
+                  time: formData.time
+                }}
+                variant="default"
+                size="default"
+              />
+            </div>
+          </div>
+        )}
         <SaveCancelButtons
           onSave={() => {}} // Form submission handled by type="submit"
           onCancel={onCancel}

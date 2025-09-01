@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { formatDateWithoutTimezone, formatCurrency } from "@/lib/utils"
+import { CalendarIntegration } from "@/components/events/CalendarIntegration"
 
 interface EventCardProps {
   id: string
@@ -79,6 +80,17 @@ export function EventCard({
       </CardContent>
 
       <CardFooter className="pt-3 gap-2">
+        <CalendarIntegration 
+          event={{
+            title,
+            description,
+            location,
+            date,
+            time: undefined // EventCard doesn't have time info
+          }}
+          size="sm"
+          variant="ghost"
+        />
         <Button 
           variant="outline" 
           size="sm" 

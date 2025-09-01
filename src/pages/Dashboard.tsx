@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { useNavigate } from "react-router-dom"
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { CalendarIntegration } from "@/components/events/CalendarIntegration"
 
 interface Event {
   id: string
