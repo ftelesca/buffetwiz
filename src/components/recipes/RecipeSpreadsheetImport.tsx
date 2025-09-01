@@ -473,7 +473,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
                     <CardTitle className="text-red-600">Itens com Erro</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-thin">
                       {invalidItems.map((item, index) => (
                         <div key={index} className="border-l-4 border-red-500 pl-3">
                           <p className="font-medium">Linha {item.rowIndex}: {item.recipeDescription} - {item.itemDescription}</p>
