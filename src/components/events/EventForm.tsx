@@ -421,7 +421,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               const formattedValue = formatCurrencyInput(e.target.value);
               setFormData({ ...formData, cost: formattedValue });
             }}
-            placeholder="R$ 0,00"
+            placeholder="0,00"
           />
         </div>
 
@@ -434,7 +434,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               const formattedValue = formatCurrencyInput(e.target.value);
               setFormData({ ...formData, price: formattedValue });
             }}
-            placeholder="R$ 0,00"
+            placeholder="0,00"
           />
         </div>
       </div>
@@ -460,14 +460,14 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Custo Total (baseado nas receitas):</span>
                   <span className="font-bold text-lg">
-                    R$ {eventCostData ? formatCurrencyBrazilian(eventCostData) : '0,00'}
+                    {eventCostData ? formatCurrencyBrazilian(eventCostData) : '0,00'}
                   </span>
                 </div>
                 {formData.price && parseCurrency(formData.price) > 0 && (
                   <div className="flex justify-between items-center pt-2 border-t">
                     <span className="text-sm text-muted-foreground">Preço do Evento:</span>
                     <span className="font-bold text-lg text-primary">
-                      R$ {formatCurrencyBrazilian(parseCurrency(formData.price))}
+                      {formatCurrencyBrazilian(parseCurrency(formData.price))}
                     </span>
                   </div>
                 )}
