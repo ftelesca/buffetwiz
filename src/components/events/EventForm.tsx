@@ -16,6 +16,14 @@ import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIntegration } from "./CalendarIntegration";
 
+// Helper function to format currency with thousands separator
+const formatCurrencyBrazilian = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
 interface EventFormProps {
   eventId?: number;
   onSuccess: () => void;
@@ -117,6 +125,25 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       
       if (error) throw error;
       return data;
+    },
+    enabled: !!eventId
+  });
+
+  // Fetch event cost based on recipes
+  const { data: eventCostData } = useQuery({
+    queryKey: ["event-cost", eventId],
+    queryFn: async () => {
+      if (!eventId) return null;
+      
+      const { data, error } = await supabase
+        .rpc('calculate_event_cost', { event_id: eventId });
+      
+      if (error) {
+        console.error('Error calculating event cost:', error);
+        return null;
+      }
+      
+      return data as number;
     },
     enabled: !!eventId
   });
@@ -425,27 +452,65 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
 
       <div className="pt-4">
         {eventData && (
-          <div className="mb-4 p-4 bg-accent/20 rounded-lg w-full">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h4 className="font-medium mb-1">Agendar no Calendário</h4>
-                <p className="text-sm text-muted-foreground">
-                  Adicione este evento ao seu Google Calendar ou baixe um arquivo .ics
-                </p>
+          <div className="space-y-4 mb-4">
+            {/* Event Cost Display */}
+            <div className="p-4 bg-accent/20 rounded-lg">
+              <h4 className="font-medium mb-3">Custos do Evento</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Custo Total (baseado nas receitas):</span>
+                  <span className="font-bold text-lg">
+                    R$ {eventCostData ? formatCurrencyBrazilian(eventCostData) : '0,00'}
+                  </span>
+                </div>
+                {formData.price && parseCurrency(formData.price) > 0 && (
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <span className="text-sm text-muted-foreground">Preço do Evento:</span>
+                    <span className="font-bold text-lg text-primary">
+                      R$ {formatCurrencyBrazilian(parseCurrency(formData.price))}
+                    </span>
+                  </div>
+                )}
               </div>
-              <div className="flex-shrink-0">
-                <CalendarIntegration 
-                event={{
-                  title: formData.title,
-                  client: customers?.find(c => c.id.toString() === formData.customer)?.name,
-                  description: formData.description,
-                  location: formData.location,
-                  startDate: formData.date ? format(formData.date, "yyyy-MM-dd") : "",
-                  startTime: formData.time,
-                  duration: timeFormatToMinutes(formData.duration)
-                }}
-                variant="default"
-                size="default"
+            </div>
+
+            {/* Calendar Integration */}
+            <div className="p-4 bg-accent/20 rounded-lg w-full">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h4 className="font-medium mb-1">Agendar no Calendário</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Adicione este evento ao seu Google Calendar ou baixe um arquivo .ics
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <CalendarIntegration 
+                  event={{
+                    title: formData.title,
+                    client: customers?.find(c => c.id.toString() === formData.customer)?.name,
+                    description: formData.description,
+                    location: formData.location,
+                    startDate: formData.date ? format(formData.date, "yyyy-MM-dd") : "",
+                    startTime: formData.time,
+                    duration: timeFormatToMinutes(formData.duration)
+                  }}
+                  variant="default"
+                  size="default"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <SaveCancelButtons
+          onSave={() => {}} // Form submission handled by type="submit"
+          onCancel={onCancel}
+          isLoading={isLoading}
+        />
+      </div>
+    </form>
+  );
+};
                 />
               </div>
             </div>

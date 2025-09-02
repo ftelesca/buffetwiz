@@ -11,6 +11,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, ChefHat, Eye } from "lucide-react";
 import { CalendarIntegration } from "./CalendarIntegration";
 
+// Helper function to format currency with thousands separator
+const formatCurrencyBrazilian = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
 interface EventMenuProps {
   eventId: number;
   eventTitle: string;
@@ -26,6 +34,7 @@ interface EventMenuRecipe {
   recipe: {
     id: number;
     description: string;
+    cost?: number;
   };
 }
 
@@ -58,12 +67,51 @@ export const EventMenu = ({
       const { data, error } = await supabase
         .from("event_menu")
         .select(`
-          recipe:recipe(id, description)
+          recipe:recipe(id, description),
+          recipe_cost:recipe(id)
         `)
         .eq("event", eventId);
       
       if (error) throw error;
-      return data as EventMenuRecipe[];
+      
+      // Calculate cost for each recipe
+      const recipesWithCost = await Promise.all(
+        data.map(async (item) => {
+          const { data: recipeItems } = await supabase
+            .from("recipe_item")
+            .select(`
+              qty,
+              item_detail:item(cost, factor)
+            `)
+            .eq("recipe", item.recipe.id);
+          
+          const { data: recipeData } = await supabase
+            .from("recipe")
+            .select("efficiency")
+            .eq("id", item.recipe.id)
+            .single();
+          
+          const baseCost = recipeItems?.reduce((total, recipeItem) => {
+            const itemCost = Number(recipeItem.item_detail?.cost || 0);
+            const factor = Number(recipeItem.item_detail?.factor || 1);
+            const adjustedUnitCost = itemCost / factor;
+            const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
+            return total + itemTotalCost;
+          }, 0) || 0;
+          
+          const efficiency = recipeData?.efficiency || 1.00;
+          const totalCost = baseCost * efficiency;
+          
+          return {
+            recipe: {
+              ...item.recipe,
+              cost: totalCost
+            }
+          };
+        })
+      );
+      
+      return recipesWithCost as EventMenuRecipe[];
     }
   });
 
@@ -305,6 +353,11 @@ export const EventMenu = ({
                     <CardTitle className="text-lg group-hover:text-primary transition-colors flex items-center gap-2">
                       <ChefHat className="h-4 w-4 text-primary" />
                       {item.recipe.description}
+                      {item.recipe.cost !== undefined && (
+                        <span className="text-sm font-normal text-muted-foreground">
+                          (R$ {formatCurrencyBrazilian(item.recipe.cost)})
+                        </span>
+                      )}
                     </CardTitle>
                   </div>
                 </div>
