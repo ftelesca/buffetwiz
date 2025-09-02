@@ -511,17 +511,3 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     </form>
   );
 };
-                />
-              </div>
-            </div>
-          </div>
-        )}
-        <SaveCancelButtons
-          onSave={() => {}} // Form submission handled by type="submit"
-          onCancel={onCancel}
-          isLoading={isLoading}
-        />
-      </div>
-    </form>
-  );
-};
