@@ -355,7 +355,7 @@ export const EventMenu = ({
                       {item.recipe.description}
                       {item.recipe.cost !== undefined && (
                         <span className="text-sm font-normal text-muted-foreground">
-                          (R$ {formatCurrencyBrazilian(item.recipe.cost)})
+                          ({formatCurrencyBrazilian(item.recipe.cost)})
                         </span>
                       )}
                     </CardTitle>
@@ -463,7 +463,7 @@ export const EventMenu = ({
                               <TableCell className="text-center">
                                 <Badge variant="outline">{unitDescription}</Badge>
                               </TableCell>
-                              <TableCell className="text-right font-medium text-xs">R$ {formatCurrency(totalCost)}</TableCell>
+                              <TableCell className="text-right font-medium text-xs">{formatCurrency(totalCost)}</TableCell>
                             </TableRow>
                           );
                         })}
@@ -477,7 +477,7 @@ export const EventMenu = ({
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-medium">Custo Total:</span>
                       <span className="text-xl font-bold text-primary">
-                        R$ {formatCurrency(
+                        {formatCurrency(
                           recipeItems.reduce((total, recipeItem) => {
                             const item = recipeItem.item_detail;
                             const unitCost = Number(item?.cost || 0);
