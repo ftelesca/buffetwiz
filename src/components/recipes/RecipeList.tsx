@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
@@ -22,20 +23,29 @@ interface RecipeListProps {
 
 export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, onRecipesChange, allRecipes, searchTerm }: RecipeListProps) {
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
+  const [editingEfficiency, setEditingEfficiency] = useState("")
   const { toast } = useToast()
+
+  const startEdit = (recipe: Recipe) => {
+    setEditingRecipe(recipe)
+    setEditingEfficiency((recipe.efficiency || 1.00).toString())
+  }
 
   const saveRecipe = async () => {
     if (editingRecipe) {
+      const efficiency = parseFloat(editingEfficiency) || 1.00
+      
       const { error } = await supabase
         .from("recipe")
-        .update({ description: editingRecipe.description })
+        .update({ description: editingRecipe.description, efficiency: efficiency })
         .eq("id", editingRecipe.id)
 
       if (error) {
         toast({ title: "Erro", description: "Erro ao atualizar receita", variant: "destructive" })
       } else {
-        toast({ title: getDeletedMessage("receita", "f") })
+        toast({ title: "Receita atualizada com sucesso" })
         setEditingRecipe(null)
+        setEditingEfficiency("")
         onRecipesChange()
       }
     }
@@ -88,27 +98,52 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
               <div className="flex justify-between items-center">
                 {editingRecipe?.id === recipe.id ? (
                   <div className="flex-1 flex gap-2">
-                    <Input
-                      value={editingRecipe.description}
-                      onChange={(e) =>
-                        setEditingRecipe({
-                          ...editingRecipe,
-                          description: e.target.value,
-                        })
-                      }
-                      className="flex-1"
-                    />
+                    <div className="flex-1 space-y-2">
+                      <Input
+                        value={editingRecipe.description}
+                        onChange={(e) =>
+                          setEditingRecipe({
+                            ...editingRecipe,
+                            description: e.target.value,
+                          })
+                        }
+                        placeholder="Descrição da receita"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="efficiency" className="text-xs whitespace-nowrap">Rendimento:</Label>
+                        <Input
+                          id="efficiency"
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          value={editingEfficiency}
+                          onChange={(e) => setEditingEfficiency(e.target.value)}
+                          className="w-20 text-xs"
+                          placeholder="1.00"
+                        />
+                      </div>
+                    </div>
                      <SaveCancelButtons
                        onSave={saveRecipe}
-                       onCancel={() => setEditingRecipe(null)}
+                       onCancel={() => {
+                         setEditingRecipe(null)
+                         setEditingEfficiency("")
+                       }}
                      />
                   </div>
                 ) : (
                   <>
-                    <span className="font-medium">{recipe.description}</span>
+                    <div className="flex-1">
+                      <span className="font-medium">{recipe.description}</span>
+                      {recipe.efficiency && recipe.efficiency !== 1.00 && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Rendimento: {recipe.efficiency.toFixed(2)}x
+                        </div>
+                      )}
+                    </div>
                     <div onClick={(e) => e.stopPropagation()}>
                       <ActionButtons
-                        onEdit={() => setEditingRecipe(recipe)}
+                        onEdit={() => startEdit(recipe)}
                         onDelete={() => deleteRecipe(recipe.id)}
                         itemName={recipe.description}
                         itemType="a receita"

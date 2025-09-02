@@ -202,16 +202,19 @@ export type Database = {
       recipe: {
         Row: {
           description: string
+          efficiency: number | null
           id: number
           user_id: string | null
         }
         Insert: {
           description: string
+          efficiency?: number | null
           id?: number
           user_id?: string | null
         }
         Update: {
           description?: string
+          efficiency?: number | null
           id?: number
           user_id?: string | null
         }

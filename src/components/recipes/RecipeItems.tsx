@@ -52,7 +52,7 @@ export default function RecipeItems({
   };
 
   // Calculate total recipe cost with full precision
-  const totalRecipeCost = recipeItems.reduce((total, recipeItem) => {
+  const baseCost = recipeItems.reduce((total, recipeItem) => {
     const item = recipeItem.item_detail;
     const unitCost = Number(item?.cost || 0);
     const factor = Number(item?.factor || 1);
@@ -60,6 +60,11 @@ export default function RecipeItems({
     const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
     return total + itemTotalCost;
   }, 0);
+  
+  // Apply efficiency multiplier to get final recipe cost
+  const efficiency = selectedRecipe?.efficiency || 1.00;
+  const totalRecipeCost = baseCost * efficiency;
+  
   const formatCurrency = (value: number) => {
     if (value < 0.01) return "< 0,01";
     return new Intl.NumberFormat('pt-BR', {
@@ -132,10 +137,21 @@ export default function RecipeItems({
             {/* Total Cost Card */}
             <Card className="mt-4">
               <CardContent className="pt-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-medium">Custo Total:</span>
-                  <span className="text-xl font-bold text-primary">R$ {formatCurrency(totalRecipeCost)}
-                  </span>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm text-muted-foreground">
+                    <span>Custo Base:</span>
+                    <span>R$ {formatCurrency(baseCost)}</span>
+                  </div>
+                  {efficiency !== 1.00 && (
+                    <div className="flex justify-between items-center text-sm text-muted-foreground">
+                      <span>Rendimento:</span>
+                      <span>{efficiency.toFixed(2)}x</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center border-t pt-2">
+                    <span className="text-lg font-medium">Custo Total:</span>
+                    <span className="text-xl font-bold text-primary">R$ {formatCurrency(totalRecipeCost)}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

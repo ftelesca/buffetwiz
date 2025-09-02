@@ -42,7 +42,7 @@ export default function Recipes() {
   const fetchRecipes = async () => {
     const { data, error } = await supabase
       .from("recipe")
-      .select("*")
+      .select("id, description, efficiency")
       .order("description")
 
     if (error) {

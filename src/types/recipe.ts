@@ -1,6 +1,7 @@
 export interface Recipe {
   id: number
   description: string
+  efficiency?: number
 }
 
 export interface Item {
