@@ -134,12 +134,14 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
                 ) : (
                   <>
                     <div className="flex-1">
-                      <span className="font-medium">{recipe.description}</span>
-                      {recipe.efficiency && recipe.efficiency !== 1.00 && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Rendimento: {recipe.efficiency.toFixed(2)}x
-                        </div>
-                      )}
+                      <span className="font-medium">
+                        {recipe.description}
+                        {recipe.efficiency && recipe.efficiency !== 1.00 && (
+                          <span className="text-muted-foreground font-normal ml-2">
+                            (x {recipe.efficiency.toFixed(1)})
+                          </span>
+                        )}
+                      </span>
                     </div>
                     <div onClick={(e) => e.stopPropagation()}>
                       <ActionButtons
