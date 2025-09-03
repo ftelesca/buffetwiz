@@ -246,7 +246,7 @@ export default function Events() {
                   )}
                   {event.cost && (
                     <div className="flex items-center gap-1">
-                      <DollarSign className="h-3 w-3 text-success" />
+                      <DollarSign className="h-3 w-3 text-destructive" />
                       <span className="font-medium">
                         {formatCurrency(event.cost)}
                       </span>
@@ -254,7 +254,7 @@ export default function Events() {
                   )}
                   {event.price && (
                     <div className="flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" />
+                      <DollarSign className="h-3 w-3 text-success" />
                       <span className="font-medium">
                         {formatCurrency(event.price)}
                       </span>
