@@ -101,12 +101,21 @@ export default function Recipes() {
   const handleRecipesChange = () => {
     fetchRecipes()
     // If current selected recipe was deleted, clear selection
+    // If it still exists, update it with latest data (including efficiency changes)
     if (selectedRecipe) {
       fetchRecipes().then(() => {
-        const stillExists = recipes.find(r => r.id === selectedRecipe.id)
-        if (!stillExists) {
-          setSelectedRecipe(null)
-        }
+        supabase
+          .from("recipe")
+          .select("id, description, efficiency")
+          .eq("id", selectedRecipe.id)
+          .single()
+          .then(({ data, error }) => {
+            if (error || !data) {
+              setSelectedRecipe(null)
+            } else {
+              setSelectedRecipe(data)
+            }
+          })
       })
     }
   }

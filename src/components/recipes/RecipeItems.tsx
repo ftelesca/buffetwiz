@@ -138,20 +138,28 @@ export default function RecipeItems({
             <Card className="mt-4">
               <CardContent className="pt-6">
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center text-sm text-muted-foreground">
-                    <span>Custo Base:</span>
-                    <span>R$ {formatCurrency(baseCost)}</span>
-                  </div>
-                  {efficiency !== 1.00 && (
-                    <div className="flex justify-between items-center text-sm text-muted-foreground">
-                      <span>Rendimento:</span>
-                      <span>{efficiency.toFixed(2)}x</span>
+                  {efficiency > 1.00 && (
+                    <>
+                      <div className="flex justify-between items-center text-sm text-muted-foreground">
+                        <span>Custo Base:</span>
+                        <span>R$ {formatCurrency(baseCost)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm text-muted-foreground">
+                        <span>Rendimento:</span>
+                        <span>{efficiency.toFixed(2)}x</span>
+                      </div>
+                      <div className="flex justify-between items-center border-t pt-2">
+                        <span className="text-lg font-medium">Custo Total:</span>
+                        <span className="text-xl font-bold text-primary">R$ {formatCurrency(totalRecipeCost)}</span>
+                      </div>
+                    </>
+                  )}
+                  {efficiency <= 1.00 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-medium">Custo Total:</span>
+                      <span className="text-xl font-bold text-primary">R$ {formatCurrency(totalRecipeCost)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center border-t pt-2">
-                    <span className="text-lg font-medium">Custo Total:</span>
-                    <span className="text-xl font-bold text-primary">R$ {formatCurrency(totalRecipeCost)}</span>
-                  </div>
                 </div>
               </CardContent>
             </Card>
