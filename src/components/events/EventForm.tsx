@@ -151,18 +151,19 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   // Populate form when editing
   useEffect(() => {
     if (eventData) {
+      console.log('EventData loaded:', eventData); // Debug log
       setFormData({
         title: eventData.title || "",
-        customer: eventData.customer?.toString() || "",
+        customer: (eventData as any).customer?.toString() || "",
         date: eventData.date ? new Date(eventData.date + 'T00:00:00') : undefined,
         time: eventData.time || "",
         duration: (eventData as any).duration ? minutesToTimeFormat((eventData as any).duration) : "02:00",
         location: eventData.location || "",
         type: eventData.type || "",
         status: eventData.status || "planejamento",
-        numguests: eventData.numguests?.toString() || "",
-        cost: eventData.cost ? (eventData.cost).toFixed(2).replace('.', ',') : "",
-        price: eventData.price ? (eventData.price).toFixed(2).replace('.', ',') : "",
+        numguests: (eventData as any).numguests?.toString() || "",
+        cost: (eventData as any).cost ? ((eventData as any).cost).toFixed(2).replace('.', ',') : "",
+        price: (eventData as any).price ? ((eventData as any).price).toFixed(2).replace('.', ',') : "",
         description: eventData.description || ""
       });
     }
