@@ -1,21 +1,17 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, Search, Filter, Edit, Trash2, Eye, Calendar, Users, DollarSign, ChefHat } from "lucide-react"
+import { Plus, Search, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { MainLayout } from "@/components/layout/MainLayout"
 import { PageHeader } from "@/components/ui/page-header"
 import { EventForm } from "@/components/events/EventForm"
 import { EventMenu } from "@/components/events/EventMenu"
+import { EventCard } from "@/components/ui/event-card"
 import { useToast } from "@/hooks/use-toast"
-import { formatDateWithoutTimezone, formatTimeWithoutSeconds, formatCurrency, getDeletedMessage } from "@/lib/utils"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { ActionButtons } from "@/components/ui/action-buttons"
-import { CalendarIntegration } from "@/components/events/CalendarIntegration"
+import { getDeletedMessage } from "@/lib/utils"
 
 interface Event {
   id: number;
@@ -117,18 +113,6 @@ export default function Events() {
     setEditingEvent(null);
   };
 
-  const getStatusBadgeVariant = (status: string | null) => {
-    switch (status) {
-      case "confirmado":
-        return "default";
-      case "concluido":
-        return "secondary";
-      case "cancelado":
-        return "destructive";
-      default:
-        return "outline";
-    }
-  };
 
   if (isLoading) {
     return (
@@ -192,109 +176,25 @@ export default function Events() {
         {/* Enhanced Events Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
           {filteredEvents.map((event) => (
-            <Card key={event.id} className="h-full gradient-card hover-lift shadow-card border-0 group">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                      {event.title}
-                    </CardTitle>
-                    <CardDescription className="font-medium">
-                      {event.customer_info?.name}
-                    </CardDescription>
-                  </div>
-                  <Badge 
-                    variant={getStatusBadgeVariant(event.status)}
-                    className="shadow-sm"
-                  >
-                    {event.status || "planejamento"}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {event.date && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      {formatDateWithoutTimezone(event.date)}
-                      {event.time && ` às ${formatTimeWithoutSeconds(event.time)}`}
-                      {event.duration && (
-                        <span className="ml-2 text-xs bg-accent/50 px-2 py-1 rounded">
-                          {Math.floor(event.duration / 60)}h{event.duration % 60 > 0 ? `${event.duration % 60}min` : ''}
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                )}
-                
-                {event.location && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="h-4 w-4 rounded-full bg-accent flex items-center justify-center">
-                      <div className="h-2 w-2 rounded-full bg-primary" />
-                    </div>
-                    <span>{event.location}</span>
-                  </div>
-                )}
-                
-                
-                <div className="grid grid-cols-3 gap-3 text-sm">
-                  {event.numguests && (
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3 text-primary" />
-                      <span className="font-medium">{event.numguests}</span>
-                    </div>
-                  )}
-                  {event.cost && (
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="h-3 w-3 text-destructive" />
-                      <span className="font-medium">
-                        {formatCurrency(event.cost)}
-                      </span>
-                    </div>
-                  )}
-                  {event.price && (
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="h-3 w-3 text-success" />
-                      <span className="font-medium">
-                        {formatCurrency(event.price)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                
-                {event.description && (
-                  <div className="text-sm text-muted-foreground bg-accent/30 p-3 rounded-lg">
-                    {event.description}
-                  </div>
-                )}
-                
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    size="sm"
-                    onClick={() => handleOpenMenu(event)}
-                    className="flex-1"
-                  >
-                    <ChefHat className="h-3 w-3 mr-1" />
-                    Menu
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => handleEditEvent(event)}
-                    className="flex-1"
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Editar
-                  </Button>
-                  <ActionButtons
-                    onDelete={() => handleDeleteEvent(event.id)}
-                    itemName={event.title}
-                    itemType="o evento"
-                    isDeleting={deleteMutation.isPending}
-                    showEdit={false}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            <div key={event.id} className="hover-lift">
+              <EventCard
+                id={event.id.toString()}
+                title={event.title}
+                date={event.date || ''}
+                time={event.time}
+                location={event.location}
+                guests={event.numguests}
+                budget={event.price}
+                cost={event.cost}
+                status={event.status as "confirmado" | "planejamento" | "concluido" | "cancelado"}
+                description={event.description}
+                duration={event.duration}
+                customerName={event.customer_info?.name}
+                onEdit={(id) => handleEditEvent(event)}
+                onDelete={(id) => handleDeleteEvent(event.id)}
+                onMenu={(id) => handleOpenMenu(event)}
+              />
+            </div>
           ))}
         </div>
 

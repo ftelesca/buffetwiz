@@ -18,6 +18,7 @@ interface Event {
   location: string | null
   guests: number
   budget: number
+  cost: number
   status: "confirmado" | "planejamento" | "concluido"
   description: string | null
   duration: number | null
@@ -84,7 +85,8 @@ export default function Dashboard() {
         time: (event as any).time,
         location: (event as any).location || 'Local não definido',
         guests: (event as any).numguests || 0,
-        budget: (event as any).cost || (event as any).price || 0,
+        budget: (event as any).price || 0,
+        cost: (event as any).cost || 0,
         status: ((event as any).status as "confirmado" | "planejamento" | "concluido") || "planejamento",
         description: (event as any).description || '',
         duration: (event as any).duration || null,
