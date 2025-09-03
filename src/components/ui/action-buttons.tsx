@@ -20,28 +20,31 @@ export function ActionButtons({
   showEdit = true 
 }: ActionButtonsProps) {
   return (
-    <div className="flex gap-1 justify-center">
+    <div className="flex gap-1">
       {showEdit && onEdit && (
         <Button
-          size="icon"
-          variant="ghost"
+          size="sm"
+          variant="outline"
           onClick={onEdit}
           title="Editar"
+          className="px-3"
         >
-          <Edit className="h-4 w-4" />
+          <Edit className="h-4 w-4 mr-1" />
+          Editar
         </Button>
       )}
       
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button
-            size="icon"
-            variant="ghost"
+            size="sm"
+            variant="outline"
             disabled={isDeleting}
-            className="hover:bg-destructive/10 hover:text-destructive"
+            className="hover:bg-destructive/10 hover:text-destructive px-3"
             title="Excluir"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-4 w-4 mr-1" />
+            Excluir
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
