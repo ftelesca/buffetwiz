@@ -1,10 +1,11 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { Plus, Search, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { MainLayout } from "@/components/layout/MainLayout"
 import { PageHeader } from "@/components/ui/page-header"
 import { EventForm } from "@/components/events/EventForm"
@@ -40,6 +41,8 @@ export default function Events() {
   const [selectedEventForMenu, setSelectedEventForMenu] = useState<Event | null>(null)
   const { toast } = useToast()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // Fetch events with customer info
   const { data: events, isLoading } = useQuery({
@@ -82,6 +85,20 @@ export default function Events() {
       });
     }
   });
+
+  // Handle URL query parameters for edit mode
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && events) {
+      const eventToEdit = events.find(event => event.id.toString() === editId);
+      if (eventToEdit) {
+        setEditingEvent(eventToEdit);
+        setIsDialogOpen(true);
+        // Clear the edit parameter from URL
+        setSearchParams({});
+      }
+    }
+  }, [events, searchParams, setSearchParams]);
 
   const filteredEvents = events?.filter(event =>
     event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
