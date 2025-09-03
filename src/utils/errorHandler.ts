@@ -41,6 +41,13 @@ export function getSupabaseErrorMessage(error: PostgrestError | Error | any): Fr
       };
 
     case "23503": // foreign_key_violation
+      // Specific check for deleting customer with associated events
+      if (message.includes("customer") && message.includes("event") && message.includes("delete")) {
+        return {
+          title: "Não é possível excluir cliente",
+          description: "Existem eventos associados a este cliente."
+        };
+      }
       if (message.includes("customer")) {
         return {
           title: "Cliente não encontrado",
