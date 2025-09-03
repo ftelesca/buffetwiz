@@ -485,7 +485,7 @@ export const EventMenu = ({
                             const adjustedUnitCost = unitCost / factor;
                             const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
                             return total + itemTotalCost;
-                          }, 0) * (selectedRecipeForItems?.efficiency || 1.00)
+                          }, 0) * ((selectedRecipeForItems as any)?.efficiency || 1.00)
                         )}
                       </span>
                     </div>

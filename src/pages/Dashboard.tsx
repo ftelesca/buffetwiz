@@ -78,16 +78,16 @@ export default function Dashboard() {
       if (error) throw error
 
       return data?.map(event => ({
-        id: event.id.toString(),
-        title: event.title || 'Evento sem título',
-        date: event.date || '',
-        time: event.time,
-        location: event.location || 'Local não definido',
-        guests: event.numguests || 0,
-        budget: event.cost || event.price || 0,
-        status: (event.status as "confirmado" | "planejamento" | "concluido") || "planejamento",
-        description: event.description || '',
-        duration: event.duration || null,
+        id: (event as any).id.toString(),
+        title: (event as any).title || 'Evento sem título',
+        date: (event as any).date || '',
+        time: (event as any).time,
+        location: (event as any).location || 'Local não definido',
+        guests: (event as any).numguests || 0,
+        budget: (event as any).cost || (event as any).price || 0,
+        status: ((event as any).status as "confirmado" | "planejamento" | "concluido") || "planejamento",
+        description: (event as any).description || '',
+        duration: (event as any).duration || null,
         customerName: (event as any).customer_info?.name
       })) as Event[] || []
     }

@@ -156,7 +156,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         customer: eventData.customer?.toString() || "",
         date: eventData.date ? new Date(eventData.date + 'T00:00:00') : undefined,
         time: eventData.time || "",
-        duration: eventData.duration ? minutesToTimeFormat(eventData.duration) : "02:00",
+        duration: (eventData as any).duration ? minutesToTimeFormat((eventData as any).duration) : "02:00",
         location: eventData.location || "",
         type: eventData.type || "",
         status: eventData.status || "planejamento",

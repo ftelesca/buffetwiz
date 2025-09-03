@@ -57,7 +57,6 @@ export default function RecipeForm({ isOpen, onOpenChange, onSuccess }: RecipeFo
             <Textarea
               id="recipe-description"
               value={newRecipe.description}
-              onChange={(e) => setNewRecipe({ description: e.target.value })}
               onChange={(e) => setNewRecipe({ ...newRecipe, description: e.target.value })}
               placeholder="Digite a descrição da receita..."
             />

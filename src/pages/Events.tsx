@@ -58,7 +58,7 @@ export default function Events() {
         .order("date", { ascending: false });
       
       if (error) throw error;
-      return data as Event[];
+      return data as any[];
     }
   });
 
