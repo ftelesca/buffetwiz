@@ -162,6 +162,10 @@ export default function Dashboard() {
     navigate(`/eventos?view=${id}`)
   }
 
+  const handleDeleteEvent = (id: string) => {
+    navigate(`/eventos?delete=${id}`)
+  }
+
   const handleCreateEvent = () => {
     navigate('/eventos')
   }
@@ -286,6 +290,7 @@ export default function Dashboard() {
                 customerName={event.customerName}
                 onEdit={handleEditEvent}
                 onView={handleViewEvent}
+                onDelete={handleDeleteEvent}
               />
             </div>
           ))}

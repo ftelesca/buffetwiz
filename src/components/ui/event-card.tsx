@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { formatDateWithoutTimezone, formatCurrency } from "@/lib/utils"
 import { formatTimeWithoutSeconds } from "@/lib/utils"
 import { CalendarIntegration } from "@/components/events/CalendarIntegration"
+import { ActionButtons } from "@/components/ui/action-buttons"
 
 interface EventCardProps {
   id: string
@@ -20,6 +21,7 @@ interface EventCardProps {
   customerName?: string
   onEdit?: (id: string) => void
   onView?: (id: string) => void
+  onDelete?: (id: string) => void
 }
 
 const statusConfig = {
@@ -42,7 +44,8 @@ export function EventCard({
   duration,
   customerName,
   onEdit,
-  onView 
+  onView,
+  onDelete 
 }: EventCardProps) {
   const statusInfo = statusConfig[status]
 
@@ -124,14 +127,13 @@ export function EventCard({
         >
           Visualizar
         </Button>
-        <Button 
-          variant="default" 
-          size="sm" 
-          className="flex-1"
-          onClick={() => onEdit?.(id)}
-        >
-          Editar
-        </Button>
+        <ActionButtons
+          onEdit={() => onEdit?.(id)}
+          onDelete={() => onDelete?.(id)}
+          itemName={title}
+          itemType="evento"
+          showEdit={true}
+        />
       </CardFooter>
     </Card>
   )
