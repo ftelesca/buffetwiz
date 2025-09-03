@@ -92,8 +92,8 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
 
   if (!event.startDate) {
     return (
-      <Button variant="ghost" size={size} disabled className="opacity-50">
-        <Calendar className="h-4 w-4 mr-2" />
+      <Button variant="ghost" size={size} disabled className="opacity-50 px-2">
+        <Calendar className="h-4 w-4 mr-0.5" />
         Sem data
       </Button>
     );
@@ -102,8 +102,8 @@ export function CalendarIntegration({ event, variant = "outline", size = "sm" }:
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant={variant} size={size} className="hover-lift">
-          <Calendar className="h-4 w-4 mr-2" />
+        <Button variant={variant} size={size} className="hover-lift px-2">
+          <Calendar className="h-4 w-4 mr-0.5" />
           Agendar
         </Button>
       </DropdownMenuTrigger>

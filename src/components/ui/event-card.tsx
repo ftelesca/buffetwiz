@@ -148,9 +148,9 @@ export function EventCard({
             <Button
               size="sm"
               onClick={() => onMenu(id)}
-              className="flex-1"
+              className="flex-1 px-2"
             >
-              <ChefHat className="h-3 w-3 mr-1" />
+              <ChefHat className="h-3 w-3 mr-0.5" />
               Menu
             </Button>
           )}
