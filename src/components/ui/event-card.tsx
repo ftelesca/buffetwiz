@@ -143,12 +143,12 @@ export function EventCard({
           </div>
         )}
         
-        <div className="flex gap-2 pt-2 pr-2">
+        <div className="flex gap-2 pt-2 justify-end">
           {onMenu && (
             <Button
               size="sm"
               onClick={() => onMenu(id)}
-              className="flex-1 px-2"
+              className="min-w-20"
             >
               <ChefHat className="h-3 w-3 mr-0.5" />
               Menu
@@ -174,7 +174,7 @@ export function EventCard({
               size="sm"
               variant="outline"
               onClick={() => onView(id)}
-              className="flex-1"
+              className="min-w-20"
             >
               Visualizar
             </Button>
