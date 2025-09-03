@@ -164,7 +164,7 @@ export default function RecipeItems({
               </CardContent>
             </Card>
           </div> : <p className="text-muted-foreground text-center py-8">
-            Selecione uma receita para ver seus itens
+            Selecione uma receita para ver seus insumos
           </p>}
       </CardContent>
     </Card>;
