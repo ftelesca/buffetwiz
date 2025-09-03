@@ -19,9 +19,9 @@ All colors MUST be HSL.
     --popover-foreground: 222 15% 12%;
 
     /* Primary Blue - Modern & Professional */
-    --primary: 217 91% 60%;
+    --primary: 217 91% 52%;
     --primary-foreground: 210 15% 96%;
-    --primary-hover: 217 91% 55%;
+    --primary-hover: 217 91% 48%;
     --primary-glow: 217 91% 70%;
 
     /* Secondary Deep Blue - Sophistication */
@@ -41,7 +41,7 @@ All colors MUST be HSL.
 
     --border: 210 15% 88%;
     --input: 210 15% 96%;
-    --ring: 217 91% 60%;
+    --ring: 217 91% 52%;
 
     --radius: 0.75rem;
 
@@ -97,7 +97,7 @@ All colors MUST be HSL.
     --popover: 222 15% 12%;
     --popover-foreground: 210 15% 96%;
 
-    --primary: 217 91% 60%;
+    --primary: 217 91% 52%;
     --primary-foreground: 210 15% 96%;
 
     --secondary: 222 25% 18%;
@@ -114,7 +114,7 @@ All colors MUST be HSL.
 
     --border: 222 20% 18%;
     --input: 222 20% 15%;
-    --ring: 217 91% 60%;
+    --ring: 217 91% 52%;
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -136,7 +136,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222 15% 12%;
 
-    --primary: 217 91% 60%;
+    --primary: 217 91% 52%;
     --primary-foreground: 210 15% 96%;
 
     --secondary: 210 15% 94%;
@@ -153,7 +153,7 @@ All colors MUST be HSL.
 
     --border: 210 15% 88%;
     --input: 210 15% 96%;
-    --ring: 217 91% 60%;
+    --ring: 217 91% 52%;
     
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
