@@ -74,7 +74,7 @@ export function EventCard({
             <CardTitle className="text-lg group-hover:text-primary transition-colors">
               {title}
             </CardTitle>
-            <CardDescription className="font-medium truncate">
+            <CardDescription className="font-medium">
               {customerName}
             </CardDescription>
           </div>
@@ -168,6 +168,17 @@ export function EventCard({
             size="sm"
             variant="outline"
           />
+
+          {onView && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onView(id)}
+              className="flex-1"
+            >
+              Visualizar
+            </Button>
+          )}
 
           <ActionButtons
             onEdit={onEdit ? () => onEdit(id) : undefined}
