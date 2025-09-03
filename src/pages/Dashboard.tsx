@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client"
 import { useNavigate } from "react-router-dom"
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { CalendarIntegration } from "@/components/events/CalendarIntegration"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { EventMenu } from "@/components/events/EventMenu"
 
 interface Event {
   id: string
@@ -51,6 +52,8 @@ const calculatePercentageChange = (current: number, previous: number) => {
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const [isMenuDialogOpen, setIsMenuDialogOpen] = useState(false)
+  const [selectedEventForMenu, setSelectedEventForMenu] = useState<Event | null>(null)
 
   // Fetch upcoming events
   const { data: events = [], isLoading: eventsLoading } = useQuery({
@@ -166,6 +169,14 @@ export default function Dashboard() {
 
   const handleDeleteEvent = (id: string) => {
     navigate(`/eventos?delete=${id}`)
+  }
+
+  const handleOpenMenu = (id: string) => {
+    const event = events?.find(e => e.id === id)
+    if (event) {
+      setSelectedEventForMenu(event)
+      setIsMenuDialogOpen(true)
+    }
   }
 
   const handleCreateEvent = () => {
@@ -293,11 +304,33 @@ export default function Dashboard() {
                 onEdit={handleEditEvent}
                 onView={handleViewEvent}
                 onDelete={handleDeleteEvent}
+                onMenu={handleOpenMenu}
               />
             </div>
           ))}
         </div>
       </div>
+
+      {/* Menu Dialog */}
+      <Dialog open={isMenuDialogOpen} onOpenChange={setIsMenuDialogOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto glass-effect">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Menu do Evento</DialogTitle>
+          </DialogHeader>
+          {selectedEventForMenu && (
+            <EventMenu
+              eventId={parseInt(selectedEventForMenu.id)}
+              eventTitle={selectedEventForMenu.title}
+              eventDescription={selectedEventForMenu.description || undefined}
+              customerName={selectedEventForMenu.customerName}
+              eventDate={selectedEventForMenu.date}
+              eventTime={selectedEventForMenu.time}
+              eventDuration={selectedEventForMenu.duration}
+              eventLocation={selectedEventForMenu.location}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
