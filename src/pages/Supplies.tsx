@@ -14,6 +14,7 @@ import { MainLayout } from "@/components/layout/MainLayout"
 import { PageHeader } from "@/components/ui/page-header"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { getSupabaseErrorMessage } from "@/utils/errorHandler"
 import { useAuth } from "@/contexts/AuthContext"
 import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText, getDeletedMessage } from "@/lib/utils"
 import { SpreadsheetImport } from "@/components/supplies/SpreadsheetImport"
@@ -226,9 +227,10 @@ export default function Insumos() {
       fetchItems()
     } catch (error) {
       console.error('Erro ao excluir insumo:', error)
+      const friendlyError = getSupabaseErrorMessage(error);
       toast({
-        title: "Erro",
-        description: "Erro ao excluir insumo",
+        title: friendlyError.title,
+        description: friendlyError.description,
         variant: "destructive"
       })
     }
