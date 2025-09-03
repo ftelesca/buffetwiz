@@ -1,12 +1,10 @@
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react"
-import { ChefHat } from "lucide-react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { formatDateWithoutTimezone, formatCurrency } from "@/lib/utils"
 import { formatTimeWithoutSeconds } from "@/lib/utils"
 import { CalendarIntegration } from "@/components/events/CalendarIntegration"
-import { ActionButtons } from "@/components/ui/action-buttons"
 
 interface EventCardProps {
   id: string
@@ -20,10 +18,8 @@ interface EventCardProps {
   description?: string
   duration?: number
   customerName?: string
-  onEditClick?: (id: string) => void
-  onMenuClick?: (id: string) => void
-  onDeleteClick?: (id: string) => void
-  isDeleting?: boolean
+  onEdit?: (id: string) => void
+  onView?: (id: string) => void
 }
 
 const statusConfig = {
@@ -45,10 +41,8 @@ export function EventCard({
   description,
   duration,
   customerName,
-  onEditClick,
-  onMenuClick,
-  onDeleteClick,
-  isDeleting
+  onEdit,
+  onView 
 }: EventCardProps) {
   const statusInfo = statusConfig[status]
 
@@ -108,7 +102,7 @@ export function EventCard({
         </div>
       </CardContent>
 
-      <CardFooter className="pt-3 gap-3">
+      <CardFooter className="pt-3 gap-2">
         <CalendarIntegration 
           event={{
             title,
@@ -119,29 +113,25 @@ export function EventCard({
             startTime: time,
             duration
           }}
-          variant="outline"
           size="sm"
+          variant="ghost"
         />
-        {onMenuClick && (
-          <Button
-            size="sm"
-            onClick={() => onMenuClick(id)}
-            className="flex-1"
-          >
-            <ChefHat className="h-3 w-3 mr-1" />
-            Menu
-          </Button>
-        )}
-        {(onEditClick || onDeleteClick) && (
-          <ActionButtons
-            onEdit={onEditClick ? () => onEditClick(id) : undefined}
-            onDelete={onDeleteClick ? () => onDeleteClick(id) : () => {}}
-            itemName={title}
-            itemType="o evento"
-            isDeleting={isDeleting}
-            showEdit={!!onEditClick}
-          />
-        )}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex-1"
+          onClick={() => onView?.(id)}
+        >
+          Visualizar
+        </Button>
+        <Button 
+          variant="default" 
+          size="sm" 
+          className="flex-1"
+          onClick={() => onEdit?.(id)}
+        >
+          Editar
+        </Button>
       </CardFooter>
     </Card>
   )

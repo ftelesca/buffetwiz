@@ -284,7 +284,8 @@ export default function Dashboard() {
               <EventCard
                 {...event}
                 customerName={event.customerName}
-                onEditClick={handleEditEvent}
+                onEdit={handleEditEvent}
+                onView={handleViewEvent}
               />
             </div>
           ))}
