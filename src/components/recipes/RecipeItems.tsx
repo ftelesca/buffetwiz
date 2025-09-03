@@ -157,6 +157,7 @@ export default function RecipeItems({
                     </>
                   )}
                   {efficiency <= 1.00 && (
+                   <div>
                     <div className="flex justify-between items-center text-sm text-muted-foreground">
                       <span>Rendimento:</span>
                       <span>{efficiency.toFixed(2)}x</span>
@@ -165,6 +166,7 @@ export default function RecipeItems({
                       <span className="text-lg font-medium">Custo Total:</span>
                       <span className="text-xl font-bold text-primary">R$ {formatCurrency(totalRecipeCost)}</span>
                     </div>
+                   </div>
                   )}
                 </div>
               </CardContent>
