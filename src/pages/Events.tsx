@@ -14,7 +14,7 @@ import { EventMenu } from "@/components/events/EventMenu"
 import { useToast } from "@/hooks/use-toast"
 import { formatDateWithoutTimezone, formatTimeWithoutSeconds, formatCurrency, getDeletedMessage } from "@/lib/utils"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { ActionButtons } from "@/components/ui/action-buttons"
+import { EventCard } from "@/components/ui/event-card"
 import { CalendarIntegration } from "@/components/events/CalendarIntegration"
 
 interface Event {
