@@ -13,6 +13,7 @@ import { EventMenu } from "@/components/events/EventMenu"
 import { EventCard } from "@/components/ui/event-card"
 import { useToast } from "@/hooks/use-toast"
 import { getDeletedMessage } from "@/lib/utils"
+import { getSupabaseErrorMessage } from "@/utils/errorHandler"
 
 interface Event {
   id: number;
@@ -78,9 +79,10 @@ export default function Events() {
       });
     },
     onError: (error: any) => {
+      const friendlyError = getSupabaseErrorMessage(error);
       toast({
-        title: "Erro",
-        description: "Erro ao excluir evento: " + error.message,
+        title: friendlyError.title,
+        description: friendlyError.description,
         variant: "destructive"
       });
     }

@@ -15,6 +15,7 @@ import { cn, formatCurrencyInput, parseCurrency } from "@/lib/utils";
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIntegration } from "./CalendarIntegration";
+import { getSupabaseErrorMessage } from "@/utils/errorHandler";
 
 // Helper function to format currency with thousands separator
 const formatCurrencyBrazilian = (value: number): string => {
@@ -190,9 +191,10 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       onSuccess();
     },
     onError: (error: any) => {
+      const friendlyError = getSupabaseErrorMessage(error);
       toast({
-        title: "Erro",
-        description: "Erro ao criar evento: " + error.message,
+        title: friendlyError.title,
+        description: friendlyError.description,
         variant: "destructive"
       });
     }
@@ -220,9 +222,10 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       onSuccess();
     },
     onError: (error: any) => {
+      const friendlyError = getSupabaseErrorMessage(error);
       toast({
-        title: "Erro",
-        description: "Erro ao atualizar evento: " + error.message,
+        title: friendlyError.title,
+        description: friendlyError.description,
         variant: "destructive"
       });
     }
