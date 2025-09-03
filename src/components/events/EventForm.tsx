@@ -258,7 +258,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       type: formData.type || null,
       status: formData.status,
       numguests: formData.numguests ? parseInt(formData.numguests) : null,
-      cost: formData.cost ? parseCurrency(formData.cost) : null,
       price: formData.price ? parseCurrency(formData.price) : null,
       description: formData.description || null,
       ...(eventId ? {} : { user_id: user?.id })
