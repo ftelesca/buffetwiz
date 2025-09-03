@@ -69,6 +69,13 @@ export function getSupabaseErrorMessage(error: PostgrestError | Error | any): Fr
           description: "Existem receitas associadas a este insumo."
         };
       }
+      // Specific check for deleting unit with associated items
+      if (message.includes("unit") && message.includes("item") && message.includes("delete")) {
+        return {
+          title: "Não é possível excluir unidade",
+          description: "Existem insumos associados a esta unidade."
+        };
+      }
       if (message.includes("customer")) {
         return {
           title: "Cliente não encontrado",
