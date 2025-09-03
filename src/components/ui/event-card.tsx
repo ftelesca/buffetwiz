@@ -74,7 +74,7 @@ export function EventCard({
             <CardTitle className="text-lg group-hover:text-primary transition-colors">
               {title}
             </CardTitle>
-            <CardDescription className="font-medium">
+            <CardDescription className="font-medium truncate">
               {customerName}
             </CardDescription>
           </div>
