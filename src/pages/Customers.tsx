@@ -15,6 +15,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Plus, Edit, Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
+import { getSupabaseErrorMessage } from "@/utils/errorHandler";
 import { cn, toTitleCase, getCountText, getDeletedMessage } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ActionButtons } from "@/components/ui/action-buttons"
@@ -77,9 +78,10 @@ const Customers = () => {
       });
     },
     onError: (error) => {
+      const friendlyError = getSupabaseErrorMessage(error);
       toast({
-        title: "Erro",
-        description: "Erro ao criar cliente: " + error.message,
+        title: friendlyError.title,
+        description: friendlyError.description,
         variant: "destructive"
       });
     }
@@ -106,9 +108,10 @@ const Customers = () => {
       toast({ title: "Cliente atualizado com sucesso" });
     },
     onError: (error) => {
+      const friendlyError = getSupabaseErrorMessage(error);
       toast({
-        title: "Erro",
-        description: "Erro ao atualizar cliente: " + error.message,
+        title: friendlyError.title,
+        description: friendlyError.description,
         variant: "destructive"
       });
     }
@@ -131,9 +134,10 @@ const Customers = () => {
       });
     },
     onError: (error) => {
+      const friendlyError = getSupabaseErrorMessage(error);
       toast({
-        title: "Erro",
-        description: "Erro ao excluir cliente: " + error.message,
+        title: friendlyError.title,
+        description: friendlyError.description,
         variant: "destructive"
       });
     }
