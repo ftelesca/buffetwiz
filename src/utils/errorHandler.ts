@@ -55,6 +55,13 @@ export function getSupabaseErrorMessage(error: PostgrestError | Error | any): Fr
           description: "Esta receita possui insumos."
         };
       }
+      // Specific check for deleting event with associated menu
+      if (message.includes("event") && message.includes("menu") && message.includes("delete")) {
+        return {
+          title: "Não é possível excluir evento",
+          description: "Existe menu associado a este evento."
+        };
+      }
       if (message.includes("customer")) {
         return {
           title: "Cliente não encontrado",
