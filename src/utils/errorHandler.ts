@@ -48,6 +48,13 @@ export function getSupabaseErrorMessage(error: PostgrestError | Error | any): Fr
           description: "Existem eventos associados a este cliente."
         };
       }
+      // Specific check for deleting recipe with associated items
+      if (message.includes("recipe") && message.includes("item") && message.includes("delete")) {
+        return {
+          title: "Não é possível excluir receita",
+          description: "Esta receita possui insumos."
+        };
+      }
       if (message.includes("customer")) {
         return {
           title: "Cliente não encontrado",

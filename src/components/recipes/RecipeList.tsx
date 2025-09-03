@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { getSupabaseErrorMessage } from "@/utils/errorHandler"
 import { Trash2, Edit } from "lucide-react"
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
 import { getCountText, getDeletedMessage } from "@/lib/utils"
@@ -58,7 +59,12 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
       .eq("id", id)
 
     if (error) {
-      toast({ title: "Erro", description: "Erro ao excluir receita", variant: "destructive" })
+      const friendlyError = getSupabaseErrorMessage(error);
+      toast({ 
+        title: friendlyError.title, 
+        description: friendlyError.description, 
+        variant: "destructive" 
+      });
     } else {
       toast({ title: "Receita excluída com sucesso" })
       onRecipesChange()
