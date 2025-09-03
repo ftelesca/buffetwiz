@@ -143,7 +143,7 @@ export function EventCard({
           </div>
         )}
         
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-2 pt-2 pr-2">
           {onMenu && (
             <Button
               size="sm"
@@ -186,6 +186,8 @@ export function EventCard({
             itemName={title}
             itemType="evento"
             showEdit={!!onEdit}
+            editButtonClassName="bg-white text-black hover:bg-gray-100"
+            deleteButtonClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           />
         </div>
       </CardContent>

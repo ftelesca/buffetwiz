@@ -9,6 +9,8 @@ interface ActionButtonsProps {
   itemType: string;
   isDeleting?: boolean;
   showEdit?: boolean;
+  editButtonClassName?: string;
+  deleteButtonClassName?: string;
 }
 
 export function ActionButtons({ 
@@ -17,7 +19,9 @@ export function ActionButtons({
   itemName, 
   itemType,
   isDeleting = false,
-  showEdit = true 
+  showEdit = true,
+  editButtonClassName = "",
+  deleteButtonClassName = ""
 }: ActionButtonsProps) {
   return (
     <div className="flex gap-1 justify-center">
@@ -27,6 +31,7 @@ export function ActionButtons({
           variant="ghost"
           onClick={onEdit}
           title="Editar"
+          className={editButtonClassName}
         >
           <Edit className="h-4 w-4" />
         </Button>
@@ -38,7 +43,7 @@ export function ActionButtons({
             size="icon"
             variant="ghost"
             disabled={isDeleting}
-            className="hover:bg-destructive/10 hover:text-destructive"
+            className={`hover:bg-destructive/10 hover:text-destructive ${deleteButtonClassName}`}
             title="Excluir"
           >
             <Trash2 className="h-4 w-4" />
