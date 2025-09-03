@@ -100,10 +100,6 @@ export default function Recipes() {
 
   const handleRecipesChange = () => {
     fetchRecipes()
-    // Refresh recipe items if a recipe is selected to update efficiency changes
-    if (selectedRecipe) {
-      fetchRecipeItems(selectedRecipe.id)
-    }
     // If current selected recipe was deleted, clear selection
     if (selectedRecipe) {
       fetchRecipes().then(() => {
