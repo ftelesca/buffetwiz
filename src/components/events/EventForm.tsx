@@ -161,8 +161,8 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         type: eventData.type || "",
         status: eventData.status || "planejamento",
         numguests: eventData.numguests?.toString() || "",
-        cost: eventData.cost ? formatCurrencyInput((eventData.cost * 100).toString()) : "",
-        price: eventData.price ? formatCurrencyInput((eventData.price * 100).toString()) : "",
+        cost: eventData.cost ? (eventData.cost).toFixed(2).replace('.', ',') : "",
+        price: eventData.price ? (eventData.price).toFixed(2).replace('.', ',') : "",
         description: eventData.description || ""
       });
     }
@@ -258,7 +258,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       type: formData.type || null,
       status: formData.status,
       numguests: formData.numguests ? parseInt(formData.numguests) : null,
-      price: formData.price ? parseCurrency(formData.price) : null,
+      price: formData.price ? parseFloat(formData.price.replace(',', '.')) : null,
       description: formData.description || null,
       ...(eventId ? {} : { user_id: user?.id })
     };
@@ -428,8 +428,15 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             id="price"
             value={formData.price}
             onChange={(e) => {
-              const formattedValue = formatCurrencyInput(e.target.value);
-              setFormData({ ...formData, price: formattedValue });
+              // Format as number with comma decimal separator, no currency symbol
+              const value = e.target.value.replace(/\D/g, '');
+              if (!value) {
+                setFormData({ ...formData, price: '' });
+                return;
+              }
+              const number = parseInt(value) / 100;
+              const formatted = number.toFixed(2).replace('.', ',');
+              setFormData({ ...formData, price: formatted });
             }}
             placeholder="0,00"
           />
