@@ -21,7 +21,7 @@ export type Database = {
           id: number
           name: string
           phone: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           address?: string | null
@@ -29,7 +29,7 @@ export type Database = {
           id?: number
           name: string
           phone?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           address?: string | null
@@ -37,7 +37,7 @@ export type Database = {
           id?: number
           name?: string
           phone?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -47,6 +47,7 @@ export type Database = {
           customer: number
           date: string | null
           description: string | null
+          duration: number | null
           id: number
           location: string | null
           numguests: number | null
@@ -55,13 +56,14 @@ export type Database = {
           time: string | null
           title: string
           type: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           cost?: number | null
           customer: number
           date?: string | null
           description?: string | null
+          duration?: number | null
           id?: number
           location?: string | null
           numguests?: number | null
@@ -70,13 +72,14 @@ export type Database = {
           time?: string | null
           title?: string
           type?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           cost?: number | null
           customer?: number
           date?: string | null
           description?: string | null
+          duration?: number | null
           id?: number
           location?: string | null
           numguests?: number | null
@@ -85,7 +88,7 @@ export type Database = {
           time?: string | null
           title?: string
           type?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -103,7 +106,7 @@ export type Database = {
           recipe: number
         }
         Insert: {
-          event?: number
+          event: number
           recipe: number
         }
         Update: {
@@ -135,7 +138,7 @@ export type Database = {
           id: number
           unit_purch: number
           unit_use: number
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           cost?: number | null
@@ -144,7 +147,7 @@ export type Database = {
           id?: number
           unit_purch: number
           unit_use: number
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           cost?: number | null
@@ -153,7 +156,7 @@ export type Database = {
           id?: number
           unit_purch?: number
           unit_use?: number
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -204,19 +207,19 @@ export type Database = {
           description: string
           efficiency: number | null
           id: number
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           description: string
           efficiency?: number | null
           id?: number
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           description?: string
           efficiency?: number | null
           id?: number
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
