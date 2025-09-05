@@ -231,7 +231,7 @@ export default function Dashboard() {
       <div className="relative overflow-hidden">
         <div 
           className="h-64 rounded-2xl bg-cover bg-center relative overflow-hidden shadow-elegant"
-          style={{ backgroundImage: `url(https://images.pexels.com/photos/103123/pexels-photo-103123.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2)` }}
+          style={{ backgroundImage: `url(https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2)` }}
         >
           <div className="absolute inset-0 bg-black/20" />
           <div className="relative h-full flex items-center justify-between p-8">
