@@ -163,7 +163,7 @@ export default function RecipeItems({
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                   <span>Rendimento:</span>
                   <span>
-                    ({efficiency % 1 !== 0 ? efficiency.toFixed(2) : efficiency.toFixed(0)})
+                    {efficiency % 1 !== 0 ? efficiency.toFixed(2) : efficiency.toFixed(0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center border-t pt-2">
