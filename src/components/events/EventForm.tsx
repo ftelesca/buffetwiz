@@ -137,7 +137,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       if (!eventId) return null;
       
       const { data, error } = await supabase
-        .rpc('calculate_event_cost', { event_id: eventId });
+        .rpc('calculate_event_cost', { event_id_param: eventId });
       
       if (error) {
         console.error('Error calculating event cost:', error);
@@ -419,7 +419,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           <Label htmlFor="cost">Custo</Label>
           <Input
             id="cost"
-            value={eventCostData ? eventCostData.toFixed(2).replace('.', ',') : '0,00'}
+            value={eventCostData !== null && eventCostData !== undefined ? eventCostData.toFixed(2).replace('.', ',') : (eventData?.cost ? eventData.cost.toFixed(2).replace('.', ',') : '0,00')}
             readOnly
             placeholder="0,00"
             className="bg-muted"
