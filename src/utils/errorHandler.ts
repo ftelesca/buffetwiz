@@ -35,6 +35,12 @@ export function getSupabaseErrorMessage(error: PostgrestError | Error | any): Fr
           description: "Já existe um registro com este nome."
         };
       }
+      if (message.includes("unit") && message.includes("description")) {
+        return {
+          title: "Unidade já existe",
+          description: "Já existe uma unidade com esta descrição."
+        };
+      }
       return {
         title: "Dados duplicados",
         description: "Já existe um registro com estas informações."

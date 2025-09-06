@@ -206,9 +206,10 @@ export default function Insumos() {
       fetchItems() // Atualizar insumos para mostrar novas unidades
     } catch (error) {
       console.error('Erro ao salvar unidade:', error)
+      const friendlyError = getSupabaseErrorMessage(error);
       toast({
-        title: "Erro",
-        description: "Erro ao salvar unidade",
+        title: friendlyError.title,
+        description: friendlyError.description,
         variant: "destructive"
       })
     }
