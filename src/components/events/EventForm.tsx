@@ -130,25 +130,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     enabled: !!eventId
   });
 
-  // Fetch event cost based on recipes
-  const { data: eventCostData } = useQuery({
-    queryKey: ["event-cost", eventId],
-    queryFn: async () => {
-      if (!eventId) return null;
-      
-      const { data, error } = await supabase
-        .rpc('calculate_event_cost', { event_id_param: eventId });
-      
-      if (error) {
-        console.error('Error calculating event cost:', error);
-        return null;
-      }
-      
-      return data as number;
-    },
-    enabled: !!eventId
-  });
-
   // Populate form when editing
   useEffect(() => {
     if (eventData) {
@@ -262,6 +243,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       type: formData.type || null,
       status: formData.status,
       numguests: formData.numguests ? parseInt(formData.numguests) : null,
+      cost: formData.cost ? parseFloat(formData.cost.replace(',', '.')) : null,
       price: formData.price ? parseFloat(formData.price.replace(',', '.')) : null,
       description: formData.description || null,
       ...(eventId ? {} : { user_id: user?.id })
@@ -419,10 +401,19 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           <Label htmlFor="cost">Custo</Label>
           <Input
             id="cost"
-            value={eventCostData !== null && eventCostData !== undefined ? eventCostData.toFixed(2).replace('.', ',') : (eventData?.cost ? eventData.cost.toFixed(2).replace('.', ',') : '0,00')}
-            readOnly
+            value={formData.cost}
+            onChange={(e) => {
+              // Format as number with comma decimal separator, no currency symbol
+              const value = e.target.value.replace(/\D/g, '');
+              if (!value) {
+                setFormData({ ...formData, cost: '' });
+                return;
+              }
+              const number = parseInt(value) / 100;
+              const formatted = number.toFixed(2).replace('.', ',');
+              setFormData({ ...formData, cost: formatted });
+            }}
             placeholder="0,00"
-            className="bg-muted"
           />
         </div>
 
