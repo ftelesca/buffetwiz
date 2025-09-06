@@ -158,18 +158,18 @@ export default function RecipeItems({
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                   <span>Custo Base:</span>
-                  <span>{formatCurrency(recipeBaseCost || 0)}</span>
+                  <span>{formatCurrency(recipeBaseCost || 0).replace('R$ ', '')}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                   <span>Rendimento:</span>
                   <span>
-                    {efficiency.toFixed(efficiency % 1 !== 0 ? 2 : 0)}
+                    {efficiency % 1 !== 0 ? efficiency.toFixed(2) : efficiency.toFixed(0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center border-t pt-2">
                   <span className="text-lg font-medium">Custo Unitário:</span>
                   <span className="text-xl font-bold text-primary">
-                    {formatCurrency(recipeUnitCost || 0)}
+                    {formatCurrency(recipeUnitCost || 0).replace('R$ ', '')}
                   </span>
                 </div>
               </CardContent>
