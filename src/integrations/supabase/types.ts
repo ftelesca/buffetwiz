@@ -280,7 +280,7 @@ export type Database = {
     }
     Functions: {
       calculate_event_cost: {
-        Args: { event_id: number }
+        Args: { event_id_param: number }
         Returns: number
       }
       recalculate_all_events: {
