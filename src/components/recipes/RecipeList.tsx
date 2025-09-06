@@ -143,7 +143,7 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
                       <span className="font-medium">
                         {recipe.description}
                         {recipe.efficiency && (
-                        recipe.efficiency !== 1
+                          recipe.efficiency !== 1
                         ) && (
                           <span className="text-muted-foreground font-normal ml-2">
                             ({recipe.efficiency % 1 !== 0 ? recipe.efficiency.toFixed(2) : recipe.efficiency.toFixed(0)})
