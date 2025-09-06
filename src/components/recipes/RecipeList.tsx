@@ -142,9 +142,11 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
                     <div className="flex-1">
                       <span className="font-medium">
                         {recipe.description}
-                        {recipe.efficiency && recipe.efficiency !== 1.00 && (
+                        {recipe.efficiency && (
+                          (recipe.efficiency % 1 !== 0) || (recipe.efficiency !== 1)
+                        ) && (
                           <span className="text-muted-foreground font-normal ml-2">
-                            (x {recipe.efficiency.toFixed(1)})
+                            ({recipe.efficiency.toFixed(recipe.efficiency % 1 !== 0 ? 2 : 0)})
                           </span>
                         )}
                       </span>

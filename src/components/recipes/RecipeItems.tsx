@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus, Edit } from "lucide-react";
 import { getDeletedMessage } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ActionButtons } from "@/components/ui/action-buttons";
 import type { Recipe, RecipeItem, Unit } from "@/types/recipe";
@@ -51,20 +52,38 @@ export default function RecipeItems({
     return qty.toString().replace('.', ',');
   };
 
-  // Calculate total recipe cost with full precision
-  const baseCost = recipeItems.reduce((total, recipeItem) => {
-    const item = recipeItem.item_detail;
-    const unitCost = Number(item?.cost || 0);
-    const factor = Number(item?.factor || 1);
-    const adjustedUnitCost = unitCost / factor;
-    const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
-    return total + itemTotalCost;
-  }, 0);
-  
-  // Apply efficiency multiplier to get final recipe cost
-  const efficiency = selectedRecipe?.efficiency || 1.00;
-  const totalRecipeCost = baseCost * efficiency;
-  
+  // Fetch base cost using Supabase function
+  const { data: recipeBaseCost } = useQuery({
+    queryKey: ["recipeBaseCost", selectedRecipe?.id],
+    queryFn: async () => {
+      if (!selectedRecipe?.id) return 0;
+      const { data, error } = await supabase.rpc('calculate_recipe_base_cost', { recipe_id_param: selectedRecipe.id });
+      if (error) {
+        console.error("Error fetching recipe base cost:", error);
+        return 0;
+      }
+      return data as number;
+    },
+    enabled: !!selectedRecipe?.id,
+  });
+
+  // Fetch unit cost using Supabase function
+  const { data: recipeUnitCost } = useQuery({
+    queryKey: ["recipeUnitCost", selectedRecipe?.id],
+    queryFn: async () => {
+      if (!selectedRecipe?.id) return 0;
+      const { data, error } = await supabase.rpc('calculate_recipe_unit_cost', { recipe_id_param: selectedRecipe.id });
+      if (error) {
+        console.error("Error fetching recipe unit cost:", error);
+        return 0;
+      }
+      return data as number;
+    },
+    enabled: !!selectedRecipe?.id,
+  });
+
+  const efficiency = selectedRecipe?.efficiency || 1;
+
   const formatCurrency = (value: number) => {
     if (value < 0.01) return "< 0,01";
     return new Intl.NumberFormat('pt-BR', {
@@ -137,29 +156,21 @@ export default function RecipeItems({
             {/* Total Cost Card */}
             <Card className="mt-4">
               <CardContent className="pt-6">
-                <div className="space-y-2">
-                  {efficiency > 1.00 && (
-                    <>
-                      <div className="flex justify-between items-center text-sm text-muted-foreground">
-                        <span>Custo Base:</span>
-                        <span>R$ {formatCurrency(baseCost)}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm text-muted-foreground">
-                        <span>Rendimento:</span>
-                        <span>{efficiency.toFixed(2)}x</span>
-                      </div>
-                      <div className="flex justify-between items-center border-t pt-2">
-                        <span className="text-lg font-medium">Custo Total:</span>
-                        <span className="text-xl font-bold text-primary">R$ {formatCurrency(totalRecipeCost)}</span>
-                      </div>
-                    </>
-                  )}
-                  {efficiency <= 1.00 && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-medium">Custo Total:</span>
-                      <span className="text-xl font-bold text-primary">R$ {formatCurrency(totalRecipeCost)}</span>
-                    </div>
-                  )}
+                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                  <span>Custo Base:</span>
+                  <span>{formatCurrency(recipeBaseCost || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                  <span>Rendimento:</span>
+                  <span>
+                    {efficiency.toFixed(efficiency % 1 !== 0 ? 2 : 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center border-t pt-2">
+                  <span className="text-lg font-medium">Custo Unitário:</span>
+                  <span className="text-xl font-bold text-primary">
+                    {formatCurrency(recipeUnitCost || 0)}
+                  </span>
                 </div>
               </CardContent>
             </Card>
