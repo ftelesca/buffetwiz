@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, ChefHat, Eye } from "lucide-react";
 import { CalendarIntegration } from "./CalendarIntegration";
@@ -31,10 +33,11 @@ interface EventMenuProps {
 }
 
 interface EventMenuRecipe {
+  qty: number;
   recipe: {
     id: number;
     description: string;
-    cost?: number;
+    unit_cost?: number;
   };
 }
 
@@ -55,8 +58,9 @@ export const EventMenu = ({
 }: EventMenuProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isRecipeItemsDialogOpen, setIsRecipeItemsDialogOpen] = useState(false);
-  const [selectedRecipeForItems, setSelectedRecipeForItems] = useState<Recipe | null>(null);
+  const [selectedRecipeForItems, setSelectedRecipeForItems] = useState<{ recipe: Recipe; qty: number; unit_cost: number } | null>(null);
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>("");
+  const [selectedQty, setSelectedQty] = useState<string>("1");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -67,45 +71,28 @@ export const EventMenu = ({
       const { data, error } = await supabase
         .from("event_menu")
         .select(`
-          recipe:recipe(id, description),
-          recipe_cost:recipe(id)
+          qty,
+          recipe:recipe(id, description)
         `)
         .eq("event", eventId);
       
       if (error) throw error;
       
-      // Calculate cost for each recipe
+      // Get unit cost for each recipe using Supabase function
       const recipesWithCost = await Promise.all(
         data.map(async (item) => {
-          const { data: recipeItems } = await supabase
-            .from("recipe_item")
-            .select(`
-              qty,
-              item_detail:item(cost, factor)
-            `)
-            .eq("recipe", item.recipe.id);
+          const { data: unitCost, error: costError } = await supabase
+            .rpc('calculate_recipe_unit_cost', { recipe_id_param: item.recipe.id });
           
-          const { data: recipeData } = await supabase
-            .from("recipe")
-            .select("efficiency")
-            .eq("id", item.recipe.id)
-            .single();
-          
-          const baseCost = recipeItems?.reduce((total, recipeItem) => {
-            const itemCost = Number(recipeItem.item_detail?.cost || 0);
-            const factor = Number(recipeItem.item_detail?.factor || 1);
-            const adjustedUnitCost = itemCost / factor;
-            const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
-            return total + itemTotalCost;
-          }, 0) || 0;
-          
-          const efficiency = recipeData?.efficiency || 1.00;
-          const totalCost = baseCost * efficiency;
+          if (costError) {
+            console.error('Error calculating recipe unit cost:', costError);
+          }
           
           return {
+            qty: item.qty || 1,
             recipe: {
               ...item.recipe,
-              cost: totalCost
+              unit_cost: unitCost || 0
             }
           };
         })
@@ -131,7 +118,7 @@ export const EventMenu = ({
 
   // Fetch recipe items for selected recipe
   const { data: recipeItems } = useQuery({
-    queryKey: ["recipe-items", selectedRecipeForItems?.id],
+    queryKey: ["recipe-items", selectedRecipeForItems?.recipe.id],
     queryFn: async () => {
       if (!selectedRecipeForItems) return [];
       
@@ -141,7 +128,7 @@ export const EventMenu = ({
           *,
           item_detail:item(*)
         `)
-        .eq("recipe", selectedRecipeForItems.id);
+        .eq("recipe", selectedRecipeForItems.recipe.id);
       
       if (error) throw error;
       return data;
@@ -165,10 +152,10 @@ export const EventMenu = ({
 
   // Add recipe to event menu mutation
   const addRecipeMutation = useMutation({
-    mutationFn: async (recipeId: number) => {
+    mutationFn: async ({ recipeId, qty }: { recipeId: number; qty: number }) => {
       const { data, error } = await supabase
         .from("event_menu")
-        .insert([{ event: eventId, recipe: recipeId }])
+        .insert([{ event: eventId, recipe: recipeId, qty: qty }])
         .select();
       
       if (error) throw error;
@@ -183,6 +170,7 @@ export const EventMenu = ({
       });
       setIsAddDialogOpen(false);
       setSelectedRecipeId("");
+      setSelectedQty("1");
     },
     onError: (error: any) => {
       toast({
@@ -230,15 +218,30 @@ export const EventMenu = ({
       });
       return;
     }
-    addRecipeMutation.mutate(parseInt(selectedRecipeId));
+    
+    const qty = parseFloat(selectedQty) || 1;
+    if (qty <= 0) {
+      toast({
+        title: "Erro",
+        description: "Quantidade deve ser maior que zero.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    addRecipeMutation.mutate({ recipeId: parseInt(selectedRecipeId), qty });
   };
 
   const handleRemoveRecipe = (recipeId: number) => {
     removeRecipeMutation.mutate(recipeId);
   };
 
-  const handleViewRecipeItems = (recipe: Recipe) => {
-    setSelectedRecipeForItems(recipe);
+  const handleViewRecipeItems = (menuItem: EventMenuRecipe) => {
+    setSelectedRecipeForItems({
+      recipe: menuItem.recipe,
+      qty: menuItem.qty,
+      unit_cost: menuItem.recipe.unit_cost || 0
+    });
     setIsRecipeItemsDialogOpen(true);
   };
 
@@ -302,6 +305,7 @@ export const EventMenu = ({
             </DialogHeader>
             <div className="space-y-4">
               <div>
+                <Label htmlFor="recipe-select">Receita</Label>
                 <Select value={selectedRecipeId} onValueChange={setSelectedRecipeId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma receita" />
@@ -314,6 +318,18 @@ export const EventMenu = ({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label htmlFor="qty-input">Quantidade</Label>
+                <Input
+                  id="qty-input"
+                  type="number"
+                  step="0.001"
+                  min="0.001"
+                  value={selectedQty}
+                  onChange={(e) => setSelectedQty(e.target.value)}
+                  placeholder="1"
+                />
               </div>
               <div className="flex gap-2">
                 <Button 
@@ -353,12 +369,10 @@ export const EventMenu = ({
                     <CardTitle className="text-lg group-hover:text-primary transition-colors flex items-center gap-2">
                       <ChefHat className="h-4 w-4 text-primary" />
                       {item.recipe.description}
-                      {item.recipe.cost !== undefined && (
-                        <span className="text-sm font-normal text-muted-foreground">
-                          ({formatCurrencyBrazilian(item.recipe.cost)})
-                        </span>
-                      )}
                     </CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      {item.qty} x {formatCurrency(item.recipe.unit_cost || 0)} = {formatCurrency((item.qty * (item.recipe.unit_cost || 0)))}
+                    </CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -367,7 +381,7 @@ export const EventMenu = ({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleViewRecipeItems(item.recipe)}
+                    onClick={() => handleViewRecipeItems(item)}
                     className="flex-1"
                   >
                     <Eye className="h-3 w-3 mr-1" />
@@ -425,7 +439,7 @@ export const EventMenu = ({
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-effect">
           <DialogHeader>
             <DialogTitle className="text-2xl">
-              Itens da Receita: {selectedRecipeForItems?.description}
+              Itens da Receita: {selectedRecipeForItems?.recipe.description}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -477,16 +491,7 @@ export const EventMenu = ({
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-medium">Custo Total:</span>
                       <span className="text-xl font-bold text-primary">
-                        {formatCurrency(
-                          recipeItems.reduce((total, recipeItem) => {
-                            const item = recipeItem.item_detail;
-                            const unitCost = Number(item?.cost || 0);
-                            const factor = Number(item?.factor || 1);
-                            const adjustedUnitCost = unitCost / factor;
-                            const itemTotalCost = adjustedUnitCost * Number(recipeItem.qty);
-                            return total + itemTotalCost;
-                          }, 0) * ((selectedRecipeForItems as any)?.efficiency || 1.00)
-                        )}
+                        {selectedRecipeForItems?.qty} x {formatCurrency(selectedRecipeForItems?.unit_cost || 0)} = {formatCurrency((selectedRecipeForItems?.qty || 0) * (selectedRecipeForItems?.unit_cost || 0))}
                       </span>
                     </div>
                   </CardContent>
