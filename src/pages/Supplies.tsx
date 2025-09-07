@@ -357,14 +357,14 @@ export default function Insumos() {
                             <input type="checkbox" checked={item.isproduct || false} disabled className="rounded" />
                           </TableCell>
                           <TableCell>
-                            <ActionButtons
+                             <ActionButtons
                               onEdit={() => {
                                 setEditingItem(item)
                                 setNewItem({
                                   description: item.description,
                                   unit_purch: item.unit_purch,
                                   unit_use: item.unit_use,
-                                  cost: formatCurrencyInput((item.cost * 100).toString()),
+                                  cost: formatCurrencyInput(item.cost?.toString() || '0'),
                                   factor: item.factor,
                                   isproduct: item.isproduct
                                 })
