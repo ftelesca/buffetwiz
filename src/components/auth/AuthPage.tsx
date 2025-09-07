@@ -25,7 +25,7 @@ export function AuthPage() {
               BuffetWiz
             </h1>
             <p className="text-muted-foreground">
-              Gestão Gastronômica Profissional
+              Gestão Gastronômica Descomplicada
             </p>
           </div>
         </div>
