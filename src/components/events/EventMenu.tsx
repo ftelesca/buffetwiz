@@ -568,17 +568,17 @@ export const EventMenu = ({
                 <Card className="mt-4">
                   <CardContent className="pt-6">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-medium">Custo Unitário da Receita:</span>
-                      <span className="text-xl font-bold text-primary">
+                      <span className="text-sm text-muted-foreground">Custo Unitário da Receita:</span>
+                      <span className="text-lg font-semibold">
                         {isLoadingCost ? "Calculando..." : formatCurrency(recipeUnitCost || 0)}
                       </span>
                     </div>
                     {selectedRecipeForItems && (
                       <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-lg font-medium">
                           Custo Total ({selectedRecipeForItems.qty} unidades):
                         </span>
-                        <span className="text-lg font-semibold">
+                        <span className="text-xl font-bold text-primary">
                           {formatCurrency((recipeUnitCost || 0) * selectedRecipeForItems.qty)}
                         </span>
                       </div>
