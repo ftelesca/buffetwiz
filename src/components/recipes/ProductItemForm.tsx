@@ -38,7 +38,7 @@ export default function ProductItemForm({
         qty: editingProductItem.qty.toString() 
       })
     } else {
-      setNewProductItem({ item: "", qty: "" })
+      setNewProductItem({ item: "", qty: "1" })
     }
   }, [editingProductItem, isOpen])
 

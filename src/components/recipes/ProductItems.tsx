@@ -109,7 +109,7 @@ export default function ProductItems({
           <CardTitle className="flex-shrink-0">
             {selectedProduct ? "Insumos do Produto" : "Selecione um produto"}
           </CardTitle>
-          {selectedProduct && <Button onClick={onAddItem} size="sm" className="flex-shrink-0">
+          {selectedProduct && !productItems.some(item => item.item_detail?.isproduct) && <Button onClick={onAddItem} size="sm" className="flex-shrink-0">
               <Plus className="w-4 h-4 mr-2" />
               Adicionar Insumo
             </Button>}
