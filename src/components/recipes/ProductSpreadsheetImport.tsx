@@ -19,6 +19,7 @@ interface Item {
 
 interface ParsedProductItem {
   productDescription: string
+  efficiency: number
   itemDescription: string
   qty: number
   errors: string[]
@@ -133,11 +134,13 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
       if (!row || row.length === 0) continue
 
       const productDescription = formatTitleCase(row[0]?.toString().trim() || '')
-      const itemDescription = row[1]?.toString().trim() || ''
-      const qty = parseFloat(row[2]?.toString()) || 0
+      const efficiency = parseFloat(row[1]?.toString()) || 1
+      const itemDescription = row[2]?.toString().trim() || ''
+      const qty = parseFloat(row[3]?.toString()) || 0
 
       const item: ParsedProductItem = {
         productDescription,
+        efficiency,
         itemDescription,
         qty,
         errors: [],
@@ -155,6 +158,10 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
 
       if (isNaN(item.qty) || item.qty <= 0) {
         item.errors.push('Quantidade deve ser um número válido e maior que zero')
+      }
+
+      if (isNaN(item.efficiency) || item.efficiency <= 0) {
+        item.errors.push('Rendimento deve ser um número válido e maior que zero')
       }
 
       // Find or identify product
@@ -238,6 +245,7 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
             .from('recipe')
             .insert([{
               description: firstItem.productDescription,
+              efficiency: firstItem.efficiency,
               user_id: user?.id
             }])
             .select('id')
@@ -250,7 +258,10 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
           // Update existing product (just to ensure it's current)
           await supabase
             .from('recipe')
-            .update({ description: firstItem.productDescription })
+            .update({ 
+              description: firstItem.productDescription,
+              efficiency: firstItem.efficiency
+            })
             .eq('id', productId)
           updatedProductsCount++
         }
@@ -307,11 +318,11 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
 
   const downloadTemplate = () => {
     const template = [
-      ['Produto', 'Insumo', 'Qtd'],
-      ['Arroz de Festa', 'Arroz Branco', '500'],
-      ['Arroz de Festa', 'Azeite de Oliva', '50'],
-      ['Feijão Tropeiro', 'Feijão Preto', '300'],
-      ['Feijão Tropeiro', 'Bacon', '100']
+      ['Produto', 'Rendimento', 'Insumo', 'Qtd'],
+      ['Arroz de Festa', '1', 'Arroz Branco', '500'],
+      ['Arroz de Festa', '1', 'Azeite de Oliva', '50'],
+      ['Feijão Tropeiro', '1.2', 'Feijão Preto', '300'],
+      ['Feijão Tropeiro', '1.2', 'Bacon', '100']
     ]
 
     const csv = Papa.unparse(template)
@@ -345,7 +356,7 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
               <Alert>
                 <FileText className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Formato esperado:</strong> Produto, Insumo, Qtd
+                  <strong>Formato esperado:</strong> Produto, Rendimento, Insumo, Qtd
                   <br />
                   <strong>Importante:</strong> Os insumos devem estar previamente cadastrados no sistema
                   <br />
@@ -432,6 +443,7 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
                     <TableRow>
                       <TableHead className="w-12">Linha</TableHead>
                       <TableHead>Produto</TableHead>
+                      <TableHead>Rendimento</TableHead>
                       <TableHead>Insumo</TableHead>
                       <TableHead>Quantidade</TableHead>
                       <TableHead>Status</TableHead>
@@ -442,6 +454,7 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
                       <TableRow key={index}>
                         <TableCell>{item.rowIndex}</TableCell>
                         <TableCell>{item.productDescription}</TableCell>
+                        <TableCell>{item.efficiency}</TableCell>
                         <TableCell>{item.itemDescription}</TableCell>
                         <TableCell>{item.qty}</TableCell>
                         <TableCell>
