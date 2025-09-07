@@ -52,24 +52,44 @@ export default function RecipeItems({
     return qty.toString().replace('.', ',');
   };
 
-  // Calculate base cost from recipe items
+  // Calculate base cost using Supabase function
   const { data: recipeBaseCost } = useQuery({
     queryKey: ["recipeBaseCost", selectedRecipe?.id],
     queryFn: async () => {
       if (!selectedRecipe?.id) return 0;
-      // Calculate base cost manually from recipe items
-      return 0; // Placeholder for now
+      
+      const { data, error } = await supabase
+        .rpc('calculate_recipe_base_cost' as any, {
+          recipe_id_param: selectedRecipe.id
+        });
+      
+      if (error) {
+        console.error('Error calculating recipe base cost:', error);
+        return 0;
+      }
+      
+      return data || 0;
     },
     enabled: !!selectedRecipe?.id,
   });
 
-  // Calculate unit cost from recipe items
+  // Calculate unit cost using Supabase function
   const { data: recipeUnitCost } = useQuery({
     queryKey: ["recipeUnitCost", selectedRecipe?.id],
     queryFn: async () => {
       if (!selectedRecipe?.id) return 0;
-      // Calculate unit cost manually from recipe items
-      return 0; // Placeholder for now
+      
+      const { data, error } = await supabase
+        .rpc('calculate_recipe_unit_cost' as any, {
+          recipe_id_param: selectedRecipe.id
+        });
+      
+      if (error) {
+        console.error('Error calculating recipe unit cost:', error);
+        return 0;
+      }
+      
+      return data || 0;
     },
     enabled: !!selectedRecipe?.id,
   });
