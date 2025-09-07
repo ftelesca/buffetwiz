@@ -5,7 +5,7 @@ import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 
 interface EventMenuItemFormProps {
   initialQty: number;
-  recipeName: string;
+  productName: string;
   onSave: (qty: number) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -13,7 +13,7 @@ interface EventMenuItemFormProps {
 
 export const EventMenuItemForm = ({
   initialQty,
-  recipeName,
+  productName,
   onSave,
   onCancel,
   isLoading = false
@@ -29,10 +29,10 @@ export const EventMenuItemForm = ({
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="recipe-name">Receita</Label>
+        <Label htmlFor="product-name">Produto</Label>
         <Input 
-          id="recipe-name"
-          value={recipeName} 
+          id="product-name"
+          value={productName} 
           disabled 
           className="bg-muted"
         />

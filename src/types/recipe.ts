@@ -1,4 +1,4 @@
-export interface Recipe {
+export interface Product {
   id: number
   description: string
   efficiency?: number
@@ -18,13 +18,13 @@ export interface Unit {
   description: string
 }
 
-export interface RecipeItem {
-  recipe: number
+export interface ProductItem {
+  product: number
   item: number
   qty: number
   item_detail?: Item
 }
-export interface EventWithRecipeCost {
+export interface EventWithProductCost {
   id: number
   title: string
   customer: number
@@ -41,5 +41,5 @@ export interface EventWithRecipeCost {
   customer_info?: {
     name: string
   }
-  totalRecipeCost?: number
+  totalProductCost?: number
 }

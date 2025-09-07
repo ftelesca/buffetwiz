@@ -28,7 +28,7 @@ const navigationItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Eventos", url: "/eventos", icon: Calendar },
   { title: "Clientes", url: "/clientes", icon: Users },
-  { title: "Receitas", url: "/cardapios", icon: ChefHat },
+  { title: "Produtos", url: "/cardapios", icon: ChefHat },
   { title: "Insumos", url: "/insumos", icon: ShoppingCart },
 ]
 

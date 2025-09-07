@@ -17,29 +17,29 @@ interface Item {
   description: string
 }
 
-interface ParsedRecipeItem {
-  recipeDescription: string
+interface ParsedProductItem {
+  productDescription: string
   itemDescription: string
   qty: number
   errors: string[]
   rowIndex: number
-  recipeId?: number
+  productId?: number
   itemId?: number
-  existingRecipeItemId?: number
-  isRecipeUpdate?: boolean
-  isRecipeItemUpdate?: boolean
+  existingProductItemId?: number
+  isProductUpdate?: boolean
+  isProductItemUpdate?: boolean
 }
 
-interface RecipeSpreadsheetImportProps {
+interface ProductSpreadsheetImportProps {
   isOpen: boolean
   onClose: () => void
   onImportComplete: () => void
 }
 
-export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: RecipeSpreadsheetImportProps) {
+export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: ProductSpreadsheetImportProps) {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null)
-  const [parsedData, setParsedData] = useState<ParsedRecipeItem[]>([])
+  const [parsedData, setParsedData] = useState<ParsedProductItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const { toast } = useToast()
@@ -112,10 +112,10 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
   }
 
   const processData = async (data: any[][]) => {
-    const items: ParsedRecipeItem[] = []
+    const items: ParsedProductItem[] = []
     
-    // Fetch existing recipes and items
-    const { data: existingRecipes } = await supabase
+    // Fetch existing products and items
+    const { data: existingProducts } = await supabase
       .from('recipe')
       .select('id, description')
     
@@ -123,7 +123,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
       .from('item')
       .select('id, description')
 
-    const { data: existingRecipeItems } = await supabase
+    const { data: existingProductItems } = await supabase
       .from('recipe_item')
       .select('recipe, item')
     
@@ -132,12 +132,12 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
       const row = data[i]
       if (!row || row.length === 0) continue
 
-      const recipeDescription = formatTitleCase(row[0]?.toString().trim() || '')
+      const productDescription = formatTitleCase(row[0]?.toString().trim() || '')
       const itemDescription = row[1]?.toString().trim() || ''
       const qty = parseFloat(row[2]?.toString()) || 0
 
-      const item: ParsedRecipeItem = {
-        recipeDescription,
+      const item: ParsedProductItem = {
+        productDescription,
         itemDescription,
         qty,
         errors: [],
@@ -145,8 +145,8 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
       }
 
       // Validate required fields
-      if (!item.recipeDescription) {
-        item.errors.push('Descrição da receita é obrigatória')
+      if (!item.productDescription) {
+        item.errors.push('Descrição do produto é obrigatória')
       }
 
       if (!item.itemDescription) {
@@ -157,14 +157,14 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
         item.errors.push('Quantidade deve ser um número válido e maior que zero')
       }
 
-      // Find or identify recipe
-      const existingRecipe = existingRecipes?.find(recipe => 
-        recipe.description.toUpperCase() === item.recipeDescription.toUpperCase()
+      // Find or identify product
+      const existingProduct = existingProducts?.find(product => 
+        product.description.toUpperCase() === item.productDescription.toUpperCase()
       )
       
-      if (existingRecipe) {
-        item.recipeId = existingRecipe.id
-        item.isRecipeUpdate = true
+      if (existingProduct) {
+        item.productId = existingProduct.id
+        item.isProductUpdate = true
       }
 
       // Find item
@@ -178,14 +178,14 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
         item.errors.push(`Insumo "${item.itemDescription}" não encontrado`)
       }
 
-      // Check if recipe item already exists
-      if (item.recipeId && item.itemId) {
-        const existingRecipeItem = existingRecipeItems?.find(ri => 
-          ri.recipe === item.recipeId && ri.item === item.itemId
+      // Check if product item already exists
+      if (item.productId && item.itemId) {
+        const existingProductItem = existingProductItems?.find(ri => 
+          ri.recipe === item.productId && ri.item === item.itemId
         )
         
-        if (existingRecipeItem) {
-          item.isRecipeItemUpdate = true
+        if (existingProductItem) {
+          item.isProductItemUpdate = true
         }
       }
 
@@ -210,87 +210,87 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
 
     setIsProcessing(true)
     try {
-      // Group by recipe to process efficiently
-      const recipeGroups = new Map<string, ParsedRecipeItem[]>()
+      // Group by product to process efficiently
+      const productGroups = new Map<string, ParsedProductItem[]>()
       
       validItems.forEach(item => {
-        const key = item.recipeDescription.toUpperCase()
-        if (!recipeGroups.has(key)) {
-          recipeGroups.set(key, [])
+        const key = item.productDescription.toUpperCase()
+        if (!productGroups.has(key)) {
+          productGroups.set(key, [])
         }
-        recipeGroups.get(key)!.push(item)
+        productGroups.get(key)!.push(item)
       })
 
-      let newRecipesCount = 0
-      let updatedRecipesCount = 0
-      let newRecipeItemsCount = 0
-      let updatedRecipeItemsCount = 0
+      let newProductsCount = 0
+      let updatedProductsCount = 0
+      let newProductItemsCount = 0
+      let updatedProductItemsCount = 0
 
-      // Process each recipe group
-      for (const [recipeKey, recipeItems] of recipeGroups) {
-        const firstItem = recipeItems[0]
-        let recipeId = firstItem.recipeId
+      // Process each product group
+      for (const [productKey, productItems] of productGroups) {
+        const firstItem = productItems[0]
+        let productId = firstItem.productId
 
-        // Create or update recipe
-        if (!recipeId) {
-          // Create new recipe
-          const { data: newRecipe, error: recipeError } = await supabase
+        // Create or update product
+        if (!productId) {
+          // Create new product
+          const { data: newProduct, error: productError } = await supabase
             .from('recipe')
             .insert([{
-              description: firstItem.recipeDescription,
+              description: firstItem.productDescription,
               user_id: user?.id
             }])
             .select('id')
             .single()
 
-          if (recipeError) throw recipeError
-          recipeId = newRecipe.id
-          newRecipesCount++
+          if (productError) throw productError
+          productId = newProduct.id
+          newProductsCount++
         } else {
-          // Update existing recipe (just to ensure it's current)
+          // Update existing product (just to ensure it's current)
           await supabase
             .from('recipe')
-            .update({ description: firstItem.recipeDescription })
-            .eq('id', recipeId)
-          updatedRecipesCount++
+            .update({ description: firstItem.productDescription })
+            .eq('id', productId)
+          updatedProductsCount++
         }
 
-        // Process recipe items
-        for (const item of recipeItems) {
-          if (item.isRecipeItemUpdate) {
-            // Update existing recipe item
+        // Process product items
+        for (const item of productItems) {
+          if (item.isProductItemUpdate) {
+            // Update existing product item
             await supabase
               .from('recipe_item')
               .update({ qty: item.qty })
-              .eq('recipe', recipeId)
+              .eq('recipe', productId)
               .eq('item', item.itemId!)
-            updatedRecipeItemsCount++
+            updatedProductItemsCount++
           } else {
-            // Create new recipe item
+            // Create new product item
             await supabase
               .from('recipe_item')
               .insert([{
-                recipe: recipeId,
+                recipe: productId,
                 item: item.itemId!,
                 qty: item.qty
               }])
-            newRecipeItemsCount++
+            newProductItemsCount++
           }
         }
       }
 
       toast({ 
         title: `Importação concluída`,
-        description: `${newRecipesCount} receitas criadas, ${updatedRecipesCount} receitas atualizadas, ${newRecipeItemsCount} itens adicionados, ${updatedRecipeItemsCount} itens atualizados`
+        description: `${newProductsCount} produtos criados, ${updatedProductsCount} produtos atualizados, ${newProductItemsCount} itens adicionados, ${updatedProductItemsCount} itens atualizados`
       })
 
       onImportComplete()
       handleClose()
     } catch (error) {
-      console.error('Erro ao importar receitas:', error)
+      console.error('Erro ao importar produtos:', error)
       toast({
         title: "Erro",
-        description: "Erro ao importar receitas. Tente novamente.",
+        description: "Erro ao importar produtos. Tente novamente.",
         variant: "destructive"
       })
     } finally {
@@ -307,7 +307,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
 
   const downloadTemplate = () => {
     const template = [
-      ['Receita', 'Insumo', 'Qtd'],
+      ['Produto', 'Insumo', 'Qtd'],
       ['Arroz de Festa', 'Arroz Branco', '500'],
       ['Arroz de Festa', 'Azeite de Oliva', '50'],
       ['Feijão Tropeiro', 'Feijão Preto', '300'],
@@ -318,24 +318,24 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    link.download = 'modelo_receitas.csv'
+    link.download = 'modelo_produtos.csv'
     link.click()
   }
 
   const validItems = parsedData.filter(item => item.errors.length === 0)
   const invalidItems = parsedData.filter(item => item.errors.length > 0)
-  const newRecipes = [...new Set(validItems.filter(item => !item.isRecipeUpdate).map(item => item.recipeDescription))]
-  const updatedRecipes = [...new Set(validItems.filter(item => item.isRecipeUpdate).map(item => item.recipeDescription))]
-  const newRecipeItems = validItems.filter(item => !item.isRecipeItemUpdate)
-  const updatedRecipeItems = validItems.filter(item => item.isRecipeItemUpdate)
+  const newProducts = [...new Set(validItems.filter(item => !item.isProductUpdate).map(item => item.productDescription))]
+  const updatedProducts = [...new Set(validItems.filter(item => item.isProductUpdate).map(item => item.productDescription))]
+  const newProductItems = validItems.filter(item => !item.isProductItemUpdate)
+  const updatedProductItems = validItems.filter(item => item.isProductItemUpdate)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Importar Planilha de Receitas</DialogTitle>
+          <DialogTitle>Importar Planilha de Produtos</DialogTitle>
           <DialogDescription>
-            Faça upload de um arquivo CSV ou Excel com receitas e seus insumos
+            Faça upload de um arquivo CSV ou Excel com produtos e seus insumos
           </DialogDescription>
         </DialogHeader>
 
@@ -345,7 +345,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
               <Alert>
                 <FileText className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Formato esperado:</strong> Receita, Insumo, Qtd
+                  <strong>Formato esperado:</strong> Produto, Insumo, Qtd
                   <br />
                   <strong>Importante:</strong> Os insumos devem estar previamente cadastrados no sistema
                   <br />
@@ -380,9 +380,9 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
                           accept=".csv,.xlsx,.xls"
                           onChange={handleFileChange}
                           className="hidden"
-                          id="recipe-file-upload"
+                          id="product-file-upload"
                         />
-                        <label htmlFor="recipe-file-upload">
+                        <label htmlFor="product-file-upload">
                           <Button variant="outline" className="cursor-pointer" asChild>
                             <span>Escolher Arquivo</span>
                           </Button>
@@ -399,7 +399,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
                 <div>
                   <h3 className="text-lg font-semibold">Prévia da Importação</h3>
                   <p className="text-sm text-muted-foreground">
-                    {newRecipes.length} receitas novas, {updatedRecipes.length} receitas atualizadas, {newRecipeItems.length} itens novos, {updatedRecipeItems.length} itens atualizados, {invalidItems.length} com erro
+                    {newProducts.length} produtos novos, {updatedProducts.length} produtos atualizados, {newProductItems.length} itens novos, {updatedProductItems.length} itens atualizados, {invalidItems.length} com erro
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -431,7 +431,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">Linha</TableHead>
-                      <TableHead>Receita</TableHead>
+                      <TableHead>Produto</TableHead>
                       <TableHead>Insumo</TableHead>
                       <TableHead>Quantidade</TableHead>
                       <TableHead>Status</TableHead>
@@ -441,16 +441,16 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
                     {parsedData.map((item, index) => (
                       <TableRow key={index}>
                         <TableCell>{item.rowIndex}</TableCell>
-                        <TableCell>{item.recipeDescription}</TableCell>
+                        <TableCell>{item.productDescription}</TableCell>
                         <TableCell>{item.itemDescription}</TableCell>
                         <TableCell>{item.qty}</TableCell>
                         <TableCell>
                           {item.errors.length === 0 ? (
                             <div className="space-y-1">
-                              <Badge variant={item.isRecipeUpdate ? "secondary" : "default"} className={item.isRecipeUpdate ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
-                                {item.isRecipeUpdate ? "Receita: Atualizar" : "Receita: Criar"}
+                              <Badge variant={item.isProductUpdate ? "secondary" : "default"} className={item.isProductUpdate ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
+                                {item.isProductUpdate ? "Produto: Atualizar" : "Produto: Criar"}
                               </Badge>
-                              <Badge variant={item.isRecipeItemUpdate ? "secondary" : "default"} className={item.isRecipeItemUpdate ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
+                              <Badge variant={item.isProductItemUpdate ? "secondary" : "default"} className={item.isProductItemUpdate ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
                                 {item.isRecipeItemUpdate ? "Item: Atualizar" : "Item: Criar"}
                               </Badge>
                             </div>
@@ -476,7 +476,7 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
                     <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-thin">
                       {invalidItems.map((item, index) => (
                         <div key={index} className="border-l-4 border-red-500 pl-3">
-                          <p className="font-medium">Linha {item.rowIndex}: {item.recipeDescription} - {item.itemDescription}</p>
+                          <p className="font-medium">Linha {item.rowIndex}: {item.productDescription} - {item.itemDescription}</p>
                           <ul className="text-sm text-red-600 list-disc list-inside">
                             {item.errors.map((error, errorIndex) => (
                               <li key={errorIndex}>{error}</li>
@@ -491,17 +491,17 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
 
               {validItems.length > 0 && (
                 <div className="grid grid-cols-2 gap-4">
-                  {newRecipes.length > 0 && (
+                  {newProducts.length > 0 && (
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-green-600">Receitas Novas ({newRecipes.length})</CardTitle>
+                        <CardTitle className="text-green-600">Produtos Novos ({newProducts.length})</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <ul className="text-sm space-y-1">
-                          {newRecipes.map((recipe, index) => (
+                          {newProducts.map((product, index) => (
                             <li key={index} className="flex items-center gap-2">
                               <Check className="h-3 w-3 text-green-600" />
-                              {recipe}
+                              {product}
                             </li>
                           ))}
                         </ul>
@@ -509,17 +509,17 @@ export function RecipeSpreadsheetImport({ isOpen, onClose, onImportComplete }: R
                     </Card>
                   )}
 
-                  {updatedRecipes.length > 0 && (
+                  {updatedProducts.length > 0 && (
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-blue-600">Receitas Atualizadas ({updatedRecipes.length})</CardTitle>
+                        <CardTitle className="text-blue-600">Produtos Atualizados ({updatedProducts.length})</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <ul className="text-sm space-y-1">
-                          {updatedRecipes.map((recipe, index) => (
+                          {updatedProducts.map((product, index) => (
                             <li key={index} className="flex items-center gap-2">
                               <Check className="h-3 w-3 text-blue-600" />
-                              {recipe}
+                              {product}
                             </li>
                           ))}
                         </ul>

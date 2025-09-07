@@ -57,8 +57,8 @@ export function getSupabaseErrorMessage(error: PostgrestError | Error | any): Fr
       // Specific check for deleting recipe with associated items
       if (message.includes("recipe") && message.includes("item") && message.includes("delete")) {
         return {
-          title: "Não é possível excluir receita",
-          description: "Esta receita possui insumos."
+          title: "Não é possível excluir produto",
+          description: "Este produto possui insumos."
         };
       }
       // Specific check for deleting event with associated menu
@@ -90,8 +90,8 @@ export function getSupabaseErrorMessage(error: PostgrestError | Error | any): Fr
       }
       if (message.includes("recipe")) {
         return {
-          title: "Receita não encontrada", 
-          description: "A receita selecionada não existe mais."
+          title: "Produto não encontrado", 
+          description: "O produto selecionado não existe mais."
         };
       }
       if (message.includes("item")) {
@@ -218,7 +218,8 @@ function extractFieldFromMessage(message: string): string {
     "location": "local",
     "description": "descrição",
     "numguests": "número de convidados",
-    "duration": "duração"
+    "duration": "duração",
+    "recipe": "produto"
   };
 
   for (const [key, value] of Object.entries(fieldMap)) {

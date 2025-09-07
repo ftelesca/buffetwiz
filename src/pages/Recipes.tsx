@@ -6,49 +6,49 @@ import { Input } from "@/components/ui/input"
 import { Plus, Search, Upload } from "lucide-react"
 import { MainLayout } from "@/components/layout/MainLayout"
 import { PageHeader } from "@/components/ui/page-header"
-import RecipeList from "@/components/recipes/RecipeList"
-import RecipeItems from "@/components/recipes/RecipeItems"
-import RecipeForm from "@/components/recipes/RecipeForm"
-import RecipeItemForm from "@/components/recipes/RecipeItemForm"
-import { RecipeSpreadsheetImport } from "@/components/recipes/RecipeSpreadsheetImport"
-import type { Recipe, Item, Unit, RecipeItem } from "@/types/recipe"
+import ProductList from "@/components/recipes/ProductList"
+import ProductItems from "@/components/recipes/ProductItems"
+import ProductForm from "@/components/recipes/ProductForm"
+import ProductItemForm from "@/components/recipes/ProductItemForm"
+import { ProductSpreadsheetImport } from "@/components/recipes/ProductSpreadsheetImport"
+import type { Product, Item, Unit, ProductItem } from "@/types/recipe"
 
 export default function Recipes() {
-  const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [units, setUnits] = useState<Unit[]>([])
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
-  const [recipeItems, setRecipeItems] = useState<RecipeItem[]>([])
-  const [isAddingRecipe, setIsAddingRecipe] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [productItems, setProductItems] = useState<ProductItem[]>([])
+  const [isAddingProduct, setIsAddingProduct] = useState(false)
   const [isAddingItem, setIsAddingItem] = useState(false)
-  const [editingRecipeItem, setEditingRecipeItem] = useState<RecipeItem | null>(null)
+  const [editingProductItem, setEditingProductItem] = useState<ProductItem | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
 
   useEffect(() => {
-    fetchRecipes()
+    fetchProducts()
     fetchItems()
     fetchUnits()
   }, [])
 
   useEffect(() => {
-    if (selectedRecipe) {
-      fetchRecipeItems(selectedRecipe.id)
+    if (selectedProduct) {
+      fetchProductItems(selectedProduct.id)
     } else {
-      setRecipeItems([])
+      setProductItems([])
     }
-  }, [selectedRecipe])
+  }, [selectedProduct])
 
-  const fetchRecipes = async () => {
+  const fetchProducts = async () => {
     const { data, error } = await supabase
       .from("recipe")
       .select("id, description, efficiency")
       .order("description")
 
     if (error) {
-      toast({ title: "Erro", description: "Erro ao carregar receitas", variant: "destructive" })
+      toast({ title: "Erro", description: "Erro ao carregar produtos", variant: "destructive" })
     } else {
-      setRecipes(data || [])
+      setProducts(data || [])
     }
   }
 
@@ -78,74 +78,74 @@ export default function Recipes() {
     }
   }
 
-  const fetchRecipeItems = async (recipeId: number) => {
+  const fetchProductItems = async (productId: number) => {
     const { data, error } = await supabase
       .from("recipe_item")
       .select(`
         *,
         item_detail:item(*)
       `)
-      .eq("recipe", recipeId)
+      .eq("recipe", productId)
 
     if (error) {
-      toast({ title: "Erro", description: "Erro ao carregar insumos da receita", variant: "destructive" })
+      toast({ title: "Erro", description: "Erro ao carregar insumos do produto", variant: "destructive" })
     } else {
-      setRecipeItems(data || [])
+      setProductItems(data || [])
     }
   }
 
-  const handleSelectRecipe = (recipe: Recipe) => {
-    setSelectedRecipe(recipe)
+  const handleSelectProduct = (product: Product) => {
+    setSelectedProduct(product)
   }
 
-  const handleRecipesChange = () => {
-    fetchRecipes()
-    // If current selected recipe was deleted, clear selection
+  const handleProductsChange = () => {
+    fetchProducts()
+    // If current selected product was deleted, clear selection
     // If it still exists, update it with latest data (including efficiency changes)
-    if (selectedRecipe) {
-      fetchRecipes().then(() => {
+    if (selectedProduct) {
+      fetchProducts().then(() => {
         supabase
           .from("recipe")
           .select("id, description, efficiency")
-          .eq("id", selectedRecipe.id)
+          .eq("id", selectedProduct.id)
           .single()
           .then(({ data, error }) => {
             if (error || !data) {
-              setSelectedRecipe(null)
+              setSelectedProduct(null)
             } else {
-              setSelectedRecipe(data)
+              setSelectedProduct(data)
             }
           })
       })
     }
   }
 
-  const handleRecipeItemsChange = () => {
-    if (selectedRecipe) {
-      fetchRecipeItems(selectedRecipe.id)
+  const handleProductItemsChange = () => {
+    if (selectedProduct) {
+      fetchProductItems(selectedProduct.id)
     }
   }
 
-  const handleEditItem = (recipeItem: RecipeItem) => {
-    setEditingRecipeItem(recipeItem)
+  const handleEditItem = (productItem: ProductItem) => {
+    setEditingProductItem(productItem)
     setIsAddingItem(true)
   }
 
   const handleAddItem = () => {
-    setEditingRecipeItem(null)
+    setEditingProductItem(null)
     setIsAddingItem(true)
   }
 
-  const filteredRecipes = recipes.filter(recipe =>
-    recipe.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = products.filter(product =>
+    product.description.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
     <MainLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Receitas"
-          subtitle="Gerencie receitas e seus insumos"
+          title="Produtos"
+          subtitle="Gerencie produtos e seus insumos"
         >
           <div className="flex gap-2">
             <Button 
@@ -155,9 +155,9 @@ export default function Recipes() {
               <Upload className="h-4 w-4" />
               Importar Planilha
             </Button>
-            <Button onClick={() => setIsAddingRecipe(true)}>
+            <Button onClick={() => setIsAddingProduct(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              Nova Receita
+              Novo Produto
             </Button>
           </div>
         </PageHeader>
@@ -167,7 +167,7 @@ export default function Recipes() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar receitas..."
+              placeholder="Buscar produtos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -176,51 +176,51 @@ export default function Recipes() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <RecipeList
-            recipes={filteredRecipes}
-            selectedRecipe={selectedRecipe}
-            onSelectRecipe={handleSelectRecipe}
-            onRecipesChange={handleRecipesChange}
-            allRecipes={recipes}
+          <ProductList
+            products={filteredProducts}
+            selectedProduct={selectedProduct}
+            onSelectProduct={handleSelectProduct}
+            onProductsChange={handleProductsChange}
+            allProducts={products}
             searchTerm={searchTerm}
           />
 
-          <RecipeItems
-            selectedRecipe={selectedRecipe}
-            recipeItems={recipeItems}
+          <ProductItems
+            selectedProduct={selectedProduct}
+            productItems={productItems}
             units={units}
             onAddItem={handleAddItem}
             onEditItem={handleEditItem}
-            onRecipeItemsChange={handleRecipeItemsChange}
+            onProductItemsChange={handleProductItemsChange}
           />
         </div>
 
-        <RecipeForm
-          isOpen={isAddingRecipe}
-          onOpenChange={setIsAddingRecipe}
-          onSuccess={fetchRecipes}
+        <ProductForm
+          isOpen={isAddingProduct}
+          onOpenChange={setIsAddingProduct}
+          onSuccess={fetchProducts}
         />
 
-        <RecipeItemForm
+        <ProductItemForm
           isOpen={isAddingItem}
           onOpenChange={(open) => {
             setIsAddingItem(open)
-            if (!open) setEditingRecipeItem(null)
+            if (!open) setEditingProductItem(null)
           }}
-          selectedRecipe={selectedRecipe}
+          selectedProduct={selectedProduct}
           items={items}
-          recipeItems={recipeItems}
-          editingRecipeItem={editingRecipeItem}
-          onSuccess={handleRecipeItemsChange}
+          productItems={productItems}
+          editingProductItem={editingProductItem}
+          onSuccess={handleProductItemsChange}
         />
 
-        <RecipeSpreadsheetImport
+        <ProductSpreadsheetImport
           isOpen={isImportDialogOpen}
           onClose={() => setIsImportDialogOpen(false)}
           onImportComplete={() => {
-            fetchRecipes()
-            if (selectedRecipe) {
-              fetchRecipeItems(selectedRecipe.id)
+            fetchProducts()
+            if (selectedProduct) {
+              fetchProductItems(selectedProduct.id)
             }
           }}
         />

@@ -7,41 +7,41 @@ import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/AuthContext"
-import type { Recipe } from "@/types/recipe"
+import type { Product } from "@/types/recipe"
 
-interface RecipeFormProps {
+interface ProductFormProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }
 
-export default function RecipeForm({ isOpen, onOpenChange, onSuccess }: RecipeFormProps) {
-  const [newRecipe, setNewRecipe] = useState({ description: "", efficiency: "1.00" })
+export default function ProductForm({ isOpen, onOpenChange, onSuccess }: ProductFormProps) {
+  const [newProduct, setNewProduct] = useState({ description: "", efficiency: "1.00" })
   const { toast } = useToast()
   const { user } = useAuth()
 
-  const addRecipe = async () => {
-    if (!newRecipe.description.trim()) return
+  const addProduct = async () => {
+    if (!newProduct.description.trim()) return
 
-    const efficiency = parseFloat(newRecipe.efficiency) || 1.00
+    const efficiency = parseFloat(newProduct.efficiency) || 1.00
 
     const { data, error } = await supabase
       .from("recipe")
-      .insert([{ description: newRecipe.description, efficiency: efficiency, user_id: user?.id }])
+      .insert([{ description: newProduct.description, efficiency: efficiency, user_id: user?.id }])
       .select()
 
     if (error) {
-      toast({ title: "Erro", description: "Erro ao criar receita", variant: "destructive" })
+      toast({ title: "Erro", description: "Erro ao criar produto", variant: "destructive" })
     } else {
-      toast({ title: "Receita criada com sucesso" })
-      setNewRecipe({ description: "", efficiency: "1.00" })
+      toast({ title: "Produto criado com sucesso" })
+      setNewProduct({ description: "", efficiency: "1.00" })
       onOpenChange(false)
       onSuccess()
     }
   }
 
   const handleClose = () => {
-    setNewRecipe({ description: "", efficiency: "1.00" })
+    setNewProduct({ description: "", efficiency: "1.00" })
     onOpenChange(false)
   }
 
@@ -49,35 +49,35 @@ export default function RecipeForm({ isOpen, onOpenChange, onSuccess }: RecipeFo
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nova Receita</DialogTitle>
+          <DialogTitle>Novo Produto</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="recipe-description">Descrição</Label>
+            <Label htmlFor="product-description">Descrição</Label>
             <Textarea
-              id="recipe-description"
-              value={newRecipe.description}
-              onChange={(e) => setNewRecipe({ ...newRecipe, description: e.target.value })}
-              placeholder="Digite a descrição da receita..."
+              id="product-description"
+              value={newProduct.description}
+              onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+              placeholder="Digite a descrição do produto..."
             />
           </div>
           <div>
-            <Label htmlFor="recipe-efficiency">Rendimento</Label>
+            <Label htmlFor="product-efficiency">Rendimento</Label>
             <Input
-              id="recipe-efficiency"
+              id="product-efficiency"
               type="number"
               step="0.01"
               min="0.01"
-              value={newRecipe.efficiency}
-              onChange={(e) => setNewRecipe({ ...newRecipe, efficiency: e.target.value })}
+              value={newProduct.efficiency}
+              onChange={(e) => setNewProduct({ ...newProduct, efficiency: e.target.value })}
               placeholder="1.00"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Fator de rendimento da receita (ex: 1.20 = 20% a mais de rendimento)
+              Fator de rendimento do produto (ex: 1.20 = 20% a mais de rendimento)
             </p>
           </div>
           <SaveCancelButtons
-            onSave={addRecipe}
+            onSave={addProduct}
             onCancel={handleClose}
           />
         </div>

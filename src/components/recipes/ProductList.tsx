@@ -11,48 +11,48 @@ import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
 import { getCountText, getDeletedMessage } from "@/lib/utils"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { ActionButtons } from "@/components/ui/action-buttons"
-import type { Recipe } from "@/types/recipe"
+import type { Product } from "@/types/recipe"
 
-interface RecipeListProps {
-  recipes: Recipe[]
-  selectedRecipe: Recipe | null
-  onSelectRecipe: (recipe: Recipe) => void
-  onRecipesChange: () => void
-  allRecipes: Recipe[]
+interface ProductListProps {
+  products: Product[]
+  selectedProduct: Product | null
+  onSelectProduct: (product: Product) => void
+  onProductsChange: () => void
+  allProducts: Product[]
   searchTerm: string
 }
 
-export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, onRecipesChange, allRecipes, searchTerm }: RecipeListProps) {
-  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
+export default function ProductList({ products, selectedProduct, onSelectProduct, onProductsChange, allProducts, searchTerm }: ProductListProps) {
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [editingEfficiency, setEditingEfficiency] = useState("")
   const { toast } = useToast()
 
-  const startEdit = (recipe: Recipe) => {
-    setEditingRecipe(recipe)
-    setEditingEfficiency((recipe.efficiency || 1.00).toString())
+  const startEdit = (product: Product) => {
+    setEditingProduct(product)
+    setEditingEfficiency((product.efficiency || 1.00).toString())
   }
 
-  const saveRecipe = async () => {
-    if (editingRecipe) {
+  const saveProduct = async () => {
+    if (editingProduct) {
       const efficiency = parseFloat(editingEfficiency) || 1.00
       
       const { error } = await supabase
         .from("recipe")
-        .update({ description: editingRecipe.description, efficiency: efficiency })
-        .eq("id", editingRecipe.id)
+        .update({ description: editingProduct.description, efficiency: efficiency })
+        .eq("id", editingProduct.id)
 
       if (error) {
-        toast({ title: "Erro", description: "Erro ao atualizar receita", variant: "destructive" })
+        toast({ title: "Erro", description: "Erro ao atualizar produto", variant: "destructive" })
       } else {
-        toast({ title: "Receita atualizada com sucesso" })
-        setEditingRecipe(null)
+        toast({ title: "Produto atualizado com sucesso" })
+        setEditingProduct(null)
         setEditingEfficiency("")
-        onRecipesChange()
+        onProductsChange()
       }
     }
   }
 
-  const deleteRecipe = async (id: number) => {
+  const deleteProduct = async (id: number) => {
     const { error } = await supabase
       .from("recipe")
       .delete()
@@ -66,54 +66,54 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
         variant: "destructive" 
       });
     } else {
-      toast({ title: "Receita excluída com sucesso" })
-      onRecipesChange()
+      toast({ title: "Produto excluído com sucesso" })
+      onProductsChange()
     }
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Receitas</CardTitle>
+        <CardTitle>Produtos</CardTitle>
         <CardDescription>
           {getCountText(
-            allRecipes.length,
-            recipes.length,
+            allProducts.length,
+            products.length,
             !!searchTerm,
-            "receita",
-            "receitas",
-            "receita cadastrada",
-            "receitas cadastradas",
-            "encontrada",
-            "encontradas"
+            "produto",
+            "produtos",
+            "produto cadastrado",
+            "produtos cadastrados",
+            "encontrado",
+            "encontrados"
           )}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto scrollbar-thin">
-          {recipes.map((recipe) => (
+          {products.map((product) => (
             <div
-              key={recipe.id}
+              key={product.id}
               className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                selectedRecipe?.id === recipe.id
+                selectedProduct?.id === product.id
                   ? "bg-primary/10 border-primary"
                   : "hover:bg-accent"
               }`}
-              onClick={() => onSelectRecipe(recipe)}
+              onClick={() => onSelectProduct(product)}
             >
               <div className="flex justify-between items-center">
-                {editingRecipe?.id === recipe.id ? (
+                {editingProduct?.id === product.id ? (
                   <div className="flex-1 flex gap-2">
                     <div className="flex-1 space-y-2">
                       <Input
-                        value={editingRecipe.description}
+                        value={editingProduct.description}
                         onChange={(e) =>
-                          setEditingRecipe({
-                            ...editingRecipe,
+                          setEditingProduct({
+                            ...editingProduct,
                             description: e.target.value,
                           })
                         }
-                        placeholder="Descrição da receita"
+                        placeholder="Descrição do produto"
                       />
                       <div className="flex items-center gap-2">
                         <Label htmlFor="efficiency" className="text-xs whitespace-nowrap">Rendimento:</Label>
@@ -130,9 +130,9 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
                       </div>
                     </div>
                      <SaveCancelButtons
-                       onSave={saveRecipe}
+                       onSave={saveProduct}
                        onCancel={() => {
-                         setEditingRecipe(null)
+                         setEditingProduct(null)
                          setEditingEfficiency("")
                        }}
                      />
@@ -141,22 +141,22 @@ export default function RecipeList({ recipes, selectedRecipe, onSelectRecipe, on
                   <>
                     <div className="flex-1">
                       <span className="font-medium">
-                        {recipe.description}
-                        {recipe.efficiency && (
-                          recipe.efficiency !== 1
+                        {product.description}
+                        {product.efficiency && (
+                          product.efficiency !== 1
                         ) && (
                           <span className="text-muted-foreground font-normal ml-2">
-                            ({recipe.efficiency % 1 !== 0 ? recipe.efficiency.toFixed(2) : recipe.efficiency.toFixed(0)})
+                            ({product.efficiency % 1 !== 0 ? product.efficiency.toFixed(2) : product.efficiency.toFixed(0)})
                           </span>
                         )}
                       </span>
                     </div>
                     <div onClick={(e) => e.stopPropagation()}>
                       <ActionButtons
-                        onEdit={() => startEdit(recipe)}
-                        onDelete={() => deleteRecipe(recipe.id)}
-                        itemName={recipe.description}
-                        itemType="a receita"
+                        onEdit={() => startEdit(product)}
+                        onDelete={() => deleteProduct(product.id)}
+                        itemName={product.description}
+                        itemType="o produto"
                       />
                     </div>
                   </>
