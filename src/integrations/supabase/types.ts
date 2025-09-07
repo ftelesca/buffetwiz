@@ -103,14 +103,17 @@ export type Database = {
       event_menu: {
         Row: {
           event: number
+          qty: number | null
           recipe: number
         }
         Insert: {
           event: number
+          qty?: number | null
           recipe: number
         }
         Update: {
           event?: number
+          qty?: number | null
           recipe?: number
         }
         Relationships: [
@@ -136,6 +139,7 @@ export type Database = {
           description: string
           factor: number | null
           id: number
+          isproduct: boolean
           unit_purch: number
           unit_use: number
           user_id: string
@@ -145,6 +149,7 @@ export type Database = {
           description: string
           factor?: number | null
           id?: number
+          isproduct?: boolean
           unit_purch: number
           unit_use: number
           user_id: string
@@ -154,6 +159,7 @@ export type Database = {
           description?: string
           factor?: number | null
           id?: number
+          isproduct?: boolean
           unit_purch?: number
           unit_use?: number
           user_id?: string
@@ -280,28 +286,15 @@ export type Database = {
     }
     Functions: {
       calculate_event_cost: {
-        Args: { event_id: number }
+        Args: { event_id_param: number }
         Returns: number
       }
-      recalculate_all_events: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          event_id: number
-          new_cost: number
-          old_cost: number
-          updated: boolean
-        }[]
+      calculate_recipe_base_cost: {
+        Args: { recipe_id_param: number }
+        Returns: number
       }
-      test_triggers_health: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      update_event_cost: {
-        Args: { event_id: number }
-        Returns: boolean
-      }
-      update_events_by_recipe: {
-        Args: { recipe_id: number }
+      calculate_recipe_unit_cost: {
+        Args: { recipe_id_param: number }
         Returns: number
       }
     }
