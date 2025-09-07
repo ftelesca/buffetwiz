@@ -94,6 +94,23 @@ export const EventMenu = ({
     }
   });
 
+  // Fetch recipe unit cost for the selected recipe
+  const { data: recipeUnitCost, isLoading: isLoadingCost } = useQuery({
+    queryKey: ["recipe-unit-cost", selectedRecipeForItems?.recipe.id],
+    queryFn: async () => {
+      if (!selectedRecipeForItems?.recipe.id) return 0;
+      
+      const { data, error } = await supabase
+        .rpc('calculate_recipe_unit_cost' as any, {
+          recipe_id_param: selectedRecipeForItems.recipe.id
+        });
+      
+      if (error) throw error;
+      return data || 0;
+    },
+    enabled: !!selectedRecipeForItems?.recipe.id,
+  });
+
   // Fetch all available recipes
   const { data: allRecipes } = useQuery({
     queryKey: ["recipes"],
@@ -419,7 +436,7 @@ export const EventMenu = ({
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-end">
                   <Button
                     size="sm"
                     variant="outline"
@@ -429,7 +446,7 @@ export const EventMenu = ({
                     <Eye className="h-3 w-3 mr-1" />
                     Ver
                   </Button>
-                  <div className="flex-1">
+                  <div className="flex-none">
                     <ActionButtons
                       onEdit={() => handleEditRecipe(item)}
                       onDelete={() => handleRemoveRecipe(item.recipe.id)}
@@ -551,11 +568,21 @@ export const EventMenu = ({
                 <Card className="mt-4">
                   <CardContent className="pt-6">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-medium">Custo Total:</span>
+                      <span className="text-lg font-medium">Custo Unitário da Receita:</span>
                       <span className="text-xl font-bold text-primary">
-                        {selectedRecipeForItems?.qty} x {formatCurrency(selectedRecipeForItems?.unit_cost || 0)} = {formatCurrency((selectedRecipeForItems?.qty || 0) * (selectedRecipeForItems?.unit_cost || 0))}
+                        {isLoadingCost ? "Calculando..." : formatCurrency(recipeUnitCost || 0)}
                       </span>
                     </div>
+                    {selectedRecipeForItems && (
+                      <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                        <span className="text-sm text-muted-foreground">
+                          Custo Total ({selectedRecipeForItems.qty} unidades):
+                        </span>
+                        <span className="text-lg font-semibold">
+                          {formatCurrency((recipeUnitCost || 0) * selectedRecipeForItems.qty)}
+                        </span>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </>
