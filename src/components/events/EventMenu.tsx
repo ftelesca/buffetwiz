@@ -75,16 +75,15 @@ export const EventMenu = ({
       const { data, error } = await supabase
         .from("event_menu")
         .select(`
-          event,
+          *,
           recipe:recipe(id, description)
         `)
         .eq("event", eventId);
       
       if (error) throw error;
       
-      // Return recipes with default qty of 1 for now
-      const recipesWithCost = data.map((item) => ({
-        qty: 1, // Default quantity since column doesn't exist yet
+      const recipesWithCost = data.map((item: any) => ({
+        qty: item.qty || 1,
         recipe: {
           ...item.recipe,
           unit_cost: 0 // Default unit cost
@@ -147,9 +146,11 @@ export const EventMenu = ({
   const addRecipeMutation = useMutation({
     mutationFn: async ({ recipeId, qty }: { recipeId: number; qty: number }) => {
       const { data, error } = await supabase
-        .from("event_menu")
-        .insert([{ event: eventId, recipe: recipeId }])
-        .select();
+        .rpc('insert_event_menu_with_qty', {
+          p_event: eventId,
+          p_recipe: recipeId,
+          p_qty: qty
+        });
       
       if (error) throw error;
       return data;
@@ -205,17 +206,25 @@ export const EventMenu = ({
   // Update recipe quantity mutation
   const updateRecipeMutation = useMutation({
     mutationFn: async ({ recipeId, qty }: { recipeId: number; qty: number }) => {
-      // For now, we'll just show a toast since qty column doesn't exist yet
-      toast({
-        title: "Quantidade atualizada",
-        description: `Quantidade da receita atualizada para ${qty}.`
-      });
+      const { data, error } = await supabase
+        .rpc('update_event_menu_qty', {
+          p_event: eventId,
+          p_recipe: recipeId,
+          p_qty: qty
+        });
+      
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event-menu", eventId] });
       queryClient.invalidateQueries({ queryKey: ["events"] });
       setIsEditDialogOpen(false);
       setSelectedRecipeForEdit(null);
+      toast({
+        title: "Quantidade atualizada",
+        description: "Quantidade da receita atualizada com sucesso."
+      });
     },
     onError: (error: any) => {
       toast({
