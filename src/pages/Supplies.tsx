@@ -450,24 +450,6 @@ export default function Insumos() {
                 />
               </div>
               <div>
-                <Label htmlFor="item-unit-purch">Unidade de Compra</Label>
-                <Select
-                  value={newItem.unit_purch?.toString() || ''}
-                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_purch: parseInt(value) }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma unidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {units.map((unit) => (
-                      <SelectItem key={unit.id} value={unit.id.toString()}>
-                        {unit.description}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
                 <Label htmlFor="item-unit-use">Unidade de Uso</Label>
                 <Select
                   value={newItem.unit_use?.toString() || ''}
@@ -495,6 +477,24 @@ export default function Insumos() {
                   onChange={(e) => setNewItem(prev => ({ ...prev, factor: parseFloat(e.target.value) }))}
                   placeholder="1.0"
                 />
+              </div>
+              <div>
+                <Label htmlFor="item-unit-purch">Unidade de Compra</Label>
+                <Select
+                  value={newItem.unit_purch?.toString() || ''}
+                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_purch: parseInt(value) }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {units.map((unit) => (
+                      <SelectItem key={unit.id} value={unit.id.toString()}>
+                        {unit.description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="item-cost">Custo</Label>
