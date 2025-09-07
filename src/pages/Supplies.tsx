@@ -103,6 +103,7 @@ export default function Insumos() {
         unit_use: item.unit_use,
         cost: item.cost || 0,
         factor: item.factor || 1,
+        isproduct: item.isproduct || false,
         unit_purch_desc: unitsMap[item.unit_purch],
         unit_use_desc: item.unit_use ? unitsMap[item.unit_use] : undefined
       }))
