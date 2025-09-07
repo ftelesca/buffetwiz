@@ -146,11 +146,13 @@ export const EventMenu = ({
   const addRecipeMutation = useMutation({
     mutationFn: async ({ recipeId, qty }: { recipeId: number; qty: number }) => {
       const { data, error } = await supabase
-        .rpc('insert_event_menu_with_qty', {
-          p_event: eventId,
-          p_recipe: recipeId,
-          p_qty: qty
-        });
+        .from("event_menu")
+        .insert([{ 
+          event: eventId, 
+          recipe: recipeId, 
+          qty: qty 
+        } as any])
+        .select();
       
       if (error) throw error;
       return data;
@@ -207,11 +209,11 @@ export const EventMenu = ({
   const updateRecipeMutation = useMutation({
     mutationFn: async ({ recipeId, qty }: { recipeId: number; qty: number }) => {
       const { data, error } = await supabase
-        .rpc('update_event_menu_qty', {
-          p_event: eventId,
-          p_recipe: recipeId,
-          p_qty: qty
-        });
+        .from("event_menu")
+        .update({ qty: qty } as any)
+        .eq("event", eventId)
+        .eq("recipe", recipeId)
+        .select();
       
       if (error) throw error;
       return data;
