@@ -68,7 +68,7 @@ export const EventMenu = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch event menu recipes
+  // Fetch event menu recipes with calculated unit costs
   const { data: eventMenuRecipes, isLoading: isLoadingMenu } = useQuery({
     queryKey: ["event-menu", eventId],
     queryFn: async () => {
@@ -82,13 +82,27 @@ export const EventMenu = ({
       
       if (error) throw error;
       
-      const recipesWithCost = data.map((item: any) => ({
-        qty: item.qty || 1,
-        recipe: {
-          ...item.recipe,
-          unit_cost: 0 // Default unit cost
-        }
-      }));
+      // Calculate unit cost for each recipe
+      const recipesWithCost = await Promise.all(
+        data.map(async (item: any) => {
+          const { data: unitCost, error: costError } = await supabase
+            .rpc('calculate_recipe_unit_cost' as any, {
+              recipe_id_param: item.recipe.id
+            });
+          
+          if (costError) {
+            console.error('Error calculating recipe cost:', costError);
+          }
+          
+          return {
+            qty: item.qty || 1,
+            recipe: {
+              ...item.recipe,
+              unit_cost: unitCost || 0
+            }
+          };
+        })
+      );
       
       return recipesWithCost as EventMenuRecipe[];
     }
