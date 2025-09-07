@@ -331,7 +331,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
               <Alert>
                 <FileText className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Formato esperado:</strong> Descrição, Unidade Uso, Fator, Unidade Compra, Custo
+                  <strong>Formato esperado:</strong> Descrição, Unidade Uso, Fator, Unidade Compra, Custo, É Produto?
                   <br />
                   <Button 
                     variant="link" 
