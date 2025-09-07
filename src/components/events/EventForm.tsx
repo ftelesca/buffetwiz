@@ -401,18 +401,9 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           <Input
             id="cost"
             value={formData.cost}
-            onChange={(e) => {
-              // Format as number with comma decimal separator, no currency symbol
-              const value = e.target.value.replace(/\D/g, '');
-              if (!value) {
-                setFormData({ ...formData, cost: '' });
-                return;
-              }
-              const number = parseInt(value) / 100;
-              const formatted = number.toFixed(2).replace('.', ',');
-              setFormData({ ...formData, cost: formatted });
-            }}
+            readOnly
             placeholder="0,00"
+            className="bg-muted"
           />
         </div>
 
