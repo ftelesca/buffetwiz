@@ -89,7 +89,7 @@ export default function Dashboard() {
         location: (event as any).location || 'Local não definido',
         guests: (event as any).numguests || 0,
         budget: (event as any).price || 0,
-        cost: (event as any).cost || 0,
+        cost: (event as any).cost || 0, // Exibindo diretamente event.cost
         status: ((event as any).status as "confirmado" | "planejamento" | "concluido") || "planejamento",
         description: (event as any).description || '',
         duration: (event as any).duration || null,
