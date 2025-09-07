@@ -90,7 +90,7 @@ export default function Recipes() {
     if (error) {
       toast({ title: "Erro", description: "Erro ao carregar insumos do produto", variant: "destructive" })
     } else {
-      setProductItems(data || [])
+      setProductItems(data?.map(item => ({ ...item, product: productId })) || [])
     }
   }
 

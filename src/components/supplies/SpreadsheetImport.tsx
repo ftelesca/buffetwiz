@@ -23,6 +23,7 @@ interface ParsedItem {
   unit_use_name: string
   cost: number
   factor: number
+  isproduct: boolean
   unit_purch?: number
   unit_use?: number
   errors: string[]
@@ -152,6 +153,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
         unit_use_name: unitUseName,
         factor: factor,
         cost: parseSpreadsheetCurrency(row[4]),
+        isproduct: row[5]?.toString().toLowerCase() === 'true' || row[5]?.toString().toLowerCase() === 'sim' || false,
         errors: [],
         rowIndex: i + 1
       }
@@ -241,7 +243,8 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
             unit_purch: item.unit_purch!,
             unit_use: item.unit_use!,
             cost: item.cost,
-            factor: item.factor
+            factor: item.factor,
+            isproduct: item.isproduct
           })
           .eq('id', item.existingId!)
       }
@@ -254,6 +257,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
           unit_use: item.unit_use!,
           cost: item.cost,
           factor: item.factor,
+          isproduct: item.isproduct,
           user_id: user?.id
         }))
 
@@ -292,10 +296,10 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
 
   const downloadTemplate = () => {
     const template = [
-      ['Descrição', 'Unidade Uso', 'Fator', 'Unidade Compra', 'Custo'],
-      ['Arroz Branco', 'g', '0.001', 'kg', '5,99'],
-      ['Feijão Preto', 'g', '0.001', 'kg', '8,50'],
-      ['Azeite de Oliva', 'ml', '0.001', 'L', '15,90']
+      ['Descrição', 'Unidade Uso', 'Fator', 'Unidade Compra', 'Custo', 'É Produto'],
+      ['Arroz Branco', 'g', '0.001', 'kg', '5,99', 'false'],
+      ['Feijão Preto', 'g', '0.001', 'kg', '8,50', 'false'],
+      ['Azeite de Oliva', 'ml', '0.001', 'L', '15,90', 'false']
     ]
 
     const csv = Papa.unparse(template)
@@ -416,6 +420,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                       <TableHead>Fator</TableHead>
                       <TableHead>Un. Compra</TableHead>
                       <TableHead>Custo</TableHead>
+                      <TableHead>É Produto?</TableHead>
                       <TableHead>Ação</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -428,6 +433,9 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                         <TableCell>{item.factor}</TableCell>
                         <TableCell>{item.unit_purch_name}</TableCell>
                         <TableCell>R$ {item.cost.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <input type="checkbox" checked={item.isproduct} disabled className="rounded" />
+                        </TableCell>
                         <TableCell>
                           {item.errors.length === 0 ? (
                             <Badge variant={item.isUpdate ? "secondary" : "default"} className={item.isUpdate ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>

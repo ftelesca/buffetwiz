@@ -152,12 +152,16 @@ export default function ProductItems({
                           </TableCell>
                           <TableCell className="text-right font-medium text-xs">{formatCurrency(totalCost)}</TableCell>
                           <TableCell className="text-center">
-                            <ActionButtons
-                              onEdit={() => onEditItem(productItem)}
-                              onDelete={() => deleteProductItem(productItem.product, productItem.item)}
-                              itemName={item?.description || "este item"}
-                              itemType="este item do produto"
-                            />
+                            {item?.isproduct ? (
+                              <span className="text-xs text-muted-foreground">Produto automatico</span>
+                            ) : (
+                              <ActionButtons
+                                onEdit={() => onEditItem(productItem)}
+                                onDelete={() => deleteProductItem(productItem.product, productItem.item)}
+                                itemName={item?.description || "este item"}
+                                itemType="este item do produto"
+                              />
+                            )}
                           </TableCell>
                         </TableRow>;
               })}

@@ -464,7 +464,7 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
                                 {item.isProductUpdate ? "Produto: Atualizar" : "Produto: Criar"}
                               </Badge>
                               <Badge variant={item.isProductItemUpdate ? "secondary" : "default"} className={item.isProductItemUpdate ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
-                                {item.isRecipeItemUpdate ? "Item: Atualizar" : "Item: Criar"}
+                                {item.isProductItemUpdate ? "Item: Atualizar" : "Item: Criar"}
                               </Badge>
                             </div>
                           ) : (

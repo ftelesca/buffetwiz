@@ -33,6 +33,7 @@ interface Item {
   unit_use: number
   cost: number
   factor?: number
+  isproduct?: boolean
   unit_purch_desc?: string
   unit_use_desc?: string
 }
@@ -43,6 +44,7 @@ interface ItemFormData {
   unit_use?: number
   cost?: string // String for form input, number for database
   factor?: number
+  isproduct?: boolean
 }
 
 export default function Insumos() {
@@ -62,7 +64,8 @@ export default function Insumos() {
     unit_purch: 0,
     unit_use: 0,
     cost: "",
-    factor: 1
+    factor: 1,
+    isproduct: false
   })
 
   const [newUnit, setNewUnit] = useState<Partial<Unit>>({
@@ -144,7 +147,8 @@ export default function Insumos() {
             unit_purch: newItem.unit_purch,
             unit_use: newItem.unit_use,
             cost: typeof newItem.cost === 'string' ? parseCurrency(newItem.cost) : newItem.cost,
-            factor: newItem.factor
+            factor: newItem.factor,
+            isproduct: newItem.isproduct
           })
           .eq('id', editingItem.id)
 
@@ -159,6 +163,7 @@ export default function Insumos() {
             unit_use: newItem.unit_use,
             cost: typeof newItem.cost === 'string' ? parseCurrency(newItem.cost) : newItem.cost,
             factor: newItem.factor,
+            isproduct: newItem.isproduct,
             user_id: user?.id
           }])
 
@@ -168,7 +173,7 @@ export default function Insumos() {
 
       setIsItemDialogOpen(false)
       setEditingItem(null)
-      setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
+      setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1, isproduct: false })
       fetchItems()
     } catch (error) {
       console.error('Erro ao salvar insumo:', error)
@@ -331,6 +336,7 @@ export default function Insumos() {
                         <TableHead className="text-right">x Fator</TableHead>
                         <TableHead className="text-center">Unidade Compra</TableHead>
                         <TableHead className="text-right w-24">Custo Compra</TableHead>
+                        <TableHead className="text-center w-20">É Produto?</TableHead>
                         <TableHead className="w-24 text-center">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -346,6 +352,9 @@ export default function Insumos() {
                             <Badge variant="outline">{item.unit_purch_desc}</Badge>
                           </TableCell>
                           <TableCell className="text-right">{formatCurrencyWithCents(item.cost || 0)}</TableCell>
+                          <TableCell className="text-center">
+                            <input type="checkbox" checked={item.isproduct || false} disabled className="rounded" />
+                          </TableCell>
                           <TableCell>
                             <ActionButtons
                               onEdit={() => {
@@ -355,7 +364,8 @@ export default function Insumos() {
                                   unit_purch: item.unit_purch,
                                   unit_use: item.unit_use,
                                   cost: formatCurrencyInput((item.cost * 100).toString()),
-                                  factor: item.factor
+                                  factor: item.factor,
+                                  isproduct: item.isproduct
                                 })
                                 setIsItemDialogOpen(true)
                               }}
@@ -422,10 +432,10 @@ export default function Insumos() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingItem ? 'Editar Item' : 'Novo Item'}
+                {editingItem ? 'Editar Insumo' : 'Novo Insumo'}
               </DialogTitle>
               <DialogDescription>
-                {editingItem ? 'Edite as informações do item.' : 'Adicione um novo item ao sistema.'}
+                {editingItem ? 'Edite as informações do insumo.' : 'Adicione um novo insumo ao sistema.'}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -497,12 +507,22 @@ export default function Insumos() {
                   placeholder="R$ 0,00"
                 />
               </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="item-isproduct"
+                  checked={newItem.isproduct || false}
+                  onChange={(e) => setNewItem(prev => ({ ...prev, isproduct: e.target.checked }))}
+                  className="rounded"
+                />
+                <Label htmlFor="item-isproduct">Este Insumo é um Produto?</Label>
+              </div>
               <SaveCancelButtons
                 onSave={handleSaveItem}
                 onCancel={() => {
                   setIsItemDialogOpen(false)
                   setEditingItem(null)
-                  setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
+                  setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1, isproduct: false })
                 }}
               />
             </div>

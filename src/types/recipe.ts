@@ -11,6 +11,7 @@ export interface Item {
   unit_use: number
   cost: number
   factor: number
+  isproduct?: boolean
 }
 
 export interface Unit {
