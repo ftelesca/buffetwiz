@@ -337,7 +337,7 @@ export default function Insumos() {
                         <TableHead className="text-right">x Fator</TableHead>
                         <TableHead className="text-center">Unidade Compra</TableHead>
                         <TableHead className="text-right w-24">Custo</TableHead>
-                        <TableHead className="text-center w-20">É Produto?</TableHead>
+                        <TableHead className="text-center w-20">Produto?</TableHead>
                         <TableHead className="w-24 text-center">Ações</TableHead>
                       </TableRow>
                     </TableHeader>

@@ -420,7 +420,7 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
                       <TableHead>Fator</TableHead>
                       <TableHead>Un. Compra</TableHead>
                       <TableHead>Custo</TableHead>
-                      <TableHead>É Produto?</TableHead>
+                      <TableHead>Produto?</TableHead>
                       <TableHead>Ação</TableHead>
                     </TableRow>
                   </TableHeader>
