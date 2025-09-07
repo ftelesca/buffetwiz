@@ -25,7 +25,7 @@ export function AuthPage() {
               BuffetWiz
             </h1>
             <p className="text-muted-foreground">
-              Gestão Gastronômica Descomplicada
+              Gestão de Eventos Descomplicada
             </p>
           </div>
         </div>
@@ -39,7 +39,7 @@ export function AuthPage() {
               {currentTab === "forgot" && "Recuperar senha"}
             </CardTitle>
             <CardDescription>
-              {currentTab === "login" && "Acesse sua plataforma de gestão gastronômica"}
+              {currentTab === "login" && "Acesse sua plataforma de gestão de eventos"}
               {currentTab === "signup" && "Comece a gerenciar seus eventos hoje"}
               {currentTab === "forgot" && "Enviaremos um link para redefinir sua senha"}
             </CardDescription>

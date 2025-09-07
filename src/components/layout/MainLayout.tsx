@@ -39,7 +39,7 @@ function LayoutContent({ children }: MainLayoutProps) {
                   <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
                     BuffetWiz
                   </h1>
-                  <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
+                  <p className="text-xs text-muted-foreground">Gestão de Eventos Descomplicada</p>
                 </div>
               </div>
               <UserMenu />
@@ -66,7 +66,7 @@ function LayoutContent({ children }: MainLayoutProps) {
                 <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
                   BuffetWiz
                 </h1>
-                <p className="text-xs text-muted-foreground">Gestão Gastronômica</p>
+                <p className="text-xs text-muted-foreground">Gestão de Eventos Descomplicada</p>
               </div>
             </div>
             <UserMenu />
