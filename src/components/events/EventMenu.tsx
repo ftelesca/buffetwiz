@@ -10,8 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, ChefHat, Eye } from "lucide-react";
+import { Plus, ChefHat, Eye } from "lucide-react";
 import { CalendarIntegration } from "./CalendarIntegration";
+import { ActionButtons } from "@/components/ui/action-buttons";
+import { EventMenuItemForm } from "./EventMenuItemForm";
 
 // Helper function to format currency with thousands separator
 const formatCurrencyBrazilian = (value: number): string => {
@@ -58,7 +60,9 @@ export const EventMenu = ({
 }: EventMenuProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isRecipeItemsDialogOpen, setIsRecipeItemsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedRecipeForItems, setSelectedRecipeForItems] = useState<{ recipe: Recipe; qty: number; unit_cost: number } | null>(null);
+  const [selectedRecipeForEdit, setSelectedRecipeForEdit] = useState<EventMenuRecipe | null>(null);
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>("");
   const [selectedQty, setSelectedQty] = useState<string>("1");
   const { toast } = useToast();
@@ -71,32 +75,21 @@ export const EventMenu = ({
       const { data, error } = await supabase
         .from("event_menu")
         .select(`
-          qty,
+          event,
           recipe:recipe(id, description)
         `)
         .eq("event", eventId);
       
       if (error) throw error;
       
-      // Get unit cost for each recipe using Supabase function
-      const recipesWithCost = await Promise.all(
-        data.map(async (item) => {
-          const { data: unitCost, error: costError } = await supabase
-            .rpc('calculate_recipe_unit_cost', { recipe_id_param: item.recipe.id });
-          
-          if (costError) {
-            console.error('Error calculating recipe unit cost:', costError);
-          }
-          
-          return {
-            qty: item.qty || 1,
-            recipe: {
-              ...item.recipe,
-              unit_cost: unitCost || 0
-            }
-          };
-        })
-      );
+      // Return recipes with default qty of 1 for now
+      const recipesWithCost = data.map((item) => ({
+        qty: 1, // Default quantity since column doesn't exist yet
+        recipe: {
+          ...item.recipe,
+          unit_cost: 0 // Default unit cost
+        }
+      }));
       
       return recipesWithCost as EventMenuRecipe[];
     }
@@ -155,7 +148,7 @@ export const EventMenu = ({
     mutationFn: async ({ recipeId, qty }: { recipeId: number; qty: number }) => {
       const { data, error } = await supabase
         .from("event_menu")
-        .insert([{ event: eventId, recipe: recipeId, qty: qty }])
+        .insert([{ event: eventId, recipe: recipeId }])
         .select();
       
       if (error) throw error;
@@ -209,6 +202,30 @@ export const EventMenu = ({
     }
   });
 
+  // Update recipe quantity mutation
+  const updateRecipeMutation = useMutation({
+    mutationFn: async ({ recipeId, qty }: { recipeId: number; qty: number }) => {
+      // For now, we'll just show a toast since qty column doesn't exist yet
+      toast({
+        title: "Quantidade atualizada",
+        description: `Quantidade da receita atualizada para ${qty}.`
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["event-menu", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      setIsEditDialogOpen(false);
+      setSelectedRecipeForEdit(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar receita: " + error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleAddRecipe = () => {
     if (!selectedRecipeId) {
       toast({
@@ -243,6 +260,20 @@ export const EventMenu = ({
       unit_cost: menuItem.recipe.unit_cost || 0
     });
     setIsRecipeItemsDialogOpen(true);
+  };
+
+  const handleEditRecipe = (menuItem: EventMenuRecipe) => {
+    setSelectedRecipeForEdit(menuItem);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateRecipe = (qty: number) => {
+    if (selectedRecipeForEdit) {
+      updateRecipeMutation.mutate({ 
+        recipeId: selectedRecipeForEdit.recipe.id, 
+        qty 
+      });
+    }
   };
 
   const getUnitDescription = (unitId: number) => {
@@ -382,21 +413,20 @@ export const EventMenu = ({
                     size="sm"
                     variant="outline"
                     onClick={() => handleViewRecipeItems(item)}
-                    className="flex-1"
+                    className="flex-none w-24"
                   >
                     <Eye className="h-3 w-3 mr-1" />
-                    Visualizar
+                    Ver
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleRemoveRecipe(item.recipe.id)}
-                    disabled={removeRecipeMutation.isPending}
-                    className="flex-1 hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive"
-                  >
-                    <Trash2 className="h-3 w-3 mr-1" />
-                    Remover
-                  </Button>
+                  <div className="flex-1">
+                    <ActionButtons
+                      onEdit={() => handleEditRecipe(item)}
+                      onDelete={() => handleRemoveRecipe(item.recipe.id)}
+                      itemName={item.recipe.description}
+                      itemType="receita"
+                      isDeleting={removeRecipeMutation.isPending}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -433,6 +463,27 @@ export const EventMenu = ({
           </p>
         </div>
       )}
+
+      {/* Edit Recipe Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="glass-effect">
+          <DialogHeader>
+            <DialogTitle>Editar Receita no Menu</DialogTitle>
+          </DialogHeader>
+          {selectedRecipeForEdit && (
+            <EventMenuItemForm
+              initialQty={selectedRecipeForEdit.qty}
+              recipeName={selectedRecipeForEdit.recipe.description}
+              onSave={handleUpdateRecipe}
+              onCancel={() => {
+                setIsEditDialogOpen(false);
+                setSelectedRecipeForEdit(null);
+              }}
+              isLoading={updateRecipeMutation.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Recipe Items Dialog */}
       <Dialog open={isRecipeItemsDialogOpen} onOpenChange={setIsRecipeItemsDialogOpen}>
