@@ -508,6 +508,7 @@ export default function Insumos() {
                 />
               </div>
               <div className="flex items-center space-x-2">
+                <Label htmlFor="item-isproduct">Este Insumo é um Produto?</Label>
                 <input
                   type="checkbox"
                   id="item-isproduct"
@@ -515,7 +516,6 @@ export default function Insumos() {
                   onChange={(e) => setNewItem(prev => ({ ...prev, isproduct: e.target.checked }))}
                   className="rounded"
                 />
-                <Label htmlFor="item-isproduct">Este Insumo é um Produto?</Label>
               </div>
               <SaveCancelButtons
                 onSave={handleSaveItem}

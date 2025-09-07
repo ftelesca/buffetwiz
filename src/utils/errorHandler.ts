@@ -72,7 +72,7 @@ export function getSupabaseErrorMessage(error: PostgrestError | Error | any): Fr
       if (message.includes("item") && message.includes("recipe") && message.includes("delete")) {
         return {
           title: "Não é possível excluir insumo",
-          description: "Existem receitas associadas a este insumo."
+          description: "Existem produtos associados a este insumo."
         };
       }
       // Specific check for deleting unit with associated items
