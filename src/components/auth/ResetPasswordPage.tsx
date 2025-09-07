@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Eye, EyeOff, Lock, Loader2, CheckCircle, ChefHat } from "lucide-react"
+import logo from "@/assets/logo.png"
 
 export function ResetPasswordPage() {
   const [password, setPassword] = useState("")
@@ -123,7 +124,7 @@ export function ResetPasswordPage() {
         {/* Logo and Brand */}
         <div className="text-center space-y-4">
           <img 
-            src="https://loolieventos.com/wp-content/uploads/2025/07/logo.png" 
+            src={logo} 
             alt="BuffetWiz Logo" 
             className="h-16 w-16 mx-auto object-contain"
           />

@@ -5,6 +5,7 @@ import { LoginForm } from "./LoginForm"
 import { SignUpForm } from "./SignUpForm"
 import { ForgotPasswordForm } from "./ForgotPasswordForm"
 import { ChefHat } from "lucide-react"
+import logo from "@/assets/logo.png"
 
 export function AuthPage() {
   const [currentTab, setCurrentTab] = useState<"login" | "signup" | "forgot">("login")
@@ -15,7 +16,7 @@ export function AuthPage() {
         {/* Logo and Brand */}
         <div className="text-center space-y-4">
           <img 
-            src="https://loolieventos.com/wp-content/uploads/2025/07/logo.png" 
+            src={logo} 
             alt="BuffetWiz Logo" 
             className="h-16 w-16 mx-auto object-contain"
           />
