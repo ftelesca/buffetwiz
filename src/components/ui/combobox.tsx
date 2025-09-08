@@ -60,72 +60,88 @@ export function Combobox({
     }
   }, [open, autoFocus])
 
-  // Handle keyboard events
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (!newOpen) {
+      setSearchValue("")
+    }
+  }
+
+  const handleSelect = (selectedValue: string) => {
+    if (selectedValue === value) {
+      onValueChange?.("")
+    } else {
+      onValueChange?.(selectedValue)
+    }
+    setOpen(false)
+    setSearchValue("")
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       e.preventDefault()
+      e.stopPropagation()
       setOpen(false)
-    }
-    if (e.key === "Tab") {
-      setOpen(false)
+      setSearchValue("")
     }
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn("w-full justify-between", className)}
-          onFocus={() => setOpen(true)}
-        >
-          {selectedOption ? selectedOption.label : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command 
-          onKeyDown={handleKeyDown}
-          shouldFilter={false}
-        >
-          <CommandInput 
-            ref={inputRef}
-            placeholder={searchPlaceholder} 
-            value={searchValue}
-            onValueChange={setSearchValue}
-          />
-          <CommandList>
-            {filteredOptions.length === 0 ? (
-              <CommandEmpty>{emptyText}</CommandEmpty>
-            ) : (
-              <CommandGroup>
-                {filteredOptions.map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    value={option.value}
-                    onSelect={(selectedValue) => {
-                      const newValue = selectedValue === value ? "" : selectedValue
-                      onValueChange?.(newValue)
-                      setOpen(false)
-                      setSearchValue("")
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === option.value ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {option.label}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <div onKeyDown={handleKeyDown}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn("w-full justify-between", className)}
+            onFocus={() => setOpen(true)}
+          >
+            {selectedOption ? selectedOption.label : placeholder}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+          <Command shouldFilter={false}>
+            <CommandInput 
+              ref={inputRef}
+              placeholder={searchPlaceholder} 
+              value={searchValue}
+              onValueChange={setSearchValue}
+              onKeyDown={(e) => {
+                if (e.key === "Tab") {
+                  e.preventDefault()
+                  setOpen(false)
+                  setSearchValue("")
+                }
+              }}
+            />
+            <CommandList>
+              {filteredOptions.length === 0 ? (
+                <CommandEmpty>{emptyText}</CommandEmpty>
+              ) : (
+                <CommandGroup>
+                  {filteredOptions.map((option) => (
+                    <CommandItem
+                      key={option.value}
+                      value={option.value}
+                      onSelect={handleSelect}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value === option.value ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {option.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
   )
 }
