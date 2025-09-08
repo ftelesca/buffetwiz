@@ -25,6 +25,7 @@ interface ComboboxProps {
   searchPlaceholder?: string
   emptyText?: string
   className?: string
+  autoFocus?: boolean
 }
 
 export function Combobox({
@@ -35,10 +36,34 @@ export function Combobox({
   searchPlaceholder = "Buscar...",
   emptyText = "Nenhum resultado encontrado.",
   className,
+  autoFocus = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
+  const [searchValue, setSearchValue] = React.useState("")
+  const inputRef = React.useRef<HTMLInputElement>(null)
 
   const selectedOption = options.find((option) => option.value === value)
+
+  // Filter options based on search value
+  const filteredOptions = options.filter((option) =>
+    option.label.toLowerCase().includes(searchValue.toLowerCase())
+  )
+
+  // Auto focus when autoFocus prop is true and dialog opens
+  React.useEffect(() => {
+    if (open && autoFocus && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
+    }
+  }, [open, autoFocus])
+
+  // Handle keyboard events
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape" || e.key === "Tab") {
+      setOpen(false)
+    }
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -48,24 +73,32 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
+          onFocus={() => setOpen(true)}
+          onKeyDown={handleKeyDown}
         >
           {selectedOption ? selectedOption.label : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+        <Command onKeyDown={handleKeyDown}>
+          <CommandInput 
+            ref={inputRef}
+            placeholder={searchPlaceholder} 
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.label}
                   onSelect={() => {
                     onValueChange?.(option.value === value ? "" : option.value)
                     setOpen(false)
+                    setSearchValue("")
                   }}
                 >
                   <Check
