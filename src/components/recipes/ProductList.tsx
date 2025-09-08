@@ -89,7 +89,7 @@ export default function ProductList({ products, selectedProduct, onSelectProduct
           )}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-3">
         <div className="space-y-2 max-h-[calc(70vh-80px)] overflow-y-auto scrollbar-thin">
           {products.map((product) => (
             <div
