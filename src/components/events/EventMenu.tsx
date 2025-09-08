@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -379,18 +379,17 @@ export const EventMenu = ({
             <div className="space-y-4">
               <div>
                 <Label htmlFor="product-select">Produto</Label>
-                <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um produto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableProducts.map((product) => (
-                      <SelectItem key={product.id} value={product.id.toString()}>
-                        {product.description}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  options={availableProducts.map((product) => ({
+                    value: product.id.toString(),
+                    label: product.description
+                  }))}
+                  value={selectedProductId}
+                  onValueChange={setSelectedProductId}
+                  placeholder="Selecione um produto"
+                  searchPlaceholder="Buscar produtos..."
+                  emptyText="Nenhum produto encontrado."
+                />
               </div>
               <div>
                 <Label htmlFor="qty-input">Quantidade</Label>
