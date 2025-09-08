@@ -380,6 +380,12 @@ export const EventMenu = ({
               <div>
                 <Label htmlFor="product-select">Produto</Label>
                 <Combobox
+                  ref={(ref) => {
+                    // Auto-focus when dialog opens
+                    if (ref && isAddDialogOpen) {
+                      setTimeout(() => ref.focus(), 100)
+                    }
+                  }}
                   options={availableProducts.map((product) => ({
                     value: product.id.toString(),
                     label: product.description
@@ -389,6 +395,10 @@ export const EventMenu = ({
                   placeholder="Selecione um produto"
                   searchPlaceholder="Buscar produtos..."
                   emptyText="Nenhum produto encontrado."
+                  onFocusNext={() => {
+                    const qtyInput = document.getElementById("qty-input")
+                    qtyInput?.focus()
+                  }}
                 />
               </div>
               <div>
