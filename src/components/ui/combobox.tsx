@@ -44,10 +44,12 @@ export function Combobox({
 
   const selectedOption = options.find((option) => option.value === value)
 
-  // Filter options based on search value
-  const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(searchValue.toLowerCase())
-  )
+  // Filter and sort options based on search value
+  const filteredOptions = options
+    .filter((option) =>
+      option.label.toLowerCase().includes(searchValue.toLowerCase())
+    )
+    .sort((a, b) => a.label.localeCompare(b.label))
 
   // Auto focus when autoFocus prop is true and dialog opens
   React.useEffect(() => {
