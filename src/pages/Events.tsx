@@ -150,22 +150,21 @@ export default function Events() {
 
   return (
     <MainLayout>
-      <div className="space-y-8 page-fade-in">
-        {/* Enhanced Header */}
+      <div className="space-y-6">
         <PageHeader
           title="Eventos"
           subtitle="Gerencie eventos gastronômicos"
         >
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={handleCreateEvent} className="shadow-button hover-glow">
+              <Button onClick={handleCreateEvent}>
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Evento
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-effect">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-2xl">
+                <DialogTitle>
                   {editingEvent ? "Editar Evento" : "Novo Evento"}
                 </DialogTitle>
               </DialogHeader>
@@ -181,67 +180,58 @@ export default function Events() {
           </Dialog>
         </PageHeader>
 
-        {/* Enhanced Search Bar */}
+        {/* Search Bar */}
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar eventos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 glass-effect border-primary/20 focus:border-primary/40 focus:shadow-glow"
+            className="pl-10"
           />
         </div>
 
-        {/* Enhanced Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
+        {/* Events Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
-            <div key={event.id} className="hover-lift">
-              <EventCard
-                id={event.id.toString()}
-                title={event.title}
-                date={event.date || ''}
-                time={event.time}
-                location={event.location}
-                guests={event.numguests}
-                budget={event.price}
-                cost={event.cost}
-                status={event.status as "confirmado" | "planejamento" | "concluido" | "cancelado"}
-                description={event.description}
-                duration={event.duration}
-                customerName={event.customer_info?.name}
-                onEdit={(id) => handleEditEvent(event)}
-                onDelete={(id) => handleDeleteEvent(event.id)}
-                onMenu={(id) => handleOpenMenu(event)}
-              />
-            </div>
+            <EventCard
+              key={event.id}
+              id={event.id.toString()}
+              title={event.title}
+              date={event.date || ''}
+              time={event.time}
+              location={event.location}
+              guests={event.numguests}
+              budget={event.price}
+              cost={event.cost}
+              status={event.status as "confirmado" | "planejamento" | "concluido" | "cancelado"}
+              description={event.description}
+              duration={event.duration}
+              customerName={event.customer_info?.name}
+              onEdit={(id) => handleEditEvent(event)}
+              onDelete={(id) => handleDeleteEvent(event.id)}
+              onMenu={(id) => handleOpenMenu(event)}
+            />
           ))}
         </div>
 
         {filteredEvents.length === 0 && !isLoading && (
-          <div className="text-center py-16 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-accent/30 flex items-center justify-center mx-auto">
-              <Calendar className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-muted-foreground text-lg font-medium">
-                {searchTerm ? `Nenhum evento encontrado para "${searchTerm}"` : "Nenhum evento cadastrado"}
-              </p>
-              <p className="text-sm text-muted-foreground/60 mt-1">
-                {searchTerm ? "Tente buscar com outros termos" : "Comece criando seu primeiro evento"}
-              </p>
-            </div>
-            <Button onClick={handleCreateEvent} variant="outline" className="mt-6 hover-lift shadow-button">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
+              {searchTerm ? `Nenhum evento encontrado para "${searchTerm}"` : "Nenhum evento cadastrado"}
+            </p>
+            <Button onClick={handleCreateEvent} variant="outline" className="mt-4">
               <Plus className="h-4 w-4 mr-2" />
-              {searchTerm ? "Criar Novo Evento" : "Criar Primeiro Evento"}
+              {searchTerm ? "Criar Novo Evento" : "Adicionar primeiro evento"}
             </Button>
           </div>
         )}
 
         {/* Menu Dialog */}
         <Dialog open={isMenuDialogOpen} onOpenChange={setIsMenuDialogOpen}>
-          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto glass-effect">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-2xl">Menu do Evento</DialogTitle>
+              <DialogTitle>Menu do Evento</DialogTitle>
             </DialogHeader>
             {selectedEventForMenu && (
               <EventMenu

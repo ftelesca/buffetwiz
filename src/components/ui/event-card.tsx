@@ -67,11 +67,11 @@ export function EventCard({
   };
 
   return (
-    <Card className="h-full gradient-card hover-lift shadow-card border-0 group">
+    <Card className="h-full">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-lg group-hover:text-primary transition-colors">
+            <CardTitle className="text-lg">
               {title}
             </CardTitle>
             <CardDescription className="font-medium truncate">
@@ -80,7 +80,6 @@ export function EventCard({
           </div>
           <Badge 
             variant={getStatusBadgeVariant(status)}
-            className="shadow-sm"
           >
             {status || "planejamento"}
           </Badge>
@@ -91,7 +90,7 @@ export function EventCard({
         {date && (
           <div className="flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4 text-primary" />
-            <span className="font-medium">
+            <span>
               {formatDateWithoutTimezone(date)}
               {time && ` às ${formatTimeWithoutSeconds(time)}`}
               {duration && (
@@ -116,13 +115,13 @@ export function EventCard({
           {guests && (
             <div className="flex items-center gap-1">
               <Users className="h-3 w-3 text-primary" />
-              <span className="font-medium">{guests}</span>
+              <span>{guests}</span>
             </div>
           )}
           {cost && (
             <div className="flex items-center gap-1">
               <DollarSign className="h-3 w-3 text-destructive" />
-              <span className="font-medium">
+              <span>
                 {formatCurrency(cost)}
               </span>
             </div>
@@ -130,7 +129,7 @@ export function EventCard({
           {budget && (
             <div className="flex items-center gap-1">
               <DollarSign className="h-3 w-3 text-success" />
-              <span className="font-medium">
+              <span>
                 {formatCurrency(budget)}
               </span>
             </div>
@@ -186,8 +185,6 @@ export function EventCard({
             itemName={title}
             itemType="evento"
             showEdit={!!onEdit}
-            editButtonClassName="bg-white text-black hover:bg-gray-100"
-            deleteButtonClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           />
         </div>
       </CardContent>
