@@ -71,7 +71,7 @@ export function UserMenu() {
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 glass-effect">
+        <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">{displayName}</p>
@@ -108,7 +108,7 @@ export function UserMenu() {
 
       {/* Profile Dialog */}
       <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-        <DialogContent className="max-w-md glass-effect">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Minha Conta</DialogTitle>
           </DialogHeader>
@@ -118,7 +118,7 @@ export function UserMenu() {
 
       {/* Preferences Dialog */}
       <Dialog open={isPreferencesDialogOpen} onOpenChange={setIsPreferencesDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-effect">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Preferências</DialogTitle>
           </DialogHeader>

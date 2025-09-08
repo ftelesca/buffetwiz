@@ -9,7 +9,7 @@ export default function Preferences() {
   const { theme, toggleTheme } = useTheme()
 
   return (
-    <div className="page-fade-in max-w-4xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Preferências</h2>
         <p className="text-muted-foreground">
@@ -18,7 +18,7 @@ export default function Preferences() {
       </div>
 
       <div className="space-y-6">
-        <Card className="shadow-card hover-lift">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {theme === "dark" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
@@ -48,7 +48,7 @@ export default function Preferences() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-card hover-lift">
+        <Card>
           <CardHeader>
             <CardTitle>Sistema</CardTitle>
             <CardDescription>
