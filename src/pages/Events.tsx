@@ -13,7 +13,7 @@ import { EventMenu } from "@/components/events/EventMenu"
 import { EventCard } from "@/components/ui/event-card"
 import { useToast } from "@/hooks/use-toast"
 import { getDeletedMessage } from "@/lib/utils"
-import { getSupabaseErrorMessage } from "@/utils/errorHandler"
+import { getSupabaseErrorMessage } from "@/lib/errorHandler"
 
 interface Event {
   id: number;

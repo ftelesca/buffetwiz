@@ -15,7 +15,7 @@ import { cn, formatCurrencyInput, parseCurrency } from "@/lib/utils";
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIntegration } from "./CalendarIntegration";
-import { getSupabaseErrorMessage } from "@/utils/errorHandler";
+import { getSupabaseErrorMessage } from "@/lib/errorHandler";
 
 // Helper function to format currency with thousands separator
 const formatCurrencyBrazilian = (value: number): string => {

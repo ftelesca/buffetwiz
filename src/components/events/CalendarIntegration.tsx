@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Calendar, Download, ExternalLink } from "lucide-react";
-import { GoogleCalendarUtils } from "@/utils/googleCalendar";
+import { GoogleCalendarUtils } from "@/lib/googleCalendar";
 import { useToast } from "@/hooks/use-toast";
 import { formatTimeWithoutSeconds } from "@/lib/utils";
 
