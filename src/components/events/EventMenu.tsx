@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, ChefHat, Eye } from "lucide-react";
-import { CalendarIntegration } from "./CalendarIntegration";
 import { ActionButtons } from "@/components/ui/action-buttons";
 import { EventMenuItemForm } from "./EventMenuItemForm";
 
@@ -346,23 +345,6 @@ export const EventMenu = ({
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">{eventTitle}</h2>
           <p className="text-muted-foreground font-medium">{customerName}</p>
-          {eventDate && (
-            <div className="flex items-center gap-4 mt-3">
-              <CalendarIntegration 
-                event={{
-                  title: eventTitle,
-                  client: customerName,
-                  description: eventDescription,
-                  location: eventLocation,
-                  startDate: eventDate || "",
-                  startTime: eventTime || undefined,
-                  duration: eventDuration
-                }}
-                variant="outline"
-                size="sm"
-              />
-            </div>
-          )}
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
