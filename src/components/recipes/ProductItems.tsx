@@ -121,7 +121,7 @@ export default function ProductItems({
               <Table className="table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[40%] whitespace-nowrap">Item</TableHead>
+                    <TableHead className="w-[40%] whitespace-nowrap">Insumo</TableHead>
                     <TableHead className="text-right w-[15%] whitespace-nowrap">Qtd.</TableHead>
                     <TableHead className="text-center w-[15%] whitespace-nowrap">Unidade</TableHead>
                     <TableHead className="text-right w-[15%] whitespace-nowrap">Custo</TableHead>
