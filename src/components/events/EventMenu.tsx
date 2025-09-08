@@ -189,8 +189,10 @@ export const EventMenu = ({
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["event-menu", eventId] });
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+      // Force refresh of all event-related queries
+      queryClient.refetchQueries({ queryKey: ["event-menu", eventId] });
+      queryClient.refetchQueries({ queryKey: ["events"] });
+      queryClient.refetchQueries({ queryKey: ["dashboard-events"] });
       toast({
         title: "Produto adicionado",
         description: "Produto adicionado ao menu do evento."
@@ -220,8 +222,10 @@ export const EventMenu = ({
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["event-menu", eventId] });
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+      // Force refresh of all event-related queries
+      queryClient.refetchQueries({ queryKey: ["event-menu", eventId] });
+      queryClient.refetchQueries({ queryKey: ["events"] });
+      queryClient.refetchQueries({ queryKey: ["dashboard-events"] });
       toast({
         title: "Produto removido",
         description: "Produto removido do menu do evento."
@@ -250,8 +254,10 @@ export const EventMenu = ({
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["event-menu", eventId] });
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+      // Force refresh of all event-related queries
+      queryClient.refetchQueries({ queryKey: ["event-menu", eventId] });
+      queryClient.refetchQueries({ queryKey: ["events"] });
+      queryClient.refetchQueries({ queryKey: ["dashboard-events"] });
       setIsEditDialogOpen(false);
       setSelectedProductForEdit(null);
       toast({

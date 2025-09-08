@@ -73,7 +73,9 @@ export default function Events() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+      // Force refresh of all event-related queries
+      queryClient.refetchQueries({ queryKey: ["events"] });
+      queryClient.refetchQueries({ queryKey: ["dashboard-events"] });
       toast({
         title: getDeletedMessage("evento", "m")
       });

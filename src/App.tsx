@@ -15,7 +15,16 @@ import Recipes from "./pages/Recipes";
 import Supplies from "./pages/Supplies";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 30, // 30 seconds
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      retry: 2,
+    },
+  },
+});
 
 
 const App = () => (
