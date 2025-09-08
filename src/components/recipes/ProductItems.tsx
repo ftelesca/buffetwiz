@@ -119,7 +119,7 @@ export default function ProductItems({
         {selectedProduct ? <div className="space-y-4">
             <div className="overflow-x-auto">
               <Table className="table-fixed">
-                <TableHeader>
+                <TableHeader className="sticky top-0 bg-background z-10 border-b">
                   <TableRow>
                     <TableHead className="w-[40%] whitespace-nowrap">Insumo</TableHead>
                     <TableHead className="text-right w-[15%] whitespace-nowrap">Qtd.</TableHead>

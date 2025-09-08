@@ -326,7 +326,7 @@ const Customers = () => {
         <CardContent>
           {filteredCustomers.length > 0 ? (
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 bg-background z-10 border-b">
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Contato</TableHead>
