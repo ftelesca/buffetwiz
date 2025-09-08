@@ -403,7 +403,7 @@ export const EventMenu = ({
 
       {/* Total Cost Display */}
       {eventMenuProducts && eventMenuProducts.length > 0 && (
-        <div className="bg-muted/50 rounded-lg p-4">
+        <div className="bg-muted/50 rounded-lg p-4 text-center">
           <p className="text-lg font-semibold">
             Custo Total: {formatCurrencyBrazilian(
               eventMenuProducts.reduce(
