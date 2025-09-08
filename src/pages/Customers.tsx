@@ -323,9 +323,10 @@ const Customers = () => {
             )}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {filteredCustomers.length > 0 ? (
-            <Table>
+            <div className="h-[calc(100vh-360px)] overflow-y-auto scrollbar-thin">
+              <Table>
               <TableHeader className="sticky top-0 bg-background z-10 border-b">
                 <TableRow>
                   <TableHead>Nome</TableHead>
@@ -382,6 +383,7 @@ const Customers = () => {
                 ))}
               </TableBody>
             </Table>
+            </div>
           ) : searchQuery ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Nenhum cliente encontrado para "{searchQuery}"</p>

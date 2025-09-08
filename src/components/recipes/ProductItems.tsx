@@ -115,9 +115,9 @@ export default function ProductItems({
             </Button>}
         </div>
       </CardHeader>
-      <CardContent className="overflow-auto max-h-[70vh]">
-        {selectedProduct ? <div className="space-y-4">
-            <div className="overflow-x-auto">
+      <CardContent className="p-0">
+        {selectedProduct ? <div className="space-y-4 p-6 pb-0">
+            <div className="h-[calc(100vh-360px)] overflow-y-auto scrollbar-thin">
               <Table className="table-fixed">
                 <TableHeader className="sticky top-0 bg-background z-10 border-b">
                   <TableRow>
@@ -190,9 +190,11 @@ export default function ProductItems({
                 </div>
               </CardContent>
             </Card>
-          </div> : <p className="text-muted-foreground text-center py-8">
-            Selecione um produto para ver seus insumos
-          </p>}
+          </div> : <div className="p-6">
+            <p className="text-muted-foreground text-center py-8">
+              Selecione um produto para ver seus insumos
+            </p>
+          </div>}
       </CardContent>
     </Card>;
 }
