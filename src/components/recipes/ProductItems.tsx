@@ -118,14 +118,14 @@ export default function ProductItems({
       <CardContent className="overflow-auto max-h-[70vh]">
         {selectedProduct ? <div className="space-y-4">
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead className="text-right">Quantidade</TableHead>
-                    <TableHead className="text-center">Unidade</TableHead>
-                    <TableHead className="text-right w-20">Custo</TableHead>
-                    <TableHead className="text-center w-16">Ações</TableHead>
+                    <TableHead className="w-[40%] whitespace-nowrap">Item</TableHead>
+                    <TableHead className="text-right w-[15%] whitespace-nowrap">Quantidade</TableHead>
+                    <TableHead className="text-center w-[15%] whitespace-nowrap">Unidade</TableHead>
+                    <TableHead className="text-right w-[15%] whitespace-nowrap">Custo</TableHead>
+                    <TableHead className="text-center w-[15%] whitespace-nowrap">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -145,13 +145,13 @@ export default function ProductItems({
                 const adjustedUnitCost = unitCost / factor; // custo unitario = custo da unidade de compra / fator
                 const totalCost = adjustedUnitCost * productItem.qty;
                 return <TableRow key={`${productItem.product}-${productItem.item}`}>
-                          <TableCell className="font-medium">{item?.description}</TableCell>
-                          <TableCell className="text-right">{formatQuantity(productItem.qty)}</TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline">{unitDescription}</Badge>
+                          <TableCell className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{item?.description}</TableCell>
+                          <TableCell className="text-right whitespace-nowrap">{formatQuantity(productItem.qty)}</TableCell>
+                          <TableCell className="text-center whitespace-nowrap">
+                            <Badge variant="outline" className="text-xs px-2 py-1">{unitDescription}</Badge>
                           </TableCell>
-                          <TableCell className="text-right font-medium text-xs">{formatCurrency(totalCost)}</TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="text-right font-medium text-xs whitespace-nowrap">{formatCurrency(totalCost)}</TableCell>
+                          <TableCell className="text-center whitespace-nowrap">
                             {item?.isproduct ? (
                               <span className="text-xs text-muted-foreground">Produto automatico</span>
                             ) : (
