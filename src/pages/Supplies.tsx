@@ -148,8 +148,8 @@ export default function Insumos() {
             unit_purch: newItem.unit_purch,
             unit_use: newItem.unit_use,
             cost: typeof newItem.cost === 'string' ? parseCurrency(newItem.cost) : newItem.cost,
-            factor: newItem.factor,
-            isproduct: newItem.isproduct
+            factor: newItem.factor || 1,
+            isproduct: newItem.isproduct ?? false
           })
           .eq('id', editingItem.id)
 
@@ -163,8 +163,8 @@ export default function Insumos() {
             unit_purch: newItem.unit_purch,
             unit_use: newItem.unit_use,
             cost: typeof newItem.cost === 'string' ? parseCurrency(newItem.cost) : newItem.cost,
-            factor: newItem.factor,
-            isproduct: newItem.isproduct,
+            factor: newItem.factor || 1,
+            isproduct: newItem.isproduct ?? false,
             user_id: user?.id
           }])
 
