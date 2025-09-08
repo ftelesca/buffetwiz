@@ -390,6 +390,9 @@ export const EventMenu = ({
                   searchPlaceholder="Buscar produtos..."
                   emptyText="Nenhum produto encontrado."
                   autoFocus={true}
+                  onCloseWithSelection={() => {
+                    document.getElementById("qty-input")?.focus()
+                  }}
                 />
               </div>
               <div>

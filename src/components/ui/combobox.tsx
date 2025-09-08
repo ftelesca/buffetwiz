@@ -26,6 +26,7 @@ interface ComboboxProps {
   emptyText?: string
   className?: string
   autoFocus?: boolean
+  onCloseWithSelection?: () => void
 }
 
 export function Combobox({
@@ -37,6 +38,7 @@ export function Combobox({
   emptyText = "Nenhum resultado encontrado.",
   className,
   autoFocus = false,
+  onCloseWithSelection,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
@@ -51,20 +53,29 @@ export function Combobox({
     )
     .sort((a, b) => a.label.localeCompare(b.label))
 
-  // Auto focus when autoFocus prop is true and dialog opens
+  // Auto open and focus search when autoFocus is true
   React.useEffect(() => {
-    if (open && autoFocus && inputRef.current) {
+    if (autoFocus) {
+      setOpen(true)
+    }
+  }, [autoFocus])
+
+  // Focus search input when combobox opens
+  React.useEffect(() => {
+    if (open && inputRef.current) {
       setTimeout(() => {
         inputRef.current?.focus()
       }, 100)
     }
-  }, [open, autoFocus])
+  }, [open])
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen)
-    if (!newOpen) {
-      setSearchValue("")
-    }
+  const closeCombobox = () => {
+    setOpen(false)
+    setSearchValue("")
+    // Focus next element (quantidade input)
+    setTimeout(() => {
+      onCloseWithSelection?.()
+    }, 100)
   }
 
   const handleSelect = (selectedValue: string) => {
@@ -73,75 +84,70 @@ export function Combobox({
     } else {
       onValueChange?.(selectedValue)
     }
-    setOpen(false)
-    setSearchValue("")
+    closeCombobox()
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       e.preventDefault()
       e.stopPropagation()
-      setOpen(false)
-      setSearchValue("")
+      closeCombobox()
+    } else if (e.key === "Tab") {
+      e.preventDefault()
+      closeCombobox()
     }
   }
 
   return (
-    <div onKeyDown={handleKeyDown}>
-      <Popover open={open} onOpenChange={handleOpenChange}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className={cn("w-full justify-between", className)}
-            onFocus={() => setOpen(true)}
-          >
-            {selectedOption ? selectedOption.label : placeholder}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
-          <Command shouldFilter={false}>
-            <CommandInput 
-              ref={inputRef}
-              placeholder={searchPlaceholder} 
-              value={searchValue}
-              onValueChange={setSearchValue}
-              onKeyDown={(e) => {
-                if (e.key === "Tab") {
-                  e.preventDefault()
-                  setOpen(false)
-                  setSearchValue("")
-                }
-              }}
-            />
-            <CommandList>
-              {filteredOptions.length === 0 ? (
-                <CommandEmpty>{emptyText}</CommandEmpty>
-              ) : (
-                <CommandGroup>
-                  {filteredOptions.map((option) => (
-                    <CommandItem
-                      key={option.value}
-                      value={option.value}
-                      onSelect={handleSelect}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          value === option.value ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {option.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={cn("w-full justify-between", className)}
+          onClick={() => setOpen(true)}
+        >
+          {selectedOption ? selectedOption.label : placeholder}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-[--radix-popover-trigger-width] p-0" 
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <Command shouldFilter={false} onKeyDown={handleKeyDown}>
+          <CommandInput 
+            ref={inputRef}
+            placeholder={searchPlaceholder} 
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
+          <CommandList>
+            {filteredOptions.length === 0 ? (
+              <CommandEmpty>{emptyText}</CommandEmpty>
+            ) : (
+              <CommandGroup>
+                {filteredOptions.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    onSelect={handleSelect}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === option.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   )
 }
