@@ -401,6 +401,20 @@ export const EventMenu = ({
         </Dialog>
       </div>
 
+      {/* Total Cost Display */}
+      {eventMenuProducts && eventMenuProducts.length > 0 && (
+        <div className="bg-muted/50 rounded-lg p-4">
+          <p className="text-lg font-semibold">
+            Custo Total: {formatCurrencyBrazilian(
+              eventMenuProducts.reduce(
+                (total, item) => total + (item.qty * (item.product.unit_cost || 0)), 
+                0
+              )
+            )}
+          </p>
+        </div>
+      )}
+
       {/* Menu Products Grid */}
       {isLoadingMenu ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
