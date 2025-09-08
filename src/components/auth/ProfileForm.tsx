@@ -123,7 +123,7 @@ export function ProfileForm({ onClose }: ProfileFormProps) {
         onSave={handleSubmit}
         onCancel={onClose}
         isLoading={isLoading}
-        saveLabel="Salvar alterações"
+        saveLabel="Salvar"
       />
     </div>
   )

@@ -393,7 +393,7 @@ export const EventMenu = ({
                   onCancel={() => setIsAddDialogOpen(false)}
                   isLoading={addProductMutation.isPending}
                   disabled={!selectedProductId}
-                  saveLabel={addProductMutation.isPending ? "Adicionando..." : "Adicionar"}
+                  saveLabel={addProductMutation.isPending ? "Salvando..." : "Salvar"}
                 />
               </div>
             </div>
