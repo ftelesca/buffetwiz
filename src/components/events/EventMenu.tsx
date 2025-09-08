@@ -349,12 +349,12 @@ export const EventMenu = ({
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="shadow-button hover-glow">
+            <Button>
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Produto
             </Button>
           </DialogTrigger>
-          <DialogContent className="glass-effect">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Adicionar Produto ao Menu</DialogTitle>
             </DialogHeader>
@@ -415,17 +415,17 @@ export const EventMenu = ({
           ))}
         </div>
       ) : eventMenuProducts && eventMenuProducts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {eventMenuProducts.map((item) => (
-            <Card key={item.product.id} className="gradient-card hover-lift shadow-card border-0 group">
+            <Card key={item.product.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors flex items-center gap-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
                       <ChefHat className="h-4 w-4 text-primary" />
                       {item.product.description}
                     </CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground">
+                    <CardDescription>
                       {item.qty} x {formatCurrency(item.product.unit_cost || 0)} = {formatCurrency((item.qty * (item.product.unit_cost || 0)))}
                     </CardDescription>
                   </div>
@@ -457,25 +457,17 @@ export const EventMenu = ({
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-accent/30 flex items-center justify-center mx-auto">
-            <ChefHat className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <div>
-            <p className="text-muted-foreground text-lg font-medium">
-              Nenhum produto no menu
-            </p>
-            <p className="text-sm text-muted-foreground/60 mt-1">
-              Comece adicionando produtos ao menu do evento
-            </p>
-          </div>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            Nenhum produto no menu
+          </p>
           <Button 
             onClick={() => setIsAddDialogOpen(true)} 
             variant="outline" 
-            className="mt-6 hover-lift shadow-button"
+            className="mt-4"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Adicionar Primeiro Produto
+            Adicionar primeiro produto
           </Button>
         </div>
       )}
@@ -490,7 +482,7 @@ export const EventMenu = ({
 
       {/* Edit Product Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="glass-effect">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Produto no Menu</DialogTitle>
           </DialogHeader>
@@ -511,9 +503,9 @@ export const EventMenu = ({
 
       {/* Product Items Dialog */}
       <Dialog open={isProductItemsDialogOpen} onOpenChange={setIsProductItemsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-effect">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl">
+            <DialogTitle>
               Itens do Produto: {selectedProductForItems?.product.description}
             </DialogTitle>
           </DialogHeader>
