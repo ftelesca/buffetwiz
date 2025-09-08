@@ -90,7 +90,7 @@ export default function ProductList({ products, selectedProduct, onSelectProduct
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2 max-h-[70vh] overflow-y-auto scrollbar-thin">
+        <div className="space-y-2 max-h-[calc(70vh-80px)] overflow-y-auto scrollbar-thin">
           {products.map((product) => (
             <div
               key={product.id}
