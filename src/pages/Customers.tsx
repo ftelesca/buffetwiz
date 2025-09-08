@@ -223,7 +223,7 @@ const Customers = () => {
     <div className="space-y-6">
       <PageHeader
         title="Clientes"
-        subtitle="Gerencie seus clientes e informações de contato"
+        subtitle="Gerencie clientes e informações de contato"
       >
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
