@@ -389,6 +389,7 @@ export const EventMenu = ({
                   placeholder="Selecione um produto"
                   searchPlaceholder="Buscar produtos..."
                   emptyText="Nenhum produto encontrado."
+                  autoFocus
                 />
               </div>
               <div>

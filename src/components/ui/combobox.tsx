@@ -25,6 +25,7 @@ interface ComboboxProps {
   searchPlaceholder?: string
   emptyText?: string
   className?: string
+  autoFocus?: boolean
 }
 
 export function Combobox({
@@ -35,15 +36,56 @@ export function Combobox({
   searchPlaceholder = "Buscar...",
   emptyText = "Nenhum resultado encontrado.",
   className,
+  autoFocus = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
+  const [searchValue, setSearchValue] = React.useState("")
+  const triggerRef = React.useRef<HTMLButtonElement>(null)
 
   const selectedOption = options.find((option) => option.value === value)
+
+  // Sort options alphabetically by label
+  const sortedOptions = React.useMemo(() => {
+    return [...options].sort((a, b) => a.label.localeCompare(b.label))
+  }, [options])
+
+  // Filter options based on search value
+  const filteredOptions = React.useMemo(() => {
+    if (!searchValue) return sortedOptions
+    return sortedOptions.filter((option) =>
+      option.label.toLowerCase().includes(searchValue.toLowerCase())
+    )
+  }, [sortedOptions, searchValue])
+
+  // Auto focus when component mounts if autoFocus is true
+  React.useEffect(() => {
+    if (autoFocus && triggerRef.current) {
+      triggerRef.current.click()
+    }
+  }, [autoFocus])
+
+  const handleSelect = (selectedValue: string) => {
+    const selectedOption = sortedOptions.find((option) => option.label === selectedValue)
+    if (selectedOption) {
+      onValueChange?.(selectedOption.value === value ? "" : selectedOption.value)
+      setOpen(false)
+      setSearchValue("")
+      
+      // Focus quantity input after selection
+      setTimeout(() => {
+        const qtyInput = document.getElementById("qty-input")
+        if (qtyInput) {
+          qtyInput.focus()
+        }
+      }, 100)
+    }
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          ref={triggerRef}
           variant="outline"
           role="combobox"
           aria-expanded={open}
@@ -54,19 +96,21 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder={searchPlaceholder} 
+            value={searchValue}
+            onValueChange={setSearchValue}
+            autoFocus
+          />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  onSelect={() => {
-                    onValueChange?.(option.value === value ? "" : option.value)
-                    setOpen(false)
-                  }}
+                  onSelect={handleSelect}
                 >
                   <Check
                     className={cn(
