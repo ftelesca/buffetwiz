@@ -60,7 +60,11 @@ export function Combobox({
 
   // Handle keyboard events
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape" || e.key === "Tab") {
+    if (e.key === "Escape") {
+      e.preventDefault()
+      setOpen(false)
+    }
+    if (e.key === "Tab") {
       setOpen(false)
     }
   }
@@ -74,14 +78,16 @@ export function Combobox({
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
           onFocus={() => setOpen(true)}
-          onKeyDown={handleKeyDown}
         >
           {selectedOption ? selectedOption.label : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command onKeyDown={handleKeyDown}>
+        <Command 
+          onKeyDown={handleKeyDown}
+          shouldFilter={false}
+        >
           <CommandInput 
             ref={inputRef}
             placeholder={searchPlaceholder} 
@@ -89,28 +95,32 @@ export function Combobox({
             onValueChange={setSearchValue}
           />
           <CommandList>
-            <CommandEmpty>{emptyText}</CommandEmpty>
-            <CommandGroup>
-              {filteredOptions.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  onSelect={() => {
-                    onValueChange?.(option.value === value ? "" : option.value)
-                    setOpen(false)
-                    setSearchValue("")
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {option.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {filteredOptions.length === 0 ? (
+              <CommandEmpty>{emptyText}</CommandEmpty>
+            ) : (
+              <CommandGroup>
+                {filteredOptions.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    onSelect={(selectedValue) => {
+                      const newValue = selectedValue === value ? "" : selectedValue
+                      onValueChange?.(newValue)
+                      setOpen(false)
+                      setSearchValue("")
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === option.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>
