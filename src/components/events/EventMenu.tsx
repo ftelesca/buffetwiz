@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, ChefHat, Eye } from "lucide-react";
 import { ActionButtons } from "@/components/ui/action-buttons";
+import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { EventMenuItemForm } from "./EventMenuItemForm";
 
 // Helper function to format currency with thousands separator
@@ -386,21 +387,14 @@ export const EventMenu = ({
                   placeholder="1"
                 />
               </div>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleAddProduct} 
-                  disabled={addProductMutation.isPending || !selectedProductId}
-                  className="flex-1"
-                >
-                  {addProductMutation.isPending ? "Adicionando..." : "Adicionar"}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsAddDialogOpen(false)}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
+              <div className="pt-4">
+                <SaveCancelButtons
+                  onSave={handleAddProduct}
+                  onCancel={() => setIsAddDialogOpen(false)}
+                  isLoading={addProductMutation.isPending}
+                  disabled={!selectedProductId}
+                  saveLabel={addProductMutation.isPending ? "Adicionando..." : "Adicionar"}
+                />
               </div>
             </div>
           </DialogContent>
