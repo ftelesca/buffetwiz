@@ -426,28 +426,24 @@ export const EventMenu = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {eventMenuProducts.map((item) => (
             <Card key={item.product.id}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <ChefHat className="h-4 w-4 text-primary" />
-                      {item.product.description}
-                    </CardTitle>
-                    <CardDescription>
-                      {item.qty} x {formatCurrency(item.product.unit_cost || 0)} = {formatCurrency((item.qty * (item.product.unit_cost || 0)))}
-                    </CardDescription>
-                  </div>
+              <CardHeader className="pb-3 text-center">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg">
+                    {item.product.description}
+                  </CardTitle>
+                  <CardDescription>
+                    {item.qty} x {formatCurrency(item.product.unit_cost || 0)} = {formatCurrency((item.qty * (item.product.unit_cost || 0)))}
+                  </CardDescription>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex gap-2 justify-end">
+              <CardContent className="pt-0 text-center">
+                <div className="flex gap-2 justify-center">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleViewProductItems(item)}
-                    className="flex-none w-24"
+                    className="flex-none"
                   >
-                    <Eye className="h-3 w-3 mr-1" />
                     Ver
                   </Button>
                   <div className="flex-none">
