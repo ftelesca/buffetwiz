@@ -280,6 +280,92 @@ export type Database = {
         }
         Relationships: []
       }
+      wizard_cache: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          query_hash: string
+          response_data: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          query_hash: string
+          response_data: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          query_hash?: string
+          response_data?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wizard_chats: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wizard_messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wizard_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "wizard_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -296,6 +382,10 @@ export type Database = {
       calculate_recipe_unit_cost: {
         Args: { recipe_id_param: number }
         Returns: number
+      }
+      cleanup_expired_wizard_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

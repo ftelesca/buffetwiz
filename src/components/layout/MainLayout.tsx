@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { AppSidebar } from "./AppSidebar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { UserMenu } from "@/components/auth/UserMenu"
+import { WizardFloatingButton } from "@/components/wizard/WizardFloatingButton"
 
 interface MainLayoutProps {
   children: ReactNode
@@ -76,6 +77,9 @@ function LayoutContent({ children }: MainLayoutProps) {
           {children}
         </div>
       </main>
+      
+      {/* Wizard Floating Button */}
+      <WizardFloatingButton />
     </div>
   )
 }
