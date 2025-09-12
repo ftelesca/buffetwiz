@@ -120,27 +120,28 @@ INSTRUÇÕES:
 `;
 
     // Call GPT-5 with optimized parameters
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      console.error('Missing OPENAI_API_KEY secret');
+      return new Response(JSON.stringify({
+        error: 'OPENAI_API_KEY não configurada nas Secrets das Edge Functions.',
+        hint: 'Adicione a chave em Supabase > Settings > Functions > Secrets'
+      }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'gpt-5-2025-08-07',
         messages: [
-          {
-            role: 'system',
-            content: businessContext
-          },
-          {
-            role: 'user',
-            content: message
-          }
+          { role: 'system', content: businessContext },
+          { role: 'user', content: message }
         ],
-        max_completion_tokens: 2000,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1
+        max_completion_tokens: 2000
       }),
     });
 

@@ -59,7 +59,7 @@ serve(async (req) => {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     // Create professional HTML for PDF
     const currentDate = new Date().toLocaleDateString('pt-BR');

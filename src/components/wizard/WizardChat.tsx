@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -169,7 +169,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       
       toast({
         title: "Erro na consulta",
-        description: "Falha ao enviar mensagem. Tente novamente.",
+        description: "Falha ao enviar mensagem. Verifique a OPENAI_API_KEY nas Secrets do Supabase ou tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -369,6 +369,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                   </Button>
                 </div>
               </div>
+              <DialogDescription className="sr-only">Converse com o assistente IA do BuffetWiz para análises e otimizações.</DialogDescription>
             </DialogHeader>
 
             {/* Messages */}
