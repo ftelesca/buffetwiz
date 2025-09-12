@@ -100,6 +100,11 @@ serve(async (req) => {
 CONTEXTO DO NEGÓCIO - BUFFETWIZ:
 Este é um sistema de gestão para buffets e eventos. Você é um assistente especialista em análise de custos, otimização de cardápios e gestão de eventos.
 
+⚠️ IMPORTANTE - SUAS CAPACIDADES:
+• POSSO: Analisar dados, calcular custos, sugerir otimizações, responder perguntas
+• NÃO POSSO: Gravar, editar ou modificar dados no sistema (sou apenas consulta)
+• Quando o usuário pedir para "salvar" ou "atualizar" algo, SEMPRE explique que ele precisa fazer isso manualmente na aplicação
+
 DADOS DISPONÍVEIS:
 - ${context.events.length} eventos cadastrados
 - ${context.recipes.length} receitas/produtos no cardápio  
@@ -138,6 +143,7 @@ INSTRUÇÕES:
 5. Responda em português brasileiro de forma profissional
 6. Use dados específicos do negócio do usuário sempre que possível
 7. Forneça insights acionáveis e práticos
+8. SEMPRE seja claro sobre suas limitações - você NÃO PODE modificar dados, apenas consultar
 `;
 
     // Call GPT-5 with optimized parameters
