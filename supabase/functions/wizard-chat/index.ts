@@ -52,7 +52,7 @@ serve(async (req) => {
         *,
         recipe_item(
           qty,
-          item:item(description, cost, unit_use:unit(description))
+          item:item(description, cost, unit_use:unit!item_unit_use_fkey(description))
         )
       `).eq('user_id', userId).limit(100),
       
