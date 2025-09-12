@@ -273,19 +273,6 @@ INSTRUÇÕES:
       });
 
     return new Response(JSON.stringify(responseToCache), {
-      response: assistantResponse,
-      chatId: currentChatId,
-      metadata: {
-        model: 'gpt-5-2025-08-07',
-        tokens_used: aiData.usage?.total_tokens || 0,
-        context_summary: {
-          events: context.events.length,
-          recipes: context.recipes.length,
-          items: context.items.length,
-          customers: context.customers.length
-        }
-      }
-    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
