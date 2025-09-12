@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, chatId } = await req.json();
+    const { message, chatId, model } = await req.json();
     
     // Get authorization header
     const authorization = req.headers.get('authorization');
@@ -134,9 +134,11 @@ INSTRUÇÕES:
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
+        ...(Deno.env.get('OPENAI_ORG_ID') ? { 'OpenAI-Organization': Deno.env.get('OPENAI_ORG_ID')! } : {}),
+        ...(Deno.env.get('OPENAI_PROJECT_ID') ? { 'OpenAI-Project': Deno.env.get('OPENAI_PROJECT_ID')! } : {}),
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: model || 'gpt-5-2025-08-07',
         messages: [
           { role: 'system', content: businessContext },
           { role: 'user', content: message }
