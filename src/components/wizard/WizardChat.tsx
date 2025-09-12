@@ -133,42 +133,20 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
       if (error) throw error;
 
-      // Update current chat ID if this is a new chat
-      if (data.chatId && !currentChatId) {
-        setCurrentChatId(data.chatId);
-        await loadChatHistory(); // Refresh chat list
+      // Resolve chat id and refresh history if it's a brand new chat
+      const resolvedChatId = (data as any)?.chatId || currentChatId;
+      if (!currentChatId && resolvedChatId) {
+        setCurrentChatId(resolvedChatId);
+        await loadChatHistory();
       }
 
-      // Try to read assistant text robustly
-      const responseText = (data?.response || data?.generatedText || data?.answer || data?.output) as string | undefined;
-
-      if (!responseText) {
-        // Fallback: reload from DB to display saved assistant message
+      // Always reload from DB to guarantee UI shows the saved assistant response
+      if (resolvedChatId) {
+        // Remove temporary message before reloading from DB
         setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
-          if (data?.chatId || currentChatId) {
-            await loadChatMessages((data as any)?.chatId || currentChatId as string);
-          }
-        return;
+        await loadChatMessages(resolvedChatId);
       }
 
-      // Add assistant response diretamente na UI
-      const assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: responseText,
-        created_at: new Date().toISOString(),
-        metadata: data.metadata
-      };
-
-      // Remove temp message e adiciona usuário+assistente
-      setMessages(prev => {
-        const filtered = prev.filter(m => m.id !== tempUserMessage.id);
-        return [
-          ...filtered,
-          { ...tempUserMessage, id: `user-${Date.now()}` },
-          assistantMessage
-        ];
-      });
 
     } catch (error) {
       console.error('Error sending message:', error);
