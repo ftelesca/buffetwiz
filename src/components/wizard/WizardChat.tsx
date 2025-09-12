@@ -378,7 +378,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             </DialogHeader>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+            <ScrollArea className="flex-1 p-4 max-h-[500px] overflow-y-auto" ref={scrollAreaRef}>
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <Bot className="h-16 w-16 text-muted-foreground mb-4" />
@@ -421,14 +421,14 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                         </div>
                       )}
                       
-                      <Card className={`max-w-[80%] p-4 ${
-                        msg.role === 'user' 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-muted/50'
-                      }`}>
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                          {msg.content}
-                        </div>
+                       <Card className={`max-w-[80%] p-4 ${
+                         msg.role === 'user' 
+                           ? 'bg-primary text-primary-foreground' 
+                           : 'bg-muted/50'
+                       }`}>
+                         <div className="whitespace-pre-wrap text-sm leading-relaxed break-words overflow-wrap-anywhere">
+                           {msg.content}
+                         </div>
                         <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/20">
                           <span className="text-xs opacity-70">
                             {new Date(msg.created_at).toLocaleTimeString('pt-BR')}
