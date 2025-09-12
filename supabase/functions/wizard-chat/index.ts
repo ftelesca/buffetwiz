@@ -37,6 +37,27 @@ serve(async (req) => {
     const userId = user.user.id;
     console.log('Processing request for user:', userId);
 
+    // Create query hash for cache
+    const queryHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message + (model || 'gpt-5-2025-08-07')));
+    const hashArray = Array.from(new Uint8Array(queryHash));
+    const queryHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    // Check cache first
+    const { data: cachedResponse } = await supabase
+      .from('wizard_cache')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('query_hash', queryHashHex)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle();
+
+    if (cachedResponse) {
+      console.log('Found cached response for user:', userId);
+      return new Response(JSON.stringify(cachedResponse.response_data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Get user's business data for RAG context
     const [eventsResponse, recipesResponse, itemsResponse, customersResponse] = await Promise.all([
       supabase.from('event').select(`
@@ -223,7 +244,35 @@ INSTRUÇÕES:
 
     if (updateError) console.warn('Failed to update chat timestamp:', updateError);
 
-    return new Response(JSON.stringify({
+    // Cache the response for 1 hour
+    const responseToCache = {
+      response: assistantResponse,
+      chatId: currentChatId,
+      metadata: {
+        model: 'gpt-5-2025-08-07',
+        tokens_used: aiData.usage?.total_tokens || 0,
+        context_summary: {
+          events: context.events.length,
+          recipes: context.recipes.length,
+          items: context.items.length,
+          customers: context.customers.length
+        }
+      }
+    };
+
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+
+    await supabase
+      .from('wizard_cache')
+      .insert({
+        user_id: userId,
+        query_hash: queryHashHex,
+        response_data: responseToCache,
+        expires_at: expiresAt.toISOString()
+      });
+
+    return new Response(JSON.stringify(responseToCache), {
       response: assistantResponse,
       chatId: currentChatId,
       metadata: {
