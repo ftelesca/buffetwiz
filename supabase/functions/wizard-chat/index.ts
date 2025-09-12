@@ -43,6 +43,11 @@ serve(async (req) => {
     const queryHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
     // Check cache first
+    let isCacheHit = false;
+    let assistantResponse = '';
+    let tokensUsed = 0;
+    let cachedMeta: any = null;
+
     const { data: cachedResponse } = await supabase
       .from('wizard_cache')
       .select('*')
@@ -53,9 +58,11 @@ serve(async (req) => {
 
     if (cachedResponse) {
       console.log('Found cached response for user:', userId);
-      return new Response(JSON.stringify(cachedResponse.response_data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      isCacheHit = true;
+      const rd = cachedResponse.response_data || {};
+      assistantResponse = rd.response || rd.generatedText || rd.answer || rd.output || '';
+      tokensUsed = rd.metadata?.tokens_used || 0;
+      cachedMeta = rd.metadata || null;
     }
 
     // Get user's business data for RAG context
@@ -146,51 +153,59 @@ INSTRUÇÕES:
 8. SEMPRE seja claro sobre suas limitações - você NÃO PODE modificar dados, apenas consultar
 `;
 
-    // Call GPT-5 with optimized parameters
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      console.error('Missing OPENAI_API_KEY secret');
-      return new Response(JSON.stringify({
-        error: 'OPENAI_API_KEY não configurada nas Secrets das Edge Functions.',
-        hint: 'Adicione a chave em Supabase > Settings > Functions > Secrets'
-      }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-        ...(Deno.env.get('OPENAI_ORG_ID') ? { 'OpenAI-Organization': Deno.env.get('OPENAI_ORG_ID')! } : {}),
-        ...(Deno.env.get('OPENAI_PROJECT_ID') ? { 'OpenAI-Project': Deno.env.get('OPENAI_PROJECT_ID')! } : {}),
-      },
-      body: JSON.stringify({
-        model: model || 'gpt-5-2025-08-07',
-        messages: [
-          { role: 'system', content: businessContext },
-          { role: 'user', content: message }
-        ],
-        max_completion_tokens: 2000
-      }),
-    });
-
-    if (!openAIResponse.ok) {
-      const error = await openAIResponse.text();
-      console.error('OpenAI API error:', error);
-      
-      if (openAIResponse.status === 429) {
+    // Call GPT-5 only if no valid cache
+    if (!isCacheHit) {
+      const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+      if (!OPENAI_API_KEY) {
+        console.error('Missing OPENAI_API_KEY secret');
         return new Response(JSON.stringify({
-          error: 'Cota da OpenAI excedida',
-          hint: 'Sua conta OpenAI não tem créditos suficientes. Adicione créditos em https://platform.openai.com/account/billing ou verifique se a chave API está correta.',
-          details: error
-        }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          error: 'OPENAI_API_KEY não configurada nas Secrets das Edge Functions.',
+          hint: 'Adicione a chave em Supabase > Settings > Functions > Secrets'
+        }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      
-      throw new Error(`OpenAI API error: ${openAIResponse.status}`);
+
+      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+          ...(Deno.env.get('OPENAI_ORG_ID') ? { 'OpenAI-Organization': Deno.env.get('OPENAI_ORG_ID')! } : {}),
+          ...(Deno.env.get('OPENAI_PROJECT_ID') ? { 'OpenAI-Project': Deno.env.get('OPENAI_PROJECT_ID')! } : {}),
+        },
+        body: JSON.stringify({
+          model: model || 'gpt-5-2025-08-07',
+          messages: [
+            { role: 'system', content: businessContext },
+            { role: 'user', content: message }
+          ],
+          max_completion_tokens: 2000
+        }),
+      });
+
+      if (!openAIResponse.ok) {
+        const error = await openAIResponse.text();
+        console.error('OpenAI API error:', error);
+        
+        if (openAIResponse.status === 429) {
+          return new Response(JSON.stringify({
+            error: 'Cota da OpenAI excedida',
+            hint: 'Sua conta OpenAI não tem créditos suficientes. Adicione créditos em https://platform.openai.com/account/billing ou verifique se a chave API está correta.',
+            details: error
+          }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        
+        throw new Error(`OpenAI API error: ${openAIResponse.status}`);
+      }
+
+      const aiData = await openAIResponse.json();
+      assistantResponse = aiData?.choices?.[0]?.message?.content || aiData?.choices?.[0]?.text || '';
+      tokensUsed = aiData?.usage?.total_tokens || 0;
     }
 
-    const aiData = await openAIResponse.json();
-    const assistantResponse = aiData.choices[0].message.content;
+    // Ensure assistant content is not empty
+    if (!assistantResponse || !assistantResponse.trim()) {
+      assistantResponse = 'Não foi possível gerar uma resposta no momento. Tente novamente.';
+    }
 
     // Save messages to database
     let currentChatId = chatId;
@@ -230,7 +245,7 @@ INSTRUÇÕES:
         content: assistantResponse,
         metadata: {
           model: 'gpt-5-2025-08-07',
-          tokens_used: aiData.usage?.total_tokens || 0,
+          tokens_used: tokensUsed,
           context_items: {
             events: context.events.length,
             recipes: context.recipes.length,
@@ -250,13 +265,13 @@ INSTRUÇÕES:
 
     if (updateError) console.warn('Failed to update chat timestamp:', updateError);
 
-    // Cache the response for 1 hour
+    // Cache the response for 1 hour (only when not from cache)
     const responseToCache = {
       response: assistantResponse,
       chatId: currentChatId,
       metadata: {
-        model: 'gpt-5-2025-08-07',
-        tokens_used: aiData.usage?.total_tokens || 0,
+        model: model || 'gpt-5-2025-08-07',
+        tokens_used: tokensUsed,
         context_summary: {
           events: context.events.length,
           recipes: context.recipes.length,
@@ -266,17 +281,19 @@ INSTRUÇÕES:
       }
     };
 
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1);
+    if (!isCacheHit) {
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
 
-    await supabase
-      .from('wizard_cache')
-      .insert({
-        user_id: userId,
-        query_hash: queryHashHex,
-        response_data: responseToCache,
-        expires_at: expiresAt.toISOString()
-      });
+      await supabase
+        .from('wizard_cache')
+        .insert({
+          user_id: userId,
+          query_hash: queryHashHex,
+          response_data: responseToCache,
+          expires_at: expiresAt.toISOString()
+        });
+    }
 
     return new Response(JSON.stringify(responseToCache), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -140,10 +140,25 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         await loadChatHistory();
       }
 
-      // Always reload from DB to guarantee UI shows the saved assistant response
+      // Optimistic UI: show assistant response immediately if present, then reload from DB
       if (resolvedChatId) {
-        // Remove temporary message before reloading from DB
-        setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
+        const immediateText = (data as any)?.response || (data as any)?.generatedText || (data as any)?.answer || (data as any)?.output;
+        if (immediateText) {
+          const tempAssistant: Message = {
+            id: `temp-assistant-${Date.now()}`,
+            role: 'assistant',
+            content: immediateText,
+            created_at: new Date().toISOString(),
+          };
+          setMessages(prev => {
+            const filtered = prev.filter(m => m.id !== tempUserMessage.id);
+            return [
+              ...filtered,
+              { ...tempUserMessage, id: `user-${Date.now()}` },
+              tempAssistant,
+            ];
+          });
+        }
         await loadChatMessages(resolvedChatId);
       }
 
