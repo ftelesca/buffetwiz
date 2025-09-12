@@ -310,7 +310,23 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                         <p className="text-sm font-medium truncate">{chat.title}</p>
                         <p className="text-xs text-muted-foreground flex items-center mt-1">
                           <Clock className="h-3 w-3 mr-1" />
-                          {new Date(chat.updated_at).toLocaleDateString('pt-BR')}
+                          {(() => {
+                            const chatDate = new Date(chat.updated_at);
+                            const today = new Date();
+                            const yesterday = new Date(today);
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            
+                            const isToday = chatDate.toDateString() === today.toDateString();
+                            const isYesterday = chatDate.toDateString() === yesterday.toDateString();
+                            
+                            if (isToday) {
+                              return `Hoje ${chatDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                            } else if (isYesterday) {
+                              return `Ontem ${chatDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                            } else {
+                              return `${chatDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} ${chatDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                            }
+                          })()}
                         </p>
                       </div>
                       <div className="flex gap-1 ml-2">
