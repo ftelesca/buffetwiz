@@ -145,18 +145,9 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       if (!responseText) {
         // Fallback: reload from DB to display saved assistant message
         setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
-        if (data?.chatId || currentChatId) {
-          await loadChatMessages((data as any)?.chatId || currentChatId as string);
-          toast({
-            title: "✅ Resposta pronta",
-            description: "Carreguei do histórico por segurança.",
-          });
-        } else {
-          toast({
-            title: "Resposta recebida",
-            description: "Não consegui ler diretamente. Tente novamente.",
-          });
-        }
+          if (data?.chatId || currentChatId) {
+            await loadChatMessages((data as any)?.chatId || currentChatId as string);
+          }
         return;
       }
 
@@ -177,11 +168,6 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
           { ...tempUserMessage, id: `user-${Date.now()}` },
           assistantMessage
         ];
-      });
-
-      toast({
-        title: "✨ Análise concluída",
-        description: `Usado ${data.metadata?.tokens_used || 'N/A'} tokens do GPT-5`,
       });
 
     } catch (error) {
