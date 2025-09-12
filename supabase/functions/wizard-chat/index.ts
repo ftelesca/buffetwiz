@@ -148,6 +148,15 @@ INSTRUÇÕES:
     if (!openAIResponse.ok) {
       const error = await openAIResponse.text();
       console.error('OpenAI API error:', error);
+      
+      if (openAIResponse.status === 429) {
+        return new Response(JSON.stringify({
+          error: 'Cota da OpenAI excedida',
+          hint: 'Sua conta OpenAI não tem créditos suficientes. Adicione créditos em https://platform.openai.com/account/billing ou verifique se a chave API está correta.',
+          details: error
+        }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      
       throw new Error(`OpenAI API error: ${openAIResponse.status}`);
     }
 
