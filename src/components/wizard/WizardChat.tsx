@@ -139,24 +139,42 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         await loadChatHistory(); // Refresh chat list
       }
 
-      // Add assistant response directly to UI
+      // Try to read assistant text robustly
+      const responseText = (data?.response || data?.generatedText || data?.answer || data?.output) as string | undefined;
+
+      if (!responseText) {
+        // Fallback: reload from DB to display saved assistant message
+        setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
+        if (data?.chatId || currentChatId) {
+          await loadChatMessages((data as any)?.chatId || currentChatId as string);
+          toast({
+            title: "✅ Resposta pronta",
+            description: "Carreguei do histórico por segurança.",
+          });
+        } else {
+          toast({
+            title: "Resposta recebida",
+            description: "Não consegui ler diretamente. Tente novamente.",
+          });
+        }
+        return;
+      }
+
+      // Add assistant response diretamente na UI
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: data.response,
+        content: responseText,
         created_at: new Date().toISOString(),
         metadata: data.metadata
       };
 
-      // Remove temp message and add both user and assistant messages
+      // Remove temp message e adiciona usuário+assistente
       setMessages(prev => {
         const filtered = prev.filter(m => m.id !== tempUserMessage.id);
         return [
           ...filtered,
-          {
-            ...tempUserMessage,
-            id: `user-${Date.now()}`
-          },
+          { ...tempUserMessage, id: `user-${Date.now()}` },
           assistantMessage
         ];
       });
