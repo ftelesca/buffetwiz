@@ -139,7 +139,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         await loadChatHistory(); // Refresh chat list
       }
 
-      // Add assistant response
+      // Add assistant response directly to UI
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
@@ -148,13 +148,18 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         metadata: data.metadata
       };
 
-      // Remove temp message and add both messages from server
-      setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
-      
-      // Reload messages from server to get proper IDs
-      if (currentChatId || data.chatId) {
-        await loadChatMessages(data.chatId || currentChatId);
-      }
+      // Remove temp message and add both user and assistant messages
+      setMessages(prev => {
+        const filtered = prev.filter(m => m.id !== tempUserMessage.id);
+        return [
+          ...filtered,
+          {
+            ...tempUserMessage,
+            id: `user-${Date.now()}`
+          },
+          assistantMessage
+        ];
+      });
 
       toast({
         title: "✨ Análise concluída",
