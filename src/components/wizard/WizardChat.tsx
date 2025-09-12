@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -298,7 +298,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                 </Button>
               </div>
             </div>
-            <ScrollArea className="h-[calc(100%-4rem)]">
+            <div className="h-[calc(100%-4rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
               <div className="p-2">
                 {chats.map((chat) => (
                   <Card
@@ -342,7 +342,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                   </Card>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
 
           {/* Main Chat Area */}
@@ -378,7 +378,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             </DialogHeader>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4 max-h-[500px] overflow-y-auto" ref={scrollAreaRef}>
+            <div className="flex-1 p-4 max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" ref={scrollAreaRef}>
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <Bot className="h-16 w-16 text-muted-foreground mb-4" />
@@ -452,7 +452,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
 
             {/* Input */}
             <div className="p-4 border-t">
