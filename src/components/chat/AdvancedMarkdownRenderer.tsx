@@ -10,9 +10,63 @@ import { Copy, Check, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { exportToFile } from "@/lib/export-file";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
+
+// Função de exportação integrada (caso o arquivo externo não esteja disponível)
+async function exportToFile(payload: string) {
+  try {
+    console.log('Iniciando exportação com payload:', payload);
+    
+    // Decodifica o payload se estiver em URL encoding
+    const decodedPayload = decodeURIComponent(payload);
+    
+    // Parse do JSON
+    const exportData = JSON.parse(decodedPayload);
+    
+    const { filename, content, type = 'text/plain' } = exportData;
+    
+    if (!filename || content === undefined) {
+      throw new Error('Dados de exportação inválidos: filename e content são obrigatórios');
+    }
+
+    // Cria o blob com base no tipo
+    let blob: Blob;
+    
+    if (type === 'application/json') {
+      blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
+    } else if (type === 'text/csv') {
+      blob = new Blob([content], { type: 'text/csv' });
+    } else if (type === 'text/html') {
+      blob = new Blob([content], { type: 'text/html' });
+    } else {
+      // Padrão para texto simples
+      blob = new Blob([content], { type: 'text/plain' });
+    }
+
+    // Cria URL temporária e força o download
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    
+    // Adiciona ao DOM, clica e remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Limpa a URL temporária
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    
+    console.log(`Arquivo ${filename} baixado com sucesso`);
+    return true;
+    
+  } catch (error) {
+    console.error('Erro ao exportar arquivo:', error);
+    throw new Error(`Falha ao exportar arquivo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+  }
+}
 
 // Process export links: robustly convert raw occurrences like "export:{...}" or "export:%7B...%7D" into markdown links, skipping code blocks
 function processExportLinks(md: string): string {
@@ -134,7 +188,21 @@ export function AdvancedMarkdownRenderer({
 
   const handleExportClick = async (payload: string) => {
     if (!enableExports) return;
-    await exportToFile(payload);
+    
+    try {
+      await exportToFile(payload);
+      toast({
+        title: "Download iniciado!",
+        description: "O arquivo está sendo baixado",
+      });
+    } catch (error) {
+      console.error('Erro no download:', error);
+      toast({
+        title: "Erro no download",
+        description: error instanceof Error ? error.message : "Falha ao baixar arquivo",
+        variant: "destructive",
+      });
+    }
   };
 
   const remarkPlugins = [remarkGfm];
@@ -146,7 +214,6 @@ export function AdvancedMarkdownRenderer({
   }
 
   const processedContent = processExportLinks(content);
-
 
   return (
     <div className={cn("prose prose-slate dark:prose-invert max-w-none", className)}>
@@ -331,9 +398,13 @@ export function AdvancedMarkdownRenderer({
               return (
                 <button
                   type="button"
-                  onClick={() => handleExportClick(payload)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleExportClick(payload);
+                  }}
                   className={cn(
-                    "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground", 
+                    "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground cursor-pointer", 
                     className
                   )}
                 >
