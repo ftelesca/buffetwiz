@@ -43,14 +43,6 @@ export function MessageBubble({ message, onRegenerate, onFeedback }: MessageBubb
   const [showActions, setShowActions] = useState(false);
   const { toast } = useToast();
 
-  // DEBUG: Log para verificar conteúdo com export
-  React.useEffect(() => {
-    if (message.role === 'assistant' && message.content.includes('export:')) {
-      console.log('🔍 MessageBubble: Export link detected!');
-      console.log('Message content preview:', message.content.substring(0, 200) + '...');
-      console.log('Full message content:', message.content);
-    }
-  }, [message.content, message.role]);
 
   const copyToClipboard = async () => {
     try {
@@ -135,12 +127,6 @@ export function MessageBubble({ message, onRegenerate, onFeedback }: MessageBubb
             onMouseEnter={() => setShowActions(true)}
             onMouseLeave={() => setShowActions(false)}
           >
-            {/* DEBUG: Indicador visual se há export links */}
-            {message.content.includes('export:') && (
-              <div className="bg-orange-100 border border-orange-400 text-orange-800 px-2 py-1 rounded mb-2 text-xs">
-                🚨 DEBUG: Export link detectado no MessageBubble - {new Date().toLocaleTimeString()}
-              </div>
-            )}
 
             {message.isTyping ? (
               <TypingAnimation 

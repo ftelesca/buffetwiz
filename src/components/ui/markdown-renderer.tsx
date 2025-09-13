@@ -103,23 +103,12 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     await handleExportClick(payload);
   };
 
-  const onContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    const anchor = target.closest('a') as HTMLAnchorElement | null;
-    const href = anchor?.getAttribute('href') || '';
-    if (href.startsWith('export:')) {
-      e.preventDefault();
-      e.stopPropagation();
-      const payload = href.replace(/^export:/, '');
-      handleExportClickLocal(payload);
-    }
-  };
 
   const processedContent = processExportLinks(content);
 
 
   return (
-    <div className={cn("markdown-content leading-7", className)} onClick={onContainerClick}>
+    <div className={cn("markdown-content leading-7", className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
