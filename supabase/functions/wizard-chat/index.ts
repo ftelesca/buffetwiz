@@ -187,7 +187,9 @@ INSTRUÇÕES FINAIS:
 
       // Call GPT-5 only if no valid cache
       const OPENAI_API_KEY = (Deno.env.get('OPENAI_API_KEY') || '').trim();
-      if (!OPENAI_API_KEY) {
+      const hasKey = OPENAI_API_KEY.length > 0;
+      console.log('wizard-chat: OPENAI_API_KEY present:', hasKey);
+      if (!hasKey) {
         console.error('Missing OPENAI_API_KEY secret');
         return new Response(JSON.stringify({
           error: 'OPENAI_API_KEY não configurada nas Secrets das Edge Functions.',
@@ -197,6 +199,7 @@ INSTRUÇÕES FINAIS:
 
       let selectedModel = (model && typeof model === 'string') ? model : 'gpt-5-2025-08-07';
       const isNewModel = /^(gpt-5|gpt-4\.1|o3|o4)/.test(selectedModel);
+      console.log('wizard-chat: model selected:', selectedModel);
       const payload: any = {
         model: selectedModel,
         messages: [
