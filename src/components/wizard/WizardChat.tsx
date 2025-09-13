@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -133,38 +133,35 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
       if (error) throw error;
 
-      // Update current chat ID if this is a new chat
-      if (data.chatId && !currentChatId) {
-        setCurrentChatId(data.chatId);
-        await loadChatHistory(); // Refresh chat list
+      // Resolve chat id and refresh history if it's a brand new chat
+      const resolvedChatId = (data as any)?.chatId || currentChatId;
+      if (!currentChatId && resolvedChatId) {
+        setCurrentChatId(resolvedChatId);
+        await loadChatHistory();
       }
 
-      // Add assistant response directly to UI
-      const assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: data.response,
-        created_at: new Date().toISOString(),
-        metadata: data.metadata
-      };
+      // Optimistic UI: show assistant response immediately if present, then reload from DB
+      if (resolvedChatId) {
+        const immediateText = (data as any)?.response || (data as any)?.generatedText || (data as any)?.answer || (data as any)?.output;
+        if (immediateText) {
+          const tempAssistant: Message = {
+            id: `temp-assistant-${Date.now()}`,
+            role: 'assistant',
+            content: immediateText,
+            created_at: new Date().toISOString(),
+          };
+          setMessages(prev => {
+            const filtered = prev.filter(m => m.id !== tempUserMessage.id);
+            return [
+              ...filtered,
+              { ...tempUserMessage, id: `user-${Date.now()}` },
+              tempAssistant,
+            ];
+          });
+        }
+        await loadChatMessages(resolvedChatId);
+      }
 
-      // Remove temp message and add both user and assistant messages
-      setMessages(prev => {
-        const filtered = prev.filter(m => m.id !== tempUserMessage.id);
-        return [
-          ...filtered,
-          {
-            ...tempUserMessage,
-            id: `user-${Date.now()}`
-          },
-          assistantMessage
-        ];
-      });
-
-      toast({
-        title: "✨ Análise concluída",
-        description: `Usado ${data.metadata?.tokens_used || 'N/A'} tokens do GPT-5`,
-      });
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -298,7 +295,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                 </Button>
               </div>
             </div>
-            <ScrollArea className="h-[calc(100%-4rem)]">
+            <div className="h-[calc(100%-4rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
               <div className="p-2">
                 {chats.map((chat) => (
                   <Card
@@ -313,7 +310,23 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                         <p className="text-sm font-medium truncate">{chat.title}</p>
                         <p className="text-xs text-muted-foreground flex items-center mt-1">
                           <Clock className="h-3 w-3 mr-1" />
-                          {new Date(chat.updated_at).toLocaleDateString('pt-BR')}
+                          {(() => {
+                            const chatDate = new Date(chat.updated_at);
+                            const today = new Date();
+                            const yesterday = new Date(today);
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            
+                            const isToday = chatDate.toDateString() === today.toDateString();
+                            const isYesterday = chatDate.toDateString() === yesterday.toDateString();
+                            
+                            if (isToday) {
+                              return `Hoje ${chatDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                            } else if (isYesterday) {
+                              return `Ontem ${chatDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                            } else {
+                              return `${chatDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} ${chatDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                            }
+                          })()}
                         </p>
                       </div>
                       <div className="flex gap-1 ml-2">
@@ -342,7 +355,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                   </Card>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
 
           {/* Main Chat Area */}
@@ -378,7 +391,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             </DialogHeader>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+            <div className="flex-1 p-4 max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" ref={scrollAreaRef}>
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <Bot className="h-16 w-16 text-muted-foreground mb-4" />
@@ -421,14 +434,14 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                         </div>
                       )}
                       
-                      <Card className={`max-w-[80%] p-4 ${
-                        msg.role === 'user' 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-muted/50'
-                      }`}>
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                          {msg.content}
-                        </div>
+                       <Card className={`max-w-[80%] p-4 ${
+                         msg.role === 'user' 
+                           ? 'bg-primary text-primary-foreground' 
+                           : 'bg-muted/50'
+                       }`}>
+                         <div className="whitespace-pre-wrap text-sm leading-relaxed break-words overflow-wrap-anywhere">
+                           {msg.content}
+                         </div>
                         <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/20">
                           <span className="text-xs opacity-70">
                             {new Date(msg.created_at).toLocaleTimeString('pt-BR')}
@@ -452,7 +465,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
 
             {/* Input */}
             <div className="p-4 border-t">

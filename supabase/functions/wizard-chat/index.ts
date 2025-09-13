@@ -37,133 +37,308 @@ serve(async (req) => {
     const userId = user.user.id;
     console.log('Processing request for user:', userId);
 
-    // Get user's business data for RAG context
-    const [eventsResponse, recipesResponse, itemsResponse, customersResponse] = await Promise.all([
-      supabase.from('event').select(`
-        *,
-        customer:customer(name, email, phone),
-        event_menu(
-          qty,
-          recipe:recipe(description, efficiency)
-        )
-      `).eq('user_id', userId).limit(50),
-      
-      supabase.from('recipe').select(`
-        *,
-        recipe_item(
-          qty,
-          item:item(description, cost, unit_use:unit!item_unit_use_fkey(description))
-        )
-      `).eq('user_id', userId).limit(100),
-      
-      supabase.from('item').select('*').eq('user_id', userId).limit(200),
-      
-      supabase.from('customer').select('*').eq('user_id', userId).limit(50)
-    ]);
+    // Create query hash for cache
+    const queryHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message + (model || 'gpt-5-2025-08-07')));
+    const hashArray = Array.from(new Uint8Array(queryHash));
+    const queryHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-    if (eventsResponse.error) throw eventsResponse.error;
-    if (recipesResponse.error) throw recipesResponse.error;
-    if (itemsResponse.error) throw itemsResponse.error;
-    if (customersResponse.error) throw customersResponse.error;
+    // Check cache first
+    let isCacheHit = false;
+    let assistantResponse = '';
+    let tokensUsed = 0;
+    let cachedMeta: any = null;
 
-    // Prepare RAG context
-    const context = {
-      events: eventsResponse.data || [],
-      recipes: recipesResponse.data || [],
-      items: itemsResponse.data || [],
-      customers: customersResponse.data || []
-    };
+    const { data: cachedResponse } = await supabase
+      .from('wizard_cache')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('query_hash', queryHashHex)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle();
 
-    // Create comprehensive context for GPT-5
-    const businessContext = `
+    if (cachedResponse) {
+      console.log('Found cached response for user:', userId);
+      isCacheHit = true;
+      const rd = cachedResponse.response_data || {};
+      assistantResponse = rd.response || rd.generatedText || rd.answer || rd.output || '';
+      tokensUsed = rd.metadata?.tokens_used || 0;
+      cachedMeta = rd.metadata || null;
+    }
+
+    // Get user's business data for RAG context - only if no cache hit
+    if (!isCacheHit) {
+      const [eventsResponse, recipesResponse, itemsResponse, customersResponse] = await Promise.all([
+        supabase.from('event').select(`
+          *,
+          customer:customer(name, email, phone),
+          event_menu(
+            qty,
+            recipe:recipe(description, efficiency)
+          )
+        `).eq('user_id', userId).limit(50),
+        
+        supabase.from('recipe').select(`
+          *,
+          recipe_item(
+            qty,
+            item:item(description, cost, unit_use:unit!item_unit_use_fkey(description))
+          )
+        `).eq('user_id', userId).limit(100),
+        
+        supabase.from('item').select('*').eq('user_id', userId).limit(200),
+        
+        supabase.from('customer').select('*').eq('user_id', userId).limit(50)
+      ]);
+
+      if (eventsResponse.error) throw eventsResponse.error;
+      if (recipesResponse.error) throw recipesResponse.error;
+      if (itemsResponse.error) throw itemsResponse.error;
+      if (customersResponse.error) throw customersResponse.error;
+
+      // Prepare RAG context
+      const context = {
+        events: eventsResponse.data || [],
+        recipes: recipesResponse.data || [],
+        items: itemsResponse.data || [],
+        customers: customersResponse.data || []
+      };
+
+      // Create comprehensive context for GPT-5
+      const businessContext = `
 CONTEXTO DO NEGÓCIO - BUFFETWIZ:
 Este é um sistema de gestão para buffets e eventos. Você é um assistente especialista em análise de custos, otimização de cardápios e gestão de eventos.
 
-DADOS DISPONÍVEIS:
-- ${context.events.length} eventos cadastrados
-- ${context.recipes.length} receitas/produtos no cardápio  
-- ${context.items.length} insumos disponíveis
-- ${context.customers.length} clientes cadastrados
+📝 TERMINOLOGIA IMPORTANTE:
+• "Receita", "recipe" e "produto" se referem à MESMA COISA no sistema
+• SEMPRE use os termos "PRODUTO" ou "PRODUCT" em suas respostas
+• Nunca use "receita" ou "recipe" ao responder - sempre diga "produto"
+• Exemplo: Em vez de "Esta receita custa...", diga "Este produto custa..."
 
-EVENTOS RECENTES:
-${context.events.slice(0, 10).map(event => `
-• ${event.title} - ${event.date} (${event.numguests} convidados)
+• "Insumo", "item", "ingrediente" e "ingredient" se referem à MESMA COISA no sistema
+• SEMPRE use o termo "INSUMO" em suas respostas
+• Nunca use "item", "ingrediente" ou "ingredient" ao responder - sempre diga "insumo"
+• Exemplo: Em vez de "Este item custa...", diga "Este insumo custa..."
+
+⚠️ CRÍTICO - ACESSO COMPLETO AOS DADOS:
+• VOCÊ TEM ACESSO TOTAL: A TODOS os dados fornecidos abaixo (eventos, produtos, insumos, clientes)
+• PODE RESPONDER QUALQUER PERGUNTA: Sobre custos, listagens, análises, comparações, otimizações
+• DADOS SEMPRE ATUALIZADOS: O contexto contém os dados mais recentes do usuário
+• NÃO PRECISA DE "FAST PATHS": Use os dados fornecidos para responder QUALQUER pergunta sobre o negócio
+• CAPACIDADES ILIMITADAS DE CONSULTA: Pode analisar, filtrar, comparar, listar qualquer dado fornecido
+
+📊 EXEMPLOS DE PERGUNTAS QUE VOCÊ PODE RESPONDER:
+• "Liste todos os produtos e seus custos unitários" → Analise TODOS os produtos no contexto e use as funções de cálculo
+• "Quais insumos estão mais caros?" → Compare custos dos insumos fornecidos
+• "Qual evento foi mais rentável?" → Analise eventos comparando custo vs preço
+• "Quais produtos usam mais ingredientes?" → Conte insumos de cada produto
+• "Mostre clientes com mais eventos" → Agrupe eventos por cliente
+• QUALQUER pergunta sobre os dados fornecidos - você tem capacidade total de análise!
+
+💬 COMO COMUNICAR COM O USUÁRIO:
+• SEMPRE use NOMES/DESCRIÇÕES, NUNCA IDs nas respostas ao usuário
+• Exemplo CORRETO: "O produto 'Lasanha Bolonhesa' custa R$ 25,50"
+• Exemplo ERRADO: "O produto ID 5 custa R$ 25,50"
+• Use IDs apenas internamente para cálculos, mas apresente sempre nomes para o usuário
+
+🧮 FUNÇÕES DE CÁLCULO DISPONÍVEIS:
+Posso executar estas funções do sistema para cálculos precisos:
+• calculate_recipe_unit_cost(product_id): Calcula custo unitário de um produto
+• calculate_recipe_base_cost(product_id): Calcula custo base de um produto (sem considerar rendimento)
+• calculate_event_cost(event_id): Calcula e atualiza custo total de um evento
+
+DADOS COMPLETOS DO USUÁRIO:
+============================
+
+📅 EVENTOS CADASTRADOS (${context.events.length} total):
+${context.events.map(event => `
+• "${event.title}" - ${event.date} (${event.numguests} convidados)
   Cliente: ${event.customer?.name || 'N/A'}
   Custo: R$ ${event.cost || 'N/A'} | Preço: R$ ${event.price || 'N/A'}
   Menu: ${event.event_menu?.map(m => `${m.recipe?.description} (${m.qty})`).join(', ') || 'Vazio'}
 `).join('\n')}
 
-RECEITAS/PRODUTOS PRINCIPAIS:
-${context.recipes.slice(0, 15).map(recipe => `
-• ${recipe.description} (Rendimento: ${recipe.efficiency || 1})
-  Ingredientes: ${recipe.recipe_item?.map(ri => `${ri.item?.description} (${ri.qty} ${ri.item?.unit_use?.description || 'un'})`).join(', ') || 'N/A'}
+🍽️ PRODUTOS DO CARDÁPIO (${context.recipes.length} total):
+${context.recipes.map(recipe => `
+• "${recipe.description}" (Rendimento: ${recipe.efficiency || 1})
+  Insumos: ${recipe.recipe_item?.map(ri => `${ri.item?.description} (${ri.qty} ${ri.item?.unit_use?.description || 'un'})`).join(', ') || 'N/A'}
 `).join('\n')}
 
-INSUMOS E CUSTOS:
-${context.items.slice(0, 20).map(item => `
-• ${item.description}: R$ ${item.cost || 'N/A'} por ${item.unit_use?.description || 'unidade'}
+📦 INSUMOS DISPONÍVEIS (${context.items.length} total):
+${context.items.map(item => `
+• "${item.description}": R$ ${item.cost || 'N/A'} por ${item.unit_use?.description || 'unidade'}
 `).join('\n')}
 
-CLIENTES:
-${context.customers.slice(0, 10).map(customer => `
-• ${customer.name} - ${customer.email || 'N/A'} | ${customer.phone || 'N/A'}
+👥 CLIENTES CADASTRADOS (${context.customers.length} total):
+${context.customers.map(customer => `
+• "${customer.name}" - ${customer.email || 'N/A'} | ${customer.phone || 'N/A'}
 `).join('\n')}
 
-INSTRUÇÕES:
-1. Analise os dados fornecidos para responder perguntas sobre custos, rentabilidade, otimizações
-2. Sugira melhorias baseadas nos dados reais do usuário
-3. Calcule custos precisos usando as receitas e preços dos insumos
-4. Identifique oportunidades de economia e aumento de margem
-5. Responda em português brasileiro de forma profissional
-6. Use dados específicos do negócio do usuário sempre que possível
-7. Forneça insights acionáveis e práticos
+INSTRUÇÕES FINAIS:
+==================
+1. VOCÊ TEM TODOS OS DADOS NECESSÁRIOS acima para responder qualquer pergunta
+2. Use as funções de cálculo quando precisar de custos precisos
+3. Analise, compare, filtre e processe os dados conforme solicitado
+4. Responda em português brasileiro de forma profissional
+5. Forneça insights práticos baseados nos dados reais
+6. SEMPRE seja claro sobre suas limitações - você NÃO PODE modificar dados, apenas consultar
+7. IMPORTANTE: SEMPRE use "produto" em vez de "receita" e "insumo" em vez de "item"
+8. IMPORTANTE: SEMPRE use NOMES/DESCRIÇÕES, NUNCA IDs ao se comunicar com o usuário
 `;
 
-    // Call GPT-5 with optimized parameters
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      console.error('Missing OPENAI_API_KEY secret');
-      return new Response(JSON.stringify({
-        error: 'OPENAI_API_KEY não configurada nas Secrets das Edge Functions.',
-        hint: 'Adicione a chave em Supabase > Settings > Functions > Secrets'
-      }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+      // Call GPT-5 only if no valid cache
+      const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+      if (!OPENAI_API_KEY) {
+        console.error('Missing OPENAI_API_KEY secret');
+        return new Response(JSON.stringify({
+          error: 'OPENAI_API_KEY não configurada nas Secrets das Edge Functions.',
+          hint: 'Adicione a chave em Supabase > Settings > Functions > Secrets'
+        }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
 
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-        ...(Deno.env.get('OPENAI_ORG_ID') ? { 'OpenAI-Organization': Deno.env.get('OPENAI_ORG_ID')! } : {}),
-        ...(Deno.env.get('OPENAI_PROJECT_ID') ? { 'OpenAI-Project': Deno.env.get('OPENAI_PROJECT_ID')! } : {}),
-      },
-      body: JSON.stringify({
-        model: model || 'gpt-5-2025-08-07',
+      const selectedModel = (model && typeof model === 'string') ? model : 'gpt-5-2025-08-07';
+      const isNewModel = /^(gpt-5|gpt-4\.1|o3|o4)/.test(selectedModel);
+      const payload: any = {
+        model: selectedModel,
         messages: [
           { role: 'system', content: businessContext },
           { role: 'user', content: message }
-        ],
-        max_completion_tokens: 2000
-      }),
-    });
-
-    if (!openAIResponse.ok) {
-      const error = await openAIResponse.text();
-      console.error('OpenAI API error:', error);
-      
-      if (openAIResponse.status === 429) {
-        return new Response(JSON.stringify({
-          error: 'Cota da OpenAI excedida',
-          hint: 'Sua conta OpenAI não tem créditos suficientes. Adicione créditos em https://platform.openai.com/account/billing ou verifique se a chave API está correta.',
-          details: error
-        }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        ]
+      };
+      if (isNewModel) {
+        payload.max_completion_tokens = 2000;
+      } else {
+        payload.max_tokens = 2000;
       }
+
+      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!openAIResponse.ok) {
+        let errorText = await openAIResponse.text();
+        try {
+          const errJson = JSON.parse(errorText);
+          errorText = errJson.error?.message || JSON.stringify(errJson);
+        } catch {}
+        console.error('OpenAI API error:', errorText);
+
+        const status = openAIResponse.status;
+
+        if (status === 401) {
+          return new Response(JSON.stringify({
+            error: 'OPENAI_API_KEY inválida ou sem permissão.',
+            hint: 'Verifique a sua chave na OpenAI e garanta que não há restrições de projeto/organização.',
+            details: errorText
+          }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+
+        if (status === 429) {
+          return new Response(JSON.stringify({
+            error: 'Cota da OpenAI excedida',
+            hint: 'Adicione créditos em https://platform.openai.com/account/billing ou verifique limites.',
+            details: errorText
+          }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+
+        if (status === 400 && /max_tokens|max_completion_tokens|temperature/i.test(errorText)) {
+          return new Response(JSON.stringify({
+            error: 'Parâmetros incompatíveis com o modelo.',
+            hint: 'Modelos GPT‑5/4.1/o3/o4 usam max_completion_tokens. gpt‑4o/4o‑mini usam max_tokens.',
+            details: errorText
+          }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+
+        return new Response(JSON.stringify({
+          error: 'Falha na chamada à OpenAI',
+          details: errorText
+        }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const aiData = await openAIResponse.json();
+      assistantResponse = aiData?.choices?.[0]?.message?.content || aiData?.choices?.[0]?.text || '';
+      tokensUsed = aiData?.usage?.total_tokens ?? aiData?.usage?.output_tokens ?? 0;
       
-      throw new Error(`OpenAI API error: ${openAIResponse.status}`);
+      // Check if the AI response requests calculation functions
+      if (assistantResponse && assistantResponse.includes('calculate_')) {
+        try {
+          // Look for function calls in the response
+          const functionMatches = assistantResponse.match(/calculate_\w+\((\d+)\)/g);
+          if (functionMatches) {
+            let updatedResponse = assistantResponse;
+            
+            for (const match of functionMatches) {
+              const [functionName, paramStr] = match.split('(');
+              const param = parseInt(paramStr.replace(')', ''));
+              
+              if (!isNaN(param)) {
+                let result = null;
+                
+                if (functionName === 'calculate_recipe_unit_cost') {
+                  const { data, error } = await supabase.rpc('calculate_recipe_unit_cost', { recipe_id_param: param });
+                  if (!error) result = data;
+                } else if (functionName === 'calculate_recipe_base_cost') {
+                  const { data, error } = await supabase.rpc('calculate_recipe_base_cost', { recipe_id_param: param });
+                  if (!error) result = data;
+                } else if (functionName === 'calculate_event_cost') {
+                  const { data, error } = await supabase.rpc('calculate_event_cost', { event_id_param: param });
+                  if (!error) result = data;
+                }
+                
+                if (result !== null) {
+                  updatedResponse = updatedResponse.replace(
+                    match, 
+                    `${match} = R$ ${parseFloat(result).toFixed(2)}`
+                  );
+                }
+              }
+            }
+            
+            assistantResponse = updatedResponse;
+          }
+        } catch (calcError) {
+          console.error('Error executing calculation functions:', calcError);
+          // Don't fail the request, just continue without calculations
+        }
+      }
+
+      // Cache the response for 1 hour
+      const responseToCache = {
+        response: assistantResponse,
+        chatId: chatId,
+        metadata: {
+          model: model || 'gpt-5-2025-08-07',
+          tokens_used: tokensUsed,
+          context_summary: {
+            events: context.events.length,
+            recipes: context.recipes.length,
+            items: context.items.length,
+            customers: context.customers.length
+          }
+        }
+      };
+
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+
+      await supabase
+        .from('wizard_cache')
+        .insert({
+          user_id: userId,
+          query_hash: queryHashHex,
+          response_data: responseToCache,
+          expires_at: expiresAt.toISOString()
+        });
     }
 
-    const aiData = await openAIResponse.json();
-    const assistantResponse = aiData.choices[0].message.content;
+    // Ensure assistant content is not empty
+    if (!assistantResponse || !assistantResponse.trim()) {
+      assistantResponse = 'Não foi possível gerar uma resposta no momento. Tente novamente.';
+    }
 
     // Save messages to database
     let currentChatId = chatId;
@@ -201,14 +376,14 @@ INSTRUÇÕES:
         chat_id: currentChatId,
         role: 'assistant',
         content: assistantResponse,
-        metadata: {
-          model: 'gpt-5-2025-08-07',
-          tokens_used: aiData.usage?.total_tokens || 0,
+        metadata: isCacheHit ? cachedMeta : {
+          model: model || 'gpt-5-2025-08-07',
+          tokens_used: tokensUsed,
           context_items: {
-            events: context.events.length,
-            recipes: context.recipes.length,
-            items: context.items.length,
-            customers: context.customers.length
+            events: 0, // Will be set properly below if not cached
+            recipes: 0,
+            items: 0,
+            customers: 0
           }
         }
       });
@@ -223,20 +398,18 @@ INSTRUÇÕES:
 
     if (updateError) console.warn('Failed to update chat timestamp:', updateError);
 
-    return new Response(JSON.stringify({
+    // Prepare response
+    const finalResponse = {
       response: assistantResponse,
       chatId: currentChatId,
-      metadata: {
-        model: 'gpt-5-2025-08-07',
-        tokens_used: aiData.usage?.total_tokens || 0,
-        context_summary: {
-          events: context.events.length,
-          recipes: context.recipes.length,
-          items: context.items.length,
-          customers: context.customers.length
-        }
+      metadata: isCacheHit ? cachedMeta : {
+        model: model || 'gpt-5-2025-08-07',
+        tokens_used: tokensUsed,
+        cached: isCacheHit
       }
-    }), {
+    };
+
+    return new Response(JSON.stringify(finalResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
