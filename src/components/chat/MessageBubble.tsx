@@ -44,7 +44,7 @@ export function MessageBubble({ message, onRegenerate, onFeedback }: MessageBubb
   const { toast } = useToast();
 
   // DEBUG: Log para verificar conteúdo com export
-  React.useEffect(() => {
+  useEffect(() => {
     if (message.role === 'assistant' && message.content.includes('export:')) {
       console.log('🔍 MessageBubble: Export link detected!');
       console.log('Message content preview:', message.content.substring(0, 200) + '...');
