@@ -108,9 +108,17 @@ CONTEXTO DO NEGÓCIO - BUFFETWIZ:
 Este é um sistema de gestão para buffets e eventos. Você é um assistente especialista em análise de custos, otimização de cardápios e gestão de eventos.
 
 ⚠️ IMPORTANTE - SUAS CAPACIDADES:
-• POSSO: Analisar dados, calcular custos, sugerir otimizações, responder perguntas
+• POSSO: Analisar dados, calcular custos, sugerir otimizações, responder perguntas, executar funções de cálculo
 • NÃO POSSO: Gravar, editar ou modificar dados no sistema (sou apenas consulta)
 • Quando o usuário pedir para "salvar" ou "atualizar" algo, SEMPRE explique que ele precisa fazer isso manualmente na aplicação
+
+🧮 FUNÇÕES DE CÁLCULO DISPONÍVEIS:
+Posso executar estas funções do sistema para cálculos precisos:
+• calculate_recipe_unit_cost(recipe_id): Calcula custo unitário de uma receita
+• calculate_recipe_base_cost(recipe_id): Calcula custo base de uma receita (sem considerar rendimento)
+• calculate_event_cost(event_id): Calcula e atualiza custo total de um evento
+
+Para usar essas funções, diga algo como: "Calcule o custo da receita ID 5" ou "Qual o custo do evento ID 12"
 
 DADOS DISPONÍVEIS:
 - ${context.events.length} eventos cadastrados
@@ -120,7 +128,7 @@ DADOS DISPONÍVEIS:
 
 EVENTOS RECENTES:
 ${context.events.slice(0, 10).map(event => `
-• ${event.title} - ${event.date} (${event.numguests} convidados)
+• ID: ${event.id} | ${event.title} - ${event.date} (${event.numguests} convidados)
   Cliente: ${event.customer?.name || 'N/A'}
   Custo: R$ ${event.cost || 'N/A'} | Preço: R$ ${event.price || 'N/A'}
   Menu: ${event.event_menu?.map(m => `${m.recipe?.description} (${m.qty})`).join(', ') || 'Vazio'}
@@ -128,29 +136,30 @@ ${context.events.slice(0, 10).map(event => `
 
 RECEITAS/PRODUTOS PRINCIPAIS:
 ${context.recipes.slice(0, 15).map(recipe => `
-• ${recipe.description} (Rendimento: ${recipe.efficiency || 1})
+• ID: ${recipe.id} | ${recipe.description} (Rendimento: ${recipe.efficiency || 1})
   Ingredientes: ${recipe.recipe_item?.map(ri => `${ri.item?.description} (${ri.qty} ${ri.item?.unit_use?.description || 'un'})`).join(', ') || 'N/A'}
 `).join('\n')}
 
 INSUMOS E CUSTOS:
 ${context.items.slice(0, 20).map(item => `
-• ${item.description}: R$ ${item.cost || 'N/A'} por ${item.unit_use?.description || 'unidade'}
+• ID: ${item.id} | ${item.description}: R$ ${item.cost || 'N/A'} por ${item.unit_use?.description || 'unidade'}
 `).join('\n')}
 
 CLIENTES:
 ${context.customers.slice(0, 10).map(customer => `
-• ${customer.name} - ${customer.email || 'N/A'} | ${customer.phone || 'N/A'}
+• ID: ${customer.id} | ${customer.name} - ${customer.email || 'N/A'} | ${customer.phone || 'N/A'}
 `).join('\n')}
 
 INSTRUÇÕES:
 1. Analise os dados fornecidos para responder perguntas sobre custos, rentabilidade, otimizações
-2. Sugira melhorias baseadas nos dados reais do usuário
-3. Calcule custos precisos usando as receitas e preços dos insumos
+2. Use as funções de cálculo disponíveis quando precisar de custos precisos
+3. Sugira melhorias baseadas nos dados reais do usuário
 4. Identifique oportunidades de economia e aumento de margem
 5. Responda em português brasileiro de forma profissional
 6. Use dados específicos do negócio do usuário sempre que possível
 7. Forneça insights acionáveis e práticos
 8. SEMPRE seja claro sobre suas limitações - você NÃO PODE modificar dados, apenas consultar
+9. Quando usar funções de cálculo, informe o resultado obtido ao usuário
 `;
 
     // Call GPT-5 only if no valid cache
@@ -200,6 +209,49 @@ INSTRUÇÕES:
       const aiData = await openAIResponse.json();
       assistantResponse = aiData?.choices?.[0]?.message?.content || aiData?.choices?.[0]?.text || '';
       tokensUsed = aiData?.usage?.total_tokens || 0;
+      
+      // Check if the AI response requests calculation functions
+      if (assistantResponse && assistantResponse.includes('calculate_')) {
+        try {
+          // Look for function calls in the response
+          const functionMatches = assistantResponse.match(/calculate_\w+\((\d+)\)/g);
+          if (functionMatches) {
+            let updatedResponse = assistantResponse;
+            
+            for (const match of functionMatches) {
+              const [functionName, paramStr] = match.split('(');
+              const param = parseInt(paramStr.replace(')', ''));
+              
+              if (!isNaN(param)) {
+                let result = null;
+                
+                if (functionName === 'calculate_recipe_unit_cost') {
+                  const { data, error } = await supabase.rpc('calculate_recipe_unit_cost', { recipe_id_param: param });
+                  if (!error) result = data;
+                } else if (functionName === 'calculate_recipe_base_cost') {
+                  const { data, error } = await supabase.rpc('calculate_recipe_base_cost', { recipe_id_param: param });
+                  if (!error) result = data;
+                } else if (functionName === 'calculate_event_cost') {
+                  const { data, error } = await supabase.rpc('calculate_event_cost', { event_id_param: param });
+                  if (!error) result = data;
+                }
+                
+                if (result !== null) {
+                  updatedResponse = updatedResponse.replace(
+                    match, 
+                    `${match} = R$ ${parseFloat(result).toFixed(2)}`
+                  );
+                }
+              }
+            }
+            
+            assistantResponse = updatedResponse;
+          }
+        } catch (calcError) {
+          console.error('Error executing calculation functions:', calcError);
+          // Don't fail the request, just continue without calculations
+        }
+      }
     }
 
     // Ensure assistant content is not empty
