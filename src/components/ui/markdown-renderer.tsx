@@ -4,9 +4,8 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { parseExportPayload } from "@/lib/export-utils";
+import { handleExportClick as globalHandleExportClick } from "@/lib/export-handler";
 
 // Process export links (no-op; handled in custom <a> renderer)
 function processExportLinks(md: string): string {
@@ -29,150 +28,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
   };
 
   const handleExportClick = async (payload: string) => {
-    try {
-      // Try to parse robustly
-      const parsed = parseExportPayload(payload);
-
-      if (!parsed) {
-        // Fallback: infer target from filename and rebuild minimal data
-        const cleaned = (payload || '').toLowerCase();
-        const filenameMatch = cleaned.match(/filename\"?\s*:\s*\"([^\"]+)/);
-        const filename = filenameMatch?.[1] || 'export';
-        const filenameLower = filename.toLowerCase();
-
-        let target: 'produtos' | 'eventos' | 'insumos' | 'clientes' = 'produtos';
-        if (filenameLower.includes('evento')) target = 'eventos';
-        else if (filenameLower.includes('insumo') || filenameLower.includes('item')) target = 'insumos';
-        else if (filenameLower.includes('cliente')) target = 'clientes';
-
-        let exportData: any[] = [];
-        const { data: userResp } = await supabase.auth.getUser();
-        const userId = userResp.user?.id;
-
-        if (target === 'produtos') {
-          const { data: recipes } = await supabase
-            .from('recipe')
-            .select('id, description')
-            .eq('user_id', userId as string)
-            .limit(200);
-
-          const rows = await Promise.all((recipes || []).map(async (r) => {
-            try {
-              const { data: uc } = await supabase.rpc('calculate_recipe_unit_cost', { recipe_id_param: r.id });
-              return { 'Produto': r.description, 'Custo Unitário (R$)': Number(uc ?? 0) };
-            } catch {
-              return { 'Produto': r.description, 'Custo Unitário (R$)': 0 };
-            }
-          }));
-          exportData = rows;
-        } else if (target === 'eventos') {
-          const { data: events } = await supabase
-            .from('event')
-            .select('title, date, numguests, cost, price, customer:customer(name)')
-            .eq('user_id', userId as string)
-            .limit(200);
-          exportData = (events || []).map((e: any) => ({
-            'Evento': e.title,
-            'Data': e.date,
-            'Convidados': e.numguests || 0,
-            'Custo (R$)': e.cost || 0,
-            'Preço (R$)': e.price || 0,
-            'Cliente': e?.customer?.name || ''
-          }));
-        } else if (target === 'insumos') {
-          const { data: items } = await supabase
-            .from('item')
-            .select('description, cost')
-            .eq('user_id', userId as string)
-            .limit(500);
-          exportData = (items || []).map((i: any) => ({ 'Insumo': i.description, 'Custo (R$)': i.cost || 0 }));
-        } else if (target === 'clientes') {
-          const { data: customers } = await supabase
-            .from('customer')
-            .select('name, email, phone')
-            .eq('user_id', userId as string)
-            .limit(500);
-          exportData = (customers || []).map((c: any) => ({ 'Cliente': c.name, 'Email': c.email || '', 'Telefone': c.phone || '' }));
-        }
-
-        const { data: response, error } = await supabase.functions.invoke('wizard-export', {
-          body: { type: 'csv', filename, data: exportData }
-        });
-        if (error) throw error;
-
-        if (response?.downloadUrl) {
-          // Convert data URL to Blob and use object URL for reliable download
-          const match = response.downloadUrl.match(/^data:([^;]+);base64,(.*)$/);
-          if (match) {
-            const mime = match[1];
-            const b64 = match[2];
-            const byteChars = atob(b64);
-            const byteNums = new Array(byteChars.length);
-            for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
-            const blob = new Blob([new Uint8Array(byteNums)], { type: mime });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = response.filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-          } else {
-            // Fallback: open in new tab
-            window.open(response.downloadUrl, '_blank');
-          }
-
-          toast({
-            title: 'Arquivo exportado',
-            description: `${response.filename} foi baixado com sucesso`,
-          });
-        }
-        return;
-      }
-
-      // Normal path with parsed payload
-      const { data: response, error } = await supabase.functions.invoke('wizard-export', {
-        body: parsed
-      });
-      if (error) throw error;
-
-      if (response?.downloadUrl) {
-        const match = response.downloadUrl.match(/^data:([^;]+);base64,(.*)$/);
-        if (match) {
-          const mime = match[1];
-          const b64 = match[2];
-          const byteChars = atob(b64);
-          const byteNums = new Array(byteChars.length);
-          for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
-          const blob = new Blob([new Uint8Array(byteNums)], { type: mime });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = response.filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        } else {
-          window.open(response.downloadUrl, '_blank');
-        }
-
-        toast({
-          title: 'Arquivo exportado',
-          description: `${response.filename} foi baixado com sucesso`,
-        });
-      } else {
-        throw new Error('Resposta inválida da exportação');
-      }
-    } catch (err) {
-      console.error('Export error:', err);
-      toast({
-        title: 'Erro na exportação',
-        description: 'Não foi possível exportar o arquivo',
-        variant: 'destructive',
-      });
-    }
+    await globalHandleExportClick(payload);
   };
 
   const processedContent = processExportLinks(content);
@@ -279,8 +135,9 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
               const payload = href.replace(/^export:/, '');
               return (
                 <button
-                  onClick={() => handleExportClick(payload)}
-                  className={cn("inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors cursor-pointer shadow-sm", className)}
+                  type="button"
+                  data-export-payload={payload}
+                  className={cn("inline-flex items-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors cursor-pointer shadow-sm", className)}
                 >
                   📥 {children}
                 </button>

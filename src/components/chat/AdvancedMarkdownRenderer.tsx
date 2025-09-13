@@ -9,9 +9,8 @@ import { cn } from "@/lib/utils";
 import { Copy, Check, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { parseExportPayload } from "@/lib/export-utils";
+import { handleExportClick as globalHandleExportClick } from "@/lib/export-handler";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
@@ -59,92 +58,7 @@ export function AdvancedMarkdownRenderer({
 
   const handleExportClick = async (payload: string) => {
     if (!enableExports) return;
-
-    try {
-      const parsed = parseExportPayload(payload);
-
-      if (!parsed) {
-        // Minimal graceful failure notice
-        toast({
-          title: 'Formato do link inválido',
-          description: 'Tentando reconstruir dados automaticamente...'
-        });
-
-        // As a safe fallback, just ask the Edge Function to export an empty CSV
-        const { data: response, error } = await supabase.functions.invoke('wizard-export', {
-          body: { type: 'csv', filename: 'export', data: [] }
-        });
-        if (error) throw error;
-        if (response?.downloadUrl) {
-          // Convert data URL to Blob and use object URL for reliable download
-          const match = response.downloadUrl.match(/^data:([^;]+);base64,(.*)$/);
-          if (match) {
-            const mime = match[1];
-            const b64 = match[2];
-            const byteChars = atob(b64);
-            const byteNums = new Array(byteChars.length);
-            for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
-            const blob = new Blob([new Uint8Array(byteNums)], { type: mime });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = response.filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-          } else {
-            window.open(response.downloadUrl, '_blank');
-          }
-
-          toast({
-            title: 'Arquivo exportado',
-            description: `${response.filename} foi baixado com sucesso`,
-          });
-        }
-        return;
-      }
-
-      const { data: response, error } = await supabase.functions.invoke('wizard-export', {
-        body: parsed
-      });
-
-      if (error) throw error;
-
-      if (response?.downloadUrl) {
-        const match = response.downloadUrl.match(/^data:([^;]+);base64,(.*)$/);
-        if (match) {
-          const mime = match[1];
-          const b64 = match[2];
-          const byteChars = atob(b64);
-          const byteNums = new Array(byteChars.length);
-          for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
-          const blob = new Blob([new Uint8Array(byteNums)], { type: mime });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = response.filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        } else {
-          window.open(response.downloadUrl, '_blank');
-        }
-        
-        toast({
-          title: 'Arquivo exportado',
-          description: `${response.filename} foi baixado com sucesso`,
-        });
-      }
-    } catch (err) {
-      console.error('Export error:', err);
-      toast({
-        title: 'Erro na exportação',
-        description: 'Não foi possível exportar o arquivo',
-        variant: 'destructive',
-      });
-    }
+    await globalHandleExportClick(payload);
   };
 
   const remarkPlugins = [remarkGfm];
@@ -359,16 +273,17 @@ export function AdvancedMarkdownRenderer({
             if (href && href.startsWith('export:')) {
               const payload = href.replace(/^export:/, '');
               return (
-                <Button
-                  onClick={() => handleExportClick(payload)}
+                <button
+                  type="button"
+                  data-export-payload={payload}
                   className={cn(
-                    "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md", 
+                    "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground", 
                     className
                   )}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   {children}
-                </Button>
+                </button>
               );
             }
 
