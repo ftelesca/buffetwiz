@@ -278,7 +278,7 @@ INSTRUÇÕES FINAIS:
       // Cache the response for 1 hour
       const responseToCache = {
         response: assistantResponse,
-        chatId: currentChatId,
+        chatId: chatId,
         metadata: {
           model: model || 'gpt-5-2025-08-07',
           tokens_used: tokensUsed,
