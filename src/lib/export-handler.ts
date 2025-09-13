@@ -4,6 +4,8 @@ import { toast } from "@/hooks/use-toast";
 
 export async function handleExportClick(payload: string): Promise<void> {
   console.log('🔄 Iniciando exportação...', { payload });
+  console.log('🔍 Payload string:', payload);
+  console.log('🔍 Payload substring 0-100:', payload?.substring(0, 100));
   
   // Show loading toast
   const loadingToast = toast({
