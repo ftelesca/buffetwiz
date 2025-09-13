@@ -38,71 +38,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true
 
-    const handleAuthChange = async (session: Session | null) => {
+    const applySession = (session: Session | null) => {
       if (!isMounted) return
-      
-      try {
-        setSession(session)
-        setUser(session?.user ?? null)
-        
-        if (session?.user) {
-          await fetchProfile(session.user.id)
-        } else {
-          setProfile(null)
-        }
-      } catch (error) {
-        console.error('Error in auth state change:', error)
-        if (isMounted) {
-          setProfile(null)
-        }
-      } finally {
-        if (isMounted) {
-          setInitialized(true)
-          setLoading(false)
-        }
+      setSession(session)
+      setUser(session?.user ?? null)
+
+      if (session?.user) {
+        // Defer Supabase calls to avoid deadlocks inside the auth callback
+        setTimeout(() => {
+          if (!isMounted) return
+          fetchProfile(session.user!.id)
+        }, 0)
+      } else {
+        setProfile(null)
       }
+
+      setInitialized(true)
+      setLoading(false)
     }
 
-    // Get initial session
+    // Listen for auth changes FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      applySession(session)
+    })
+
+    // Then get initial session
     supabase.auth.getSession()
       .then(({ data: { session }, error }) => {
         if (error) {
           console.error('Error getting initial session:', error)
           // Clear corrupted session data
           supabase.auth.signOut()
-          if (isMounted) {
-            setLoading(false)
-          }
+          if (isMounted) setLoading(false)
           return
         }
-        if (isMounted) {
-          handleAuthChange(session)
-        }
+        applySession(session)
       })
       .catch((error) => {
         console.error('Error getting initial session:', error)
         // Clear corrupted session data
         supabase.auth.signOut()
-        if (isMounted) {
-          setLoading(false)
-        }
+        if (isMounted) setLoading(false)
       })
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // Handle token refresh errors
-        if (event === 'TOKEN_REFRESHED' && !session) {
-          console.warn('Token refresh failed, signing out user')
-          await supabase.auth.signOut()
-          return
-        }
-        
-        if (isMounted) {
-          handleAuthChange(session)
-        }
-      }
-    )
 
     return () => {
       isMounted = false
@@ -168,10 +145,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signInWithGoogle = async () => {
+    const redirectTo = window.location.href
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`
+        redirectTo
       }
     })
 
