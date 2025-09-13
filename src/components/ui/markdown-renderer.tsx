@@ -208,19 +208,32 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
               return (
                 <button
                   type="button"
-                  data-export-payload={payload}
+                  onClick={() => handleExportClick(payload)}
                   className={cn("inline-flex items-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors cursor-pointer shadow-sm", className)}
                 >
                   📥 {children}
                 </button>
               );
             }
+            
+            if (href && (href.startsWith('http') || href.startsWith('https'))) {
+              return (
+                <a 
+                  className={cn("font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors", className)} 
+                  href={href} 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  {...props}
+                >
+                  {children}
+                </a>
+              );
+            }
+
             return (
               <a 
                 className={cn("font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors", className)} 
                 href={href} 
-                target="_blank"
-                rel="noopener noreferrer"
                 {...props}
               >
                 {children}

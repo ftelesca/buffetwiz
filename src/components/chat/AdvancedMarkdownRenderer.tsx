@@ -351,7 +351,7 @@ export function AdvancedMarkdownRenderer({
               return (
                 <button
                   type="button"
-                  data-export-payload={payload}
+                  onClick={() => handleExportClick(payload)}
                   className={cn(
                     "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground", 
                     className
@@ -388,8 +388,6 @@ export function AdvancedMarkdownRenderer({
                   className
                 )} 
                 href={href} 
-                target="_blank"
-                rel="noopener noreferrer"
                 {...props}
               >
                 {children}
