@@ -8,7 +8,6 @@ import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import ChatSidebar from "./ChatSidebar";
 
-// ✅ Usa NEXT_PUBLIC_ (injetado no bundle) e evita process no browser
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
@@ -31,7 +30,12 @@ type Message = {
   created_at?: string;
 };
 
-function ChatInterface() {
+interface ChatInterfaceProps {
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+}
+
+function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -61,7 +65,6 @@ function ChatInterface() {
 
       setSessions((data ?? []) as Session[]);
 
-      // seleciona a primeira sessão automaticamente
       if (data && data.length) {
         setCurrentSessionId(data[0].id);
         const { data: msgs } = await supabase
@@ -74,7 +77,6 @@ function ChatInterface() {
     })();
   }, []);
 
-  // Renderiza cada mensagem (com Markdown e highlight)
   const renderMessage = (m: Message, i: number) => {
     const isUser = m.role === "user";
     return (
@@ -91,7 +93,7 @@ function ChatInterface() {
               const match = /language-(\w+)/.exec(className || "");
               return match ? (
                 <SyntaxHighlighter
-                  style={atomOneLight}
+                  style={atomOneLight as any} // ✅ cast corrige erro TS
                   language={match[1]}
                   PreTag="div"
                   {...props}
@@ -139,7 +141,6 @@ function ChatInterface() {
         sessionId: currentSessionId,
       };
 
-      // Mostra mensagem do usuário antes da resposta
       const optimisticUser: Message = {
         chat_id: currentSessionId || "__pending__",
         role: "user",
@@ -161,7 +162,7 @@ function ChatInterface() {
       const data = await r.json();
 
       if (!r.ok) {
-        setMessages((prev) => prev.slice(0, -1)); // rollback
+        setMessages((prev) => prev.slice(0, -1));
         throw new Error(data?.error || "Falha ao enviar mensagem");
       }
 
@@ -204,9 +205,10 @@ function ChatInterface() {
     }
   }
 
+  if (!open) return null;
+
   return (
     <div className="flex h-full w-full">
-      {/* Sidebar */}
       <ChatSidebar
         sessions={sessions}
         activeSessionId={currentSessionId}
@@ -214,10 +216,17 @@ function ChatInterface() {
         onDelete={handleDeleteSession}
       />
 
-      {/* Área principal */}
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="border-b p-3">
+        <div className="border-b p-3 flex items-center justify-between">
           <h1 className="text-lg font-semibold">Assistente BuffetWiz</h1>
+          {onOpenChange && (
+            <button
+              onClick={() => onOpenChange(false)}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
         <div className="flex-1 space-y-2 overflow-y-auto bg-gray-50 p-3">
