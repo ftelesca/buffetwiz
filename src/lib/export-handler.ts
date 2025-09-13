@@ -2,6 +2,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { parseExportPayload } from "./export-utils";
 import { toast } from "@/hooks/use-toast";
 
+// Simple CSV generator (ChatGPT-like client-side fallback)
+function generateCSV(rows: any[]): string {
+  if (!rows || rows.length === 0) return '';
+  const headersSet = new Set<string>();
+  rows.forEach((r) => Object.keys(r || {}).forEach((k) => headersSet.add(k)));
+  const headers = Array.from(headersSet);
+  const escape = (val: any) => {
+    if (val == null) return '';
+    const s = String(val);
+    if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  };
+  const lines = [
+    headers.map((h) => escape(h)).join(','),
+    ...rows.map((r) => headers.map((h) => escape((r as any)[h])).join(',')),
+  ];
+  return lines.join('\n');
+}
+
 export async function handleExportClick(payload: string): Promise<void> {
   console.log('🔄 Iniciando exportação...', { payload });
   
@@ -104,6 +123,17 @@ export async function handleExportClick(payload: string): Promise<void> {
     }
 
     // Normal path with successfully parsed payload
+    // ChatGPT-like local export for CSV/JSON to avoid server call
+    if ((parsed.type === 'csv' || parsed.type === 'json') && Array.isArray(parsed.data)) {
+      const filename = parsed.filename || 'export';
+      const contentType = parsed.type === 'csv' ? 'text/csv;charset=utf-8' : 'application/json;charset=utf-8';
+      const contentStr = parsed.type === 'csv' ? generateCSV(parsed.data) : JSON.stringify(parsed.data, null, 2);
+      const base64 = btoa(unescape(encodeURIComponent(contentStr)));
+      const downloadUrl = `data:${contentType};base64,${base64}`;
+      await downloadFile({ downloadUrl, filename }, filename);
+      return;
+    }
+
     console.log('📤 Invocando função wizard-export...');
     const { data: response, error } = await supabase.functions.invoke('wizard-export', {
       body: parsed
