@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { html2pdf } from "html2pdf.js"; 
 import { 
   Send, 
   Bot, 
@@ -180,51 +181,46 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
   };
 
   const exportToPDF = async (chatId: string) => {
-    try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.functions.invoke('wizard-export-pdf', {
-        body: { chatId }
-      });
+  try {
+    setIsLoading(true);
 
-      if (error) throw error;
+    const { data, error } = await supabase.functions.invoke("wizard-export-pdf", {
+      body: { chatId },
+    });
+    if (error) throw error;
 
-      // Create and download PDF using client-side library
-      const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF();
-      
-      // Convert HTML to PDF (simplified version)
-      const lines = data.html.replace(/<[^>]*>/g, '').split('\n').filter(line => line.trim());
-      let y = 20;
-      
-      lines.forEach(line => {
-        if (y > 280) {
-          pdf.addPage();
-          y = 20;
-        }
-        pdf.text(line.trim().substring(0, 80), 10, y);
-        y += 6;
-      });
+    // Cria um elemento DOM temporário com o HTML retornado
+    const element = document.createElement("div");
+    element.innerHTML = data.html;
 
-      pdf.save(data.filename);
-      
-      toast({
-        title: "PDF exportado",
-        description: "Relatório baixado com sucesso",
-      });
+    // Configurações do PDF
+    const opt = {
+      margin: 0.5,
+      filename: data.filename,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+    };
 
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-      toast({
-        title: "Erro no export",
-        description: "Falha ao gerar PDF",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Gera e baixa o PDF
+    await html2pdf().set(opt).from(element).save();
 
+    toast({
+      title: "PDF exportado",
+      description: "Relatório baixado com sucesso",
+    });
+  } catch (error) {
+    console.error("Error exporting PDF:", error);
+    toast({
+      title: "Erro no export",
+      description: "Falha ao gerar PDF",
+      variant: "destructive",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+  
   const deleteChat = async (chatId: string) => {
     try {
       const { error } = await supabase
