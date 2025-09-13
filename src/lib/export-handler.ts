@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { parseExportPayload } from "./export-utils";
 import { toast } from "@/hooks/use-toast";
+import * as XLSX from "xlsx";
 
 // Simple CSV generator (ChatGPT-like client-side fallback)
 function generateCSV(rows: any[]): string {
@@ -19,6 +20,24 @@ function generateCSV(rows: any[]): string {
     ...rows.map((r) => headers.map((h) => escape((r as any)[h])).join(',')),
   ];
   return lines.join('\n');
+}
+
+function localDownloadXLSX(rows: any[], filename: string) {
+  if (!rows || !Array.isArray(rows)) rows = [];
+  const safeName = filename && filename.toLowerCase().endsWith('.xlsx') ? filename : `${filename || 'export'}.xlsx`;
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Planilha');
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = safeName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 export async function handleExportClick(payload: string): Promise<void> {
@@ -112,6 +131,13 @@ export async function handleExportClick(payload: string): Promise<void> {
 
       console.log('📊 Dados obtidos:', { target, count: exportData.length });
 
+      if (inferredType === 'xlsx') {
+        localDownloadXLSX(exportData, filename);
+        loadingToast.dismiss();
+        toast({ title: 'Arquivo exportado', description: `${filename} foi baixado com sucesso` });
+        return;
+      }
+
       const fallbackData = { type: inferredType, filename, data: exportData };
       const { data: response, error } = await supabase.functions.invoke('wizard-export', {
         body: fallbackData
@@ -138,6 +164,15 @@ export async function handleExportClick(payload: string): Promise<void> {
       const downloadUrl = `data:${contentType};base64,${base64}`;
       await downloadFile({ downloadUrl, filename }, filename);
       loadingToast.dismiss();
+      return;
+    }
+
+    // Local XLSX generation when requested
+    if ((parsed.type === 'xlsx' || parsed.type === 'excel') && Array.isArray(parsed.data)) {
+      const filename = (parsed.filename && parsed.filename.toLowerCase().endsWith('.xlsx')) ? parsed.filename : `${parsed.filename || 'export'}.xlsx`;
+      localDownloadXLSX(parsed.data, filename);
+      loadingToast.dismiss();
+      toast({ title: 'Arquivo exportado', description: `${filename} foi baixado com sucesso` });
       return;
     }
 
