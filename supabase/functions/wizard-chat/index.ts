@@ -38,7 +38,7 @@ serve(async (req) => {
     console.log('Processing request for user:', userId);
 
     // Create query hash for cache
-    const queryHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message + (model || 'gpt-5-2025-08-07')));
+    const queryHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message + (model || 'gpt-4.1-mini-2025-04-14')));
     const hashArray = Array.from(new Uint8Array(queryHash));
     const queryHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
@@ -195,7 +195,7 @@ INSTRUÇÕES FINAIS:
         }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      const selectedModel = (model && typeof model === 'string') ? model : 'gpt-5-2025-08-07';
+      const selectedModel = (model && typeof model === 'string') ? model : 'gpt-4.1-mini-2025-04-14'; // Use faster model by default
       const isNewModel = /^(gpt-5|gpt-4\.1|o3|o4)/.test(selectedModel);
       const payload: any = {
         model: selectedModel,
@@ -205,10 +205,14 @@ INSTRUÇÕES FINAIS:
         ]
       };
       if (isNewModel) {
-        payload.max_completion_tokens = 2000;
+        payload.max_completion_tokens = 1500; // Reduced for faster responses
       } else {
-        payload.max_tokens = 2000;
+        payload.max_tokens = 1500; // Reduced for faster responses
       }
+
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
 
       const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -216,8 +220,11 @@ INSTRUÇÕES FINAIS:
           'Authorization': `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
         body: JSON.stringify(payload),
       });
+
+      clearTimeout(timeoutId);
 
       if (!openAIResponse.ok) {
         let errorText = await openAIResponse.text();
@@ -311,7 +318,7 @@ INSTRUÇÕES FINAIS:
         response: assistantResponse,
         chatId: chatId,
         metadata: {
-          model: model || 'gpt-5-2025-08-07',
+          model: model || 'gpt-4.1-mini-2025-04-14',
           tokens_used: tokensUsed,
           context_summary: {
             events: context.events.length,
@@ -377,7 +384,7 @@ INSTRUÇÕES FINAIS:
         role: 'assistant',
         content: assistantResponse,
         metadata: isCacheHit ? cachedMeta : {
-          model: model || 'gpt-5-2025-08-07',
+          model: model || 'gpt-4.1-mini-2025-04-14',
           tokens_used: tokensUsed,
           context_items: {
             events: 0, // Will be set properly below if not cached
@@ -403,7 +410,7 @@ INSTRUÇÕES FINAIS:
       response: assistantResponse,
       chatId: currentChatId,
       metadata: isCacheHit ? cachedMeta : {
-        model: model || 'gpt-5-2025-08-07',
+        model: model || 'gpt-4.1-mini-2025-04-14',
         tokens_used: tokensUsed,
         cached: isCacheHit
       }
