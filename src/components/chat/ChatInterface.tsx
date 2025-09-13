@@ -89,4 +89,167 @@ function ChatInterface() {
               return match ? (
                 <SyntaxHighlighter style={atomOneLight} language={match[1]} PreTag="div" {...props}>
                   {String(children).replace(/\n$/, "")}
-                </S
+                </SyntaxHighlighter>
+              ) : (
+                <code className="rounded bg-gray-200 px-1" {...props}>
+                  {children}
+                </code>
+              );
+            },
+            a({ href, children }) {
+              // links de download assinados funcionam normalmente
+              return (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:no-underline"
+                >
+                  {children}
+                </a>
+              );
+            },
+          }}
+        >
+          {m.content?.trim() || (isUser ? "" : "[⚠️ Resposta vazia]")}
+        </ReactMarkdown>
+      </div>
+    );
+  };
+
+  async function handleSend() {
+    if (!input.trim() || sending) return;
+    setSending(true);
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Sessão inválida.");
+
+      const body = {
+        message: input.trim(),
+        sessionId: currentSessionId, // pode ser null para criar nova
+      };
+
+      // Otimismo: mostra mensagem do usuário imediatamente
+      const optimisticUser: Message = {
+        chat_id: currentSessionId || "__pending__",
+        role: "user",
+        content: input.trim(),
+      };
+      setMessages((prev) => [...prev, optimisticUser]);
+      setInput("");
+
+      const r = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await r.json();
+
+      if (!r.ok) {
+        // rollback da última mensagem do usuário
+        setMessages((prev) => prev.slice(0, -1));
+        throw new Error(data?.error || "Falha ao enviar mensagem");
+      }
+
+      // Atualiza sessão corrente
+      setCurrentSessionId(data.sessionId || null);
+
+      // Corrige exibição no painel: usa mensagens/sessões retornadas do backend
+      setMessages(data.messages || []);
+      setSessions(data.sessions || []);
+    } catch (e: any) {
+      console.error(e);
+      alert(e.message ?? "Erro ao enviar mensagem");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleSelectSession(chatId: string) {
+    setCurrentSessionId(chatId);
+    // Carrega mensagens dessa sessão
+    const { data: msgs } = await supabase
+      .from("wizard_messages")
+      .select("*")
+      .eq("chat_id", chatId)
+      .order("created_at", { ascending: true });
+    setMessages((msgs ?? []) as Message[]);
+  }
+
+  async function handleDeleteSession(chatId: string) {
+    if (!confirm("Deseja apagar este chat?")) return;
+    try {
+      // Apaga mensagens + sessão (somente do próprio user via RLS)
+      await supabase.from("wizard_messages").delete().eq("chat_id", chatId);
+      await supabase.from("wizard_chats").delete().eq("id", chatId);
+
+      // Atualiza lista local de sessões
+      setSessions((prev) => prev.filter((s) => s.id !== chatId));
+
+      // Se estava aberta, limpa painel
+      if (currentSessionId === chatId) {
+        setCurrentSessionId(null);
+        setMessages([]);
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert(e.message ?? "Falha ao apagar chat");
+    }
+  }
+
+  return (
+    <div className="flex h-full w-full">
+      {/* Sidebar do histórico */}
+      <ChatSidebar
+        sessions={sessions}
+        activeSessionId={currentSessionId}
+        onSelect={handleSelectSession}
+        onDelete={handleDeleteSession}
+      />
+
+      {/* Área do chat */}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {/* Header simples */}
+        <div className="border-b p-3">
+          <h1 className="text-lg font-semibold">Assistente BuffetWiz</h1>
+        </div>
+
+        {/* Mensagens */}
+        <div className="flex-1 space-y-2 overflow-y-auto bg-gray-50 p-3">
+          {messages.map((m, i) => renderMessage(m, i))}
+          <div ref={scrollRef} />
+        </div>
+
+        {/* Input */}
+        <div className="border-t p-3">
+          <div className="flex gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              placeholder="Digite sua mensagem..."
+              className="flex-1 rounded border px-3 py-2 outline-none focus:ring"
+            />
+            <button
+              onClick={handleSend}
+              disabled={sending || !input.trim()}
+              className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {sending ? "Enviando..." : "Enviar"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ChatInterface;
+export { ChatInterface };
