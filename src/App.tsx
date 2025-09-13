@@ -39,6 +39,7 @@ const App = () => {
         e.preventDefault();
         e.stopPropagation();
         const payload = href.replace(/^export:/, '');
+        console.log('🖱️ Doc-level export link clicked. Payload preview:', payload?.slice(0,120));
         handleExportClick(payload);
       }
     };

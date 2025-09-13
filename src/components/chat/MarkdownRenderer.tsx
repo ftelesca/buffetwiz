@@ -225,6 +225,7 @@ export function MarkdownRenderer({
 
   const handleExportClickLocal = async (payload: string) => {
     if (!enableExports) return;
+    console.log('🖱️ Export button clicked. Raw payload (first 120):', payload?.slice(0,120));
     await handleExportClick(payload);
   };
 
