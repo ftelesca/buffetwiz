@@ -69,6 +69,10 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
       
       return `<button id="${buttonId}" class="inline-flex items-center px-3 py-1 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors cursor-pointer border border-primary/20 hover:border-primary/30">${linkText}</button>`;
     }
+  ).replace(
+    // Remove any trailing JSON data that might appear after the button
+    /(<button[^>]*>[^<]*<\/button>)([^<]*\{[^}]*\}[^<]*)/g,
+    '$1'
   );
 
   return (

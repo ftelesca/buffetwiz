@@ -361,7 +361,11 @@ SEMPRE inclua dados estruturados com chaves em português e valores apropriados.
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             const filename = `${dataType.replace(/\s+/g, '_')}_${timestamp}`;
             
-            assistantResponse += `\n\n📁 **Arquivo pronto para download:**\n\n[🔗 Baixar ${filename}.${format}](export:${JSON.stringify({type: format, data: exportData, filename})})`;
+            // Create a clean export link at the end of the response
+            const exportLink = `\n\n📁 **Arquivo pronto para download:**\n\n[🔗 Baixar ${filename}.${format}](export:${JSON.stringify({type: format, data: exportData, filename})})`;
+            
+            // Add the export link and ensure clean formatting
+            assistantResponse = assistantResponse.replace(/\[🔗[^\]]*\]\(export:[^)]*\)[^]*/g, '') + exportLink;
           }
         }
       }
