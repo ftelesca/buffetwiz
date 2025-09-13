@@ -16,13 +16,22 @@ import "katex/dist/katex.min.css";
 // Função de exportação integrada (caso o arquivo externo não esteja disponível)
 async function exportToFile(payload: string) {
   try {
-    console.log('Iniciando exportação com payload:', payload);
+    console.log('exportToFile called with payload:', payload);
     
     // Decodifica o payload se estiver em URL encoding
-    const decodedPayload = decodeURIComponent(payload);
+    let decodedPayload;
+    try {
+      decodedPayload = decodeURIComponent(payload);
+    } catch (e) {
+      // Se falhar a decodificação, usar o payload original
+      decodedPayload = payload;
+    }
+    
+    console.log('Decoded payload:', decodedPayload);
     
     // Parse do JSON
     const exportData = JSON.parse(decodedPayload);
+    console.log('Parsed export data:', exportData);
     
     const { filename, content, type = 'text/plain' } = exportData;
     
@@ -32,38 +41,60 @@ async function exportToFile(payload: string) {
 
     // Cria o blob com base no tipo
     let blob: Blob;
+    let finalContent: string;
     
-    if (type === 'application/json') {
-      blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
+    if (typeof content === 'object') {
+      finalContent = JSON.stringify(content, null, 2);
+      blob = new Blob([finalContent], { type: 'application/json' });
+    } else if (type === 'application/json') {
+      finalContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+      blob = new Blob([finalContent], { type: 'application/json' });
     } else if (type === 'text/csv') {
-      blob = new Blob([content], { type: 'text/csv' });
+      finalContent = String(content);
+      blob = new Blob([finalContent], { type: 'text/csv;charset=utf-8' });
     } else if (type === 'text/html') {
-      blob = new Blob([content], { type: 'text/html' });
+      finalContent = String(content);
+      blob = new Blob([finalContent], { type: 'text/html;charset=utf-8' });
     } else {
       // Padrão para texto simples
-      blob = new Blob([content], { type: 'text/plain' });
+      finalContent = String(content);
+      blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
     }
 
-    // Cria URL temporária e força o download
+    console.log('Created blob:', blob.size, 'bytes, type:', blob.type);
+
+    // Método mais confiável para forçar download
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
+    
+    // Configurar o link
     link.href = url;
     link.download = filename;
     link.style.display = 'none';
+    link.style.position = 'absolute';
+    link.style.left = '-9999px';
     
-    // Adiciona ao DOM, clica e remove
+    // Adicionar ao DOM
     document.body.appendChild(link);
+    
+    console.log('Created download link:', link.href, 'filename:', link.download);
+    
+    // Forçar o clique
     link.click();
-    document.body.removeChild(link);
     
-    // Limpa a URL temporária
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      console.log('Cleanup completed');
+    }, 100);
     
-    console.log(`Arquivo ${filename} baixado com sucesso`);
+    console.log(`Download de ${filename} iniciado com sucesso`);
     return true;
     
   } catch (error) {
-    console.error('Erro ao exportar arquivo:', error);
+    console.error('Erro detalhado ao exportar arquivo:', error);
+    console.error('Payload original:', payload);
     throw new Error(`Falha ao exportar arquivo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
   }
 }
