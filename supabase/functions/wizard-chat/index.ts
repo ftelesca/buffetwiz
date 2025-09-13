@@ -293,6 +293,56 @@ INSTRUÇÕES FINAIS:
       assistantResponse = aiData?.choices?.[0]?.message?.content || aiData?.choices?.[0]?.text || '';
       tokensUsed = aiData?.usage?.total_tokens ?? aiData?.usage?.output_tokens ?? 0;
       
+      // Check for export requests and generate download links
+      let hasExportRequest = false;
+      if (assistantResponse && /exportar|export|baixar|download/i.test(assistantResponse)) {
+        const exportMatch = assistantResponse.match(/exportar\s+(.*?)\s+para\s+(excel|csv|json)/i);
+        if (exportMatch) {
+          hasExportRequest = true;
+          const dataType = exportMatch[1].toLowerCase();
+          const format = exportMatch[2].toLowerCase();
+          
+          let exportData = [];
+          
+          // Determine what data to export based on the request
+          if (dataType.includes('produto') || dataType.includes('receita')) {
+            exportData = context.recipes.map(recipe => ({
+              'Produto': recipe.description,
+              'Rendimento': recipe.efficiency || 1,
+              'Insumos': recipe.recipe_item?.length || 0
+            }));
+          } else if (dataType.includes('evento')) {
+            exportData = context.events.map(event => ({
+              'Evento': event.title,
+              'Data': event.date,
+              'Cliente': event.customer?.name || 'N/A',
+              'Convidados': event.numguests || 0,
+              'Custo': event.cost || 0,
+              'Preço': event.price || 0
+            }));
+          } else if (dataType.includes('insumo') || dataType.includes('item')) {
+            exportData = context.items.map(item => ({
+              'Insumo': item.description,
+              'Custo': item.cost || 0,
+              'Unidade': 'un' // Default unit
+            }));
+          } else if (dataType.includes('cliente')) {
+            exportData = context.customers.map(customer => ({
+              'Cliente': customer.name,
+              'Email': customer.email || '',
+              'Telefone': customer.phone || ''
+            }));
+          }
+          
+          if (exportData.length > 0) {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `${dataType.replace(/\s+/g, '_')}_${timestamp}`;
+            
+            assistantResponse += `\n\n📁 **Arquivo pronto para download:**\n\n[🔗 Baixar ${filename}.${format}](export:${JSON.stringify({type: format, data: exportData, filename})})`;
+          }
+        }
+      }
+
       // Check if the AI response requests calculation functions
       if (assistantResponse && assistantResponse.includes('calculate_')) {
         try {
