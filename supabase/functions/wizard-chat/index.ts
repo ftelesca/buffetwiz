@@ -38,7 +38,7 @@ serve(async (req) => {
     console.log('Processing request for user:', userId);
 
     // Create query hash for cache
-    const queryHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message + (model || 'gpt-4.1-mini-2025-04-14')));
+    const queryHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${message}|${chatId || 'nochat'}|${model || 'gpt-4.1-mini-2025-04-14'}`));
     const hashArray = Array.from(new Uint8Array(queryHash));
     const queryHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
@@ -197,12 +197,35 @@ INSTRUÇÕES FINAIS:
 
       const selectedModel = (model && typeof model === 'string') ? model : 'gpt-4.1-mini-2025-04-14'; // Use faster model by default
       const isNewModel = /^(gpt-5|gpt-4\.1|o3|o4)/.test(selectedModel);
+
+      // Build conversation history for context
+      let historyMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+      if (chatId) {
+        const { data: history, error: historyError } = await supabase
+          .from('wizard_messages')
+          .select('role, content, created_at')
+          .eq('chat_id', chatId)
+          .order('created_at', { ascending: true })
+          .limit(20);
+        if (!historyError && history) {
+          const trimmed = history.slice(-12);
+          historyMessages = trimmed.map((m: any) => ({
+            role: m.role === 'assistant' ? 'assistant' : 'user',
+            content: m.content as string,
+          }));
+          console.log(`Including ${historyMessages.length} prior messages in context`);
+        }
+      }
+
+      const messagesPayload = [
+        { role: 'system', content: businessContext },
+        ...historyMessages,
+        { role: 'user', content: message }
+      ];
+
       const payload: any = {
         model: selectedModel,
-        messages: [
-          { role: 'system', content: businessContext },
-          { role: 'user', content: message }
-        ]
+        messages: messagesPayload
       };
       if (isNewModel) {
         payload.max_completion_tokens = 1500; // Reduced for faster responses
