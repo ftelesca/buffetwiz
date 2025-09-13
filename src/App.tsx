@@ -33,31 +33,30 @@ const App = () => {
   // Global click handler for export links
   React.useEffect(() => {
     const handleClick = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      
-      // Check if it's an anchor tag with export: href
-      if (target.tagName === 'A') {
-        const href = (target as HTMLAnchorElement).href;
-        if (href && href.includes('export:')) {
-          event.preventDefault();
-          event.stopPropagation();
-          
-          const payload = href.split('export:')[1];
-          if (payload) {
-            console.log('🔗 Intercepted export link click:', { href, payload });
-            handleExportClick(decodeURIComponent(payload));
-          }
-          return false;
-        }
-      }
-      
-      // Check if it's a button with export functionality
-      if (target.tagName === 'BUTTON' && target.dataset?.exportPayload) {
+      const path = (event.composedPath ? event.composedPath() : []) as HTMLElement[];
+      const target = event.target as HTMLElement | null;
+
+      // 1) Handle explicit export buttons anywhere in the DOM
+      const btnEl = (path.find((el: any) => el && el instanceof HTMLElement && el.dataset && el.dataset.exportPayload) ||
+        (target && (target as any).dataset?.exportPayload ? target : null)) as HTMLElement | null;
+      if (btnEl && (btnEl as any).dataset?.exportPayload) {
         event.preventDefault();
         event.stopPropagation();
-        
-        console.log('🔗 Intercepted export button click:', target.dataset.exportPayload);
-        handleExportClick(target.dataset.exportPayload);
+        const payload = (btnEl as any).dataset.exportPayload as string;
+        console.log('🔗 Intercepted export button click:', payload);
+        handleExportClick(payload);
+        return false;
+      }
+
+      // 2) Handle anchor tags with href="export:..." clicked via any child
+      const anchorEl = path.find((el: any) => el && el instanceof HTMLAnchorElement) as HTMLAnchorElement | undefined;
+      const rawHref = anchorEl?.getAttribute?.('href') || '';
+      if (rawHref && rawHref.startsWith('export:')) {
+        event.preventDefault();
+        event.stopPropagation();
+        const payload = rawHref.replace(/^export:/, '');
+        console.log('🔗 Intercepted export link click (anchor):', { rawHref, payload });
+        handleExportClick(payload);
         return false;
       }
     };
