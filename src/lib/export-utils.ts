@@ -56,49 +56,102 @@ function tryBase64Decode(input: string): string | null {
 export function parseExportPayload(rawPayload: string): ExportPayload | null {
   if (!rawPayload) return null;
 
+  console.log('🔍 parseExportPayload - raw input:', rawPayload.slice(0, 200));
+
   // Step 1: Remove invisible chars
   let payload = removeInvisibleChars(rawPayload);
-
-  // Step 2: Try URL decode safely
-  try {
-    payload = decodeURIComponent(payload);
-  } catch {
-    // ignore
+  
+  // Step 2: Try URL decode safely (multiple times if needed)
+  let lastPayload = '';
+  while (payload !== lastPayload && payload.includes('%')) {
+    lastPayload = payload;
+    try {
+      payload = decodeURIComponent(payload);
+    } catch {
+      break;
+    }
   }
+
+  console.log('🔍 After URL decode:', payload.slice(0, 200));
 
   // Step 3: Try base64 decode if applicable
   const maybeDecoded = tryBase64Decode(payload);
   if (maybeDecoded) {
     payload = maybeDecoded;
+    console.log('🔍 After base64 decode:', payload.slice(0, 200));
   }
 
   // Step 4: Extract JSON object substring
-  payload = extractJsonObject(payload);
+  let jsonStr = extractJsonObject(payload);
+  console.log('🔍 After JSON extraction:', jsonStr.slice(0, 200));
 
   // Step 5: Remove arbitrary line breaks/tabs
-  payload = removeAllLineBreaks(payload);
+  jsonStr = removeAllLineBreaks(jsonStr);
 
-  // Step 6: Attempt direct JSON parse
-  try {
-    const parsed = JSON.parse(payload);
-    const type = String(parsed.type || parsed.format || 'csv').toLowerCase();
-    const filename = parsed.filename || parsed.name || 'export';
-    const data = Array.isArray(parsed.data) ? parsed.data : [];
-    return { type, filename, data };
-  } catch {
-    // Step 7: Last resort, try to fix single quotes to double quotes and parse again
+  // Step 6: Try multiple JSON parsing strategies
+  const strategies = [
+    // Strategy 1: Direct parse
+    () => JSON.parse(jsonStr),
+    
+    // Strategy 2: Fix quotes and parse
+    () => {
+      const fixed = jsonStr
+        .replace(/'/g, '"')
+        .replace(/"([^"]*)":/g, '"$1":')
+        .replace(/:\s*"([^"]*)"/g, ':"$1"');
+      return JSON.parse(fixed);
+    },
+    
+    // Strategy 3: More aggressive quote fixing
+    () => {
+      const fixed = jsonStr
+        .replace(/([{,]\s*)(\w+):/g, '$1"$2":')
+        .replace(/:\s*([^",}\]]+)([,}\]])/g, ':"$1"$2')
+        .replace(/:\s*"(\d+)"([,}\]])/g, ':$1$2')
+        .replace(/:\s*"(true|false|null)"([,}\]])/g, ':$1$2');
+      return JSON.parse(fixed);
+    },
+    
+    // Strategy 4: Try to rebuild from recognizable patterns
+    () => {
+      const typeMatch = jsonStr.match(/["']?type["']?\s*:\s*["']?(\w+)["']?/i);
+      const filenameMatch = jsonStr.match(/["']?filename["']?\s*:\s*["']?([^"',}]+)["']?/i);
+      const dataMatch = jsonStr.match(/["']?data["']?\s*:\s*\[[\s\S]*\]/i);
+      
+      if (typeMatch) {
+        const type = typeMatch[1];
+        const filename = filenameMatch?.[1] || 'export';
+        let data = [];
+        
+        if (dataMatch) {
+          try {
+            data = JSON.parse(dataMatch[0].split(':').slice(1).join(':'));
+          } catch {
+            data = [];
+          }
+        }
+        
+        return { type, filename, data };
+      }
+      throw new Error('No recognizable pattern');
+    }
+  ];
+
+  for (let i = 0; i < strategies.length; i++) {
     try {
-      const fixed = payload
-        .replace(/\"/g, '"')
-        .replace(/'([^']*)'\s*:/g, '"$1":')
-        .replace(/:\s*'([^']*)'/g, ':"$1"');
-      const parsed = JSON.parse(fixed);
+      const parsed = strategies[i]();
+      console.log(`✅ Strategy ${i + 1} succeeded:`, parsed);
+      
       const type = String(parsed.type || parsed.format || 'csv').toLowerCase();
       const filename = parsed.filename || parsed.name || 'export';
       const data = Array.isArray(parsed.data) ? parsed.data : [];
+      
       return { type, filename, data };
-    } catch {
-      return null;
+    } catch (error) {
+      console.log(`❌ Strategy ${i + 1} failed:`, error.message);
     }
   }
+
+  console.error('❌ All parsing strategies failed for payload:', rawPayload);
+  return null;
 }
