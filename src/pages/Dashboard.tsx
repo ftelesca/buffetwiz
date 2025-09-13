@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { useNavigate } from "react-router-dom"
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns"
-import { ptBR } from "date-fns/locale/pt-BR"
+import { ptBR } from "date-fns/locale"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { EventMenu } from "@/components/events/EventMenu"
 
