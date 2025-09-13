@@ -206,9 +206,11 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
     setIsTyping(true);
 
     try {
-      // Get embedding for user message
-      const userEmbedding = await embeddingsManager.getEmbedding(userMessage.content);
-      userMessage.metadata!.embedding = userEmbedding;
+      // Get embedding for user message (with safety check)
+      const userEmbedding = userMessage.content ? await embeddingsManager.getEmbedding(userMessage.content) : [];
+      if (userEmbedding.length > 0) {
+        userMessage.metadata!.embedding = userEmbedding;
+      }
 
       // Find relevant context from conversation history
       const relevantContext = await findRelevantContext(userMessage.content);
@@ -256,7 +258,7 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
       if (error) throw error;
 
       const assistantContent = data.response || data.generatedText || data.answer;
-      const assistantEmbedding = await embeddingsManager.getEmbedding(assistantContent);
+      const assistantEmbedding = assistantContent ? await embeddingsManager.getEmbedding(assistantContent) : [];
 
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
@@ -266,7 +268,7 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
         metadata: {
           model: data.model || 'gpt-5-2025-08-07',
           tokens: data.tokens,
-          embedding: assistantEmbedding,
+          embedding: assistantEmbedding.length > 0 ? assistantEmbedding : undefined,
           relevantContext
         },
         isTyping: true
@@ -274,12 +276,14 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Cache the response
-      await embeddingsManager.cacheResponse(
-        userMessage.content,
-        assistantContent,
-        assistantEmbedding
-      );
+      // Cache the response (with safety check)
+      if (assistantContent && assistantEmbedding.length > 0) {
+        await embeddingsManager.cacheResponse(
+          userMessage.content,
+          assistantContent,
+          assistantEmbedding
+        );
+      }
 
       // Update or create session
       if (currentSession?.id.startsWith('temp-')) {

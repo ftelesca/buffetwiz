@@ -50,14 +50,14 @@ export class EmbeddingsManager {
   }
 
   async getEmbedding(text: string): Promise<number[]> {
-    if (!this.initialized || !this.embedder) {
-      console.warn('Embeddings model not initialized, returning empty array');
+    if (!this.initialized || !this.embedder || !text || typeof text !== 'string') {
+      console.warn('Embeddings model not initialized or invalid text, returning empty array');
       return [];
     }
 
     try {
       // Clean and truncate text
-      const cleanText = text.substring(0, 512).trim();
+      const cleanText = text.toString().substring(0, 512).trim();
       if (!cleanText) return [];
 
       const result = await this.embedder(cleanText, { 
