@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { handleExportClick } from "@/lib/export-handler";
+import { parseExportPayload } from "@/lib/export-utils";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
@@ -225,8 +226,21 @@ export function MarkdownRenderer({
 
   const handleExportClickLocal = async (payload: string) => {
     if (!enableExports) return;
-    console.log('🖱️ Export button clicked. Raw payload (first 120):', payload?.slice(0,120));
-    await handleExportClick(payload);
+    try {
+      const preview = payload?.slice(0, 120);
+      const parsed = parseExportPayload(payload);
+      toast({
+        title: parsed ? `Exportando: ${parsed.filename || 'export'}` : 'Exportando (fallback)',
+        description: parsed ? `Registros: ${(parsed.data || []).length} | Tipo: ${parsed.type}` : `Payload: ${preview}`,
+      });
+      await handleExportClick(payload);
+    } catch (e: any) {
+      toast({
+        title: 'Erro ao exportar',
+        description: e?.message || 'Falha desconhecida',
+        variant: 'destructive',
+      });
+    }
   };
 
 
