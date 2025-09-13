@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MarkdownRenderer } from '../chat/MarkdownRenderer';
+import MarkdownRenderer from '../chat/MarkdownRenderer';
 
 interface TypingAnimationProps {
   text: string;

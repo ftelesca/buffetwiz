@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MarkdownRenderer } from "./MarkdownRenderer";
+import MarkdownRenderer from "./MarkdownRenderer";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { 
   Bot, 
