@@ -195,7 +195,7 @@ INSTRUÇÕES FINAIS:
         }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      const selectedModel = (model && typeof model === 'string') ? model : 'gpt-5-2025-08-07';
+      let selectedModel = (model && typeof model === 'string') ? model : 'gpt-5-2025-08-07';
       const isNewModel = /^(gpt-5|gpt-4\.1|o3|o4)/.test(selectedModel);
       const payload: any = {
         model: selectedModel,
@@ -210,7 +210,7 @@ INSTRUÇÕES FINAIS:
         payload.max_tokens = 2000;
       }
 
-      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      let openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${OPENAI_API_KEY}`,
@@ -221,42 +221,72 @@ INSTRUÇÕES FINAIS:
 
       if (!openAIResponse.ok) {
         let errorText = await openAIResponse.text();
-        try {
-          const errJson = JSON.parse(errorText);
-          errorText = errJson.error?.message || JSON.stringify(errJson);
-        } catch {}
+        try { const errJson = JSON.parse(errorText); errorText = errJson.error?.message || JSON.stringify(errJson); } catch {}
         console.error('OpenAI API error:', errorText);
-
         const status = openAIResponse.status;
 
+        // Immediate errors where fallback won't help
         if (status === 401) {
           return new Response(JSON.stringify({
             error: 'OPENAI_API_KEY inválida ou sem permissão.',
-            hint: 'Verifique a sua chave na OpenAI e garanta que não há restrições de projeto/organização.',
+            hint: 'Verifique a sua chave na OpenAI.',
             details: errorText
           }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
-
         if (status === 429) {
           return new Response(JSON.stringify({
             error: 'Cota da OpenAI excedida',
-            hint: 'Adicione créditos em https://platform.openai.com/account/billing ou verifique limites.',
+            hint: 'Adicione créditos ou aguarde o limite resetar.',
             details: errorText
           }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
 
-        if (status === 400 && /max_tokens|max_completion_tokens|temperature/i.test(errorText)) {
+        // Try model fallback when the model is not available
+        const shouldTryFallback = (status === 404 || status === 400) && /model|not found|does not exist|unknown/i.test(errorText);
+        if (shouldTryFallback) {
+          const fallbackModel = 'gpt-4.1-2025-04-14';
+          const fbPayload: any = {
+            model: fallbackModel,
+            messages: [
+              { role: 'system', content: businessContext },
+              { role: 'user', content: message }
+            ],
+            max_completion_tokens: 2000
+          };
+
+          const fbResp = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(fbPayload),
+          });
+
+          if (fbResp.ok) {
+            openAIResponse = fbResp;
+            selectedModel = fallbackModel;
+          } else {
+            let fbText = await fbResp.text();
+            try { const j = JSON.parse(fbText); fbText = j.error?.message || JSON.stringify(j); } catch {}
+            return new Response(JSON.stringify({
+              error: 'Falha na chamada à OpenAI',
+              details: errorText,
+              fallback_details: fbText
+            }), { status: fbResp.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          }
+        } else if (status === 400 && /max_tokens|max_completion_tokens|temperature/i.test(errorText)) {
           return new Response(JSON.stringify({
             error: 'Parâmetros incompatíveis com o modelo.',
             hint: 'Modelos GPT‑5/4.1/o3/o4 usam max_completion_tokens. gpt‑4o/4o‑mini usam max_tokens.',
             details: errorText
           }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        } else {
+          return new Response(JSON.stringify({
+            error: 'Falha na chamada à OpenAI',
+            details: errorText
+          }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
-
-        return new Response(JSON.stringify({
-          error: 'Falha na chamada à OpenAI',
-          details: errorText
-        }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
       const aiData = await openAIResponse.json();
@@ -311,7 +341,7 @@ INSTRUÇÕES FINAIS:
         response: assistantResponse,
         chatId: chatId,
         metadata: {
-          model: model || 'gpt-5-2025-08-07',
+          model: selectedModel,
           tokens_used: tokensUsed,
           context_summary: {
             events: context.events.length,
@@ -377,7 +407,7 @@ INSTRUÇÕES FINAIS:
         role: 'assistant',
         content: assistantResponse,
         metadata: isCacheHit ? cachedMeta : {
-          model: model || 'gpt-5-2025-08-07',
+          model: selectedModel,
           tokens_used: tokensUsed,
           context_items: {
             events: 0, // Will be set properly below if not cached
@@ -403,7 +433,7 @@ INSTRUÇÕES FINAIS:
       response: assistantResponse,
       chatId: currentChatId,
       metadata: isCacheHit ? cachedMeta : {
-        model: model || 'gpt-5-2025-08-07',
+        model: selectedModel,
         tokens_used: tokensUsed,
         cached: isCacheHit
       }
