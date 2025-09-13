@@ -186,8 +186,12 @@ INSTRUÇÕES FINAIS:
 `;
 
       // Call GPT-5 only if no valid cache
-      const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-      if (!OPENAI_API_KEY) {
+      const OPENAI_ENV = Deno.env.get('OPENAI_API_KEY')
+        || Deno.env.get('OPENAI_APY_KEY')
+        || Deno.env.get('OPENAI_api_key')
+        || Deno.env.get('OPENAI_APIKEY');
+      const OPENAI_BEARER = (OPENAI_ENV ?? '').trim();
+      if (!OPENAI_BEARER) {
         console.error('Missing OPENAI_API_KEY secret');
         return new Response(JSON.stringify({
           error: 'OPENAI_API_KEY não configurada nas Secrets das Edge Functions.',
@@ -213,7 +217,7 @@ INSTRUÇÕES FINAIS:
       let openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${OPENAI_BEARER}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
@@ -257,7 +261,7 @@ INSTRUÇÕES FINAIS:
           const fbResp = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${OPENAI_API_KEY}`,
+              'Authorization': `Bearer ${OPENAI_BEARER}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify(fbPayload),
