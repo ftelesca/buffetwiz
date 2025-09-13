@@ -1,28 +1,26 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { cn } from "@/lib/utils";
+import rehypeRaw from "rehype-raw";
 import { Copy, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { parseExportPayload } from "@/lib/export-utils";
 
-// Normalize export links by base64-encoding JSON payloads to avoid markdown parsing issues
-const INVIS_CHARS = /[\u200B-\u200D\uFEFF\u2060\u00AD]/g;
-function normalizeExportLinks(md: string): string {
+// Process export links by replacing them with HTML buttons
+function processExportLinks(md: string): string {
   if (!md) return md;
-  return md.replace(/\]\(\s*export:([\s\S]*?)\)/g, (_whole, raw) => {
-    let payload = String(raw || '');
-    try { payload = decodeURIComponent(payload); } catch {}
-    payload = payload.replace(INVIS_CHARS, '').replace(/[\r\n\t]+/g, '').trim();
-    try {
-      const parsed = parseExportPayload(payload);
-      if (parsed) {
-        const b64 = btoa(JSON.stringify(parsed));
-        return `](export:base64,${b64})`;
-      }
-    } catch {}
-    return `](export:${payload})`;
+  
+  return md.replace(/\[([^\]]+)\]\(export:([^)]+)\)/g, (match, linkText, payload) => {
+    // Clean up the payload
+    let cleanPayload = payload.replace(/[\r\n\t]+/g, '').trim();
+    
+    // Create a unique ID for this button
+    const buttonId = `export-btn-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Return HTML button that will be processed by rehype-raw
+    return `<button class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-sm font-medium transition-colors cursor-pointer border-0" data-export-payload="${encodeURIComponent(cleanPayload)}" data-export-id="${buttonId}" onclick="window.handleExportClick && window.handleExportClick('${encodeURIComponent(cleanPayload)}')">${linkText}</button>`;
   });
 }
 
@@ -160,13 +158,34 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     }
   };
 
-  const safeContent = normalizeExportLinks(content);
+  const processedContent = processExportLinks(content);
+
+  // Set up global export handler
+  React.useEffect(() => {
+    (window as any).handleExportClick = async (encodedPayload: string) => {
+      try {
+        const payload = decodeURIComponent(encodedPayload);
+        await handleExportClick(payload);
+      } catch (error) {
+        console.error('Export click error:', error);
+        toast({
+          title: "Erro na exportação",
+          description: "Não foi possível processar o arquivo para download",
+          variant: "destructive",
+        });
+      }
+    };
+
+    return () => {
+      delete (window as any).handleExportClick;
+    };
+  }, [handleExportClick, toast]);
 
   return (
     <div className={cn("markdown-content leading-7", className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        urlTransform={(url) => url}
+        rehypePlugins={[rehypeRaw]}
         components={{
           h1: ({ className, ...props }) => (
             <h1 className={cn("scroll-m-20 text-2xl font-bold tracking-tight mb-4 pb-2 border-b border-border/40", className)} {...props} />
@@ -265,7 +284,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
           ),
         }}
       >
-        {safeContent}
+        {processedContent}
       </ReactMarkdown>
     </div>
   );

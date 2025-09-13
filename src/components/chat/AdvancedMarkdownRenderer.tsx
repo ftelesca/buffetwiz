@@ -1,9 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
+import rehypeRaw from "rehype-raw";
 import { cn } from "@/lib/utils";
 import { Copy, Check, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,22 +15,19 @@ import { parseExportPayload } from "@/lib/export-utils";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
-// Normalize export links by base64-encoding JSON payloads to avoid markdown parsing issues
-const INVIS_CHARS = /[\u200B-\u200D\uFEFF\u2060\u00AD]/g;
-function normalizeExportLinks(md: string): string {
+// Process export links by replacing them with HTML buttons
+function processExportLinks(md: string): string {
   if (!md) return md;
-  return md.replace(/\]\(\s*export:([\s\S]*?)\)/g, (_whole, raw) => {
-    let payload = String(raw || '');
-    try { payload = decodeURIComponent(payload); } catch {}
-    payload = payload.replace(INVIS_CHARS, '').replace(/[\r\n\t]+/g, '').trim();
-    try {
-      const parsed = parseExportPayload(payload);
-      if (parsed) {
-        const b64 = btoa(JSON.stringify(parsed));
-        return `](export:base64,${b64})`;
-      }
-    } catch {}
-    return `](export:${payload})`;
+  
+  return md.replace(/\[([^\]]+)\]\(export:([^)]+)\)/g, (match, linkText, payload) => {
+    // Clean up the payload
+    let cleanPayload = payload.replace(/[\r\n\t]+/g, '').trim();
+    
+    // Create a unique ID for this button
+    const buttonId = `export-btn-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Return HTML button that will be processed by rehype-raw
+    return `<button class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-sm font-medium transition-colors cursor-pointer border-0" data-export-payload="${encodeURIComponent(cleanPayload)}" data-export-id="${buttonId}" onclick="window.handleExportClick && window.handleExportClick('${encodeURIComponent(cleanPayload)}')">${linkText}</button>`;
   });
 }
 
@@ -134,21 +132,41 @@ export function AdvancedMarkdownRenderer({
   };
 
   const remarkPlugins = [remarkGfm];
-  const rehypePlugins = [rehypeHighlight];
+  const rehypePlugins: any[] = [rehypeHighlight, rehypeRaw];
 
   if (enableMath) {
     remarkPlugins.push(remarkMath as any);
     rehypePlugins.push(rehypeKatex as any);
   }
 
-  const safeContent = normalizeExportLinks(content);
+  const processedContent = processExportLinks(content);
+
+  // Set up global export handler
+  React.useEffect(() => {
+    (window as any).handleExportClick = async (encodedPayload: string) => {
+      try {
+        const payload = decodeURIComponent(encodedPayload);
+        await handleExportClick(payload);
+      } catch (error) {
+        console.error('Export click error:', error);
+        toast({
+          title: "Erro na exportação",
+          description: "Não foi possível processar o arquivo para download",
+          variant: "destructive",
+        });
+      }
+    };
+
+    return () => {
+      delete (window as any).handleExportClick;
+    };
+  }, [handleExportClick, toast]);
 
   return (
     <div className={cn("prose prose-slate dark:prose-invert max-w-none", className)}>
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}
-        urlTransform={(url) => url}
         components={{
           // Headers with better styling
           h1: ({ className, ...props }) => (
@@ -384,7 +402,7 @@ export function AdvancedMarkdownRenderer({
           ),
         }}
       >
-        {safeContent}
+        {processedContent}
       </ReactMarkdown>
     </div>
   );
