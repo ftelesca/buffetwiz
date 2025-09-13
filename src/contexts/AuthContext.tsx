@@ -62,13 +62,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       applySession(session)
     })
 
-    // Then get initial session
     supabase.auth.getSession()
       .then(({ data: { session }, error }) => {
         if (error) {
           console.error('Error getting initial session:', error)
-          // Clear corrupted session data
-          supabase.auth.signOut()
+          // Não force signOut em erro transitório
           if (isMounted) setLoading(false)
           return
         }
@@ -76,8 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       .catch((error) => {
         console.error('Error getting initial session:', error)
-        // Clear corrupted session data
-        supabase.auth.signOut()
+        // Não force signOut em erro transitório
         if (isMounted) setLoading(false)
       })
 
@@ -85,6 +82,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false
       subscription.unsubscribe()
     }
+  }, [])
+
+  // Refresh session when tab becomes active (prevents apparent expirations)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        supabase.auth.getSession().catch(() => {})
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [])
 
   const fetchProfile = async (userId: string) => {
