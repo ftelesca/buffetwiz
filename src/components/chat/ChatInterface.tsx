@@ -84,10 +84,9 @@ function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
               const match = /language-(\w+)/.exec(className || "");
               return match ? (
                 <SyntaxHighlighter
-                  style={atomOneLight as any} // ✅ cast corrige erro TS
-                  language={match[1]}
+                  style={atomOneLight as any}
+                  language={match[1] as any}
                   PreTag="div"
-                  {...props}
                 >
                   {String(children).replace(/\n$/, "")}
                 </SyntaxHighlighter>
@@ -140,7 +139,7 @@ function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
       setMessages((prev) => [...prev, optimisticUser]);
       setInput("");
 
-      const functionUrl = `${(import.meta as any).env?.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`;
+      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
       const r = await fetch(functionUrl, {
         method: "POST",
         headers: {
