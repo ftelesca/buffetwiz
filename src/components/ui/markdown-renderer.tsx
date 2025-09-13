@@ -5,7 +5,7 @@ import rehypeRaw from "rehype-raw";
 import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { exportToFile } from "@/lib/export-file";
+import { handleExportClick } from "@/lib/export-handler";
 
 // Process export links: robustly convert raw occurrences like "export:{...}" or "export:%7B...%7D" into markdown links, skipping code blocks
 function processExportLinks(md: string): string {
@@ -99,8 +99,8 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const handleExportClick = async (payload: string) => {
-    await exportToFile(payload);
+  const handleExportClickLocal = async (payload: string) => {
+    await handleExportClick(payload);
   };
 
   const processedContent = processExportLinks(content);
@@ -188,7 +188,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
               return (
                 <button
                   type="button"
-                  onClick={() => handleExportClick(payload)}
+                  onClick={() => handleExportClickLocal(payload)}
                   className={cn("inline-flex items-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors cursor-pointer shadow-sm", className)}
                 >
                   📥 {children}

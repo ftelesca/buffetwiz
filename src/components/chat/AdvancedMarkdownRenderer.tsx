@@ -10,6 +10,7 @@ import { Copy, Check, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { handleExportClick } from "@/lib/export-handler";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
@@ -222,23 +223,9 @@ export function AdvancedMarkdownRenderer({
     }
   };
 
-  const handleExportClick = async (payload: string) => {
+  const handleExportClickLocal = async (payload: string) => {
     if (!enableExports) return;
-    
-    try {
-      await exportToFile(payload);
-      toast({
-        title: "Download iniciado!",
-        description: "O arquivo está sendo baixado",
-      });
-    } catch (error) {
-      console.error('Erro no download:', error);
-      toast({
-        title: "Erro no download",
-        description: error instanceof Error ? error.message : "Falha ao baixar arquivo",
-        variant: "destructive",
-      });
-    }
+    await handleExportClick(payload);
   };
 
   const remarkPlugins = [remarkGfm];
@@ -437,7 +424,7 @@ export function AdvancedMarkdownRenderer({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    handleExportClick(payload);
+                    handleExportClickLocal(payload);
                   }}
                   className={cn(
                     "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground cursor-pointer", 
