@@ -257,7 +257,7 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
 
       if (error) throw error;
 
-      const assistantContent = data.response || data.generatedText || data.answer;
+      const assistantContent = String(data?.response ?? data?.generatedText ?? data?.answer ?? '');
       const assistantEmbedding = assistantContent ? await embeddingsManager.getEmbedding(assistantContent) : [];
 
       const assistantMessage: ChatMessage = {
@@ -300,12 +300,13 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
       }
 
       // Simulate typing effect
+      const typingDuration = Math.min(((assistantContent?.length || 60) * 20), 3000);
       setTimeout(() => {
         setMessages(prev => prev.map(msg => 
           msg.id === assistantMessage.id ? { ...msg, isTyping: false } : msg
         ));
         setIsTyping(false);
-      }, Math.min(assistantContent.length * 20, 3000));
+      }, typingDuration);
 
     } catch (error) {
       console.error('Error sending message:', error);
