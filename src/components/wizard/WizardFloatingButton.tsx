@@ -8,6 +8,7 @@ function WizardFloatingButton() {
 
   return (
     <>
+      {/* Botão flutuante para abrir o chat */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
@@ -18,6 +19,7 @@ function WizardFloatingButton() {
         </button>
       )}
 
+      {/* Janela de chat */}
       {open && (
         <div className="fixed bottom-16 right-4 z-50 flex h-[600px] w-[400px] flex-col overflow-hidden rounded-lg border bg-white shadow-xl">
           <ChatInterface open={open} onOpenChange={setOpen} />
@@ -28,4 +30,4 @@ function WizardFloatingButton() {
 }
 
 export default WizardFloatingButton;
-export { WizardFloatingButton }; // ✅ named export adicionado
+export { WizardFloatingButton };
