@@ -228,6 +228,18 @@ export function AdvancedMarkdownRenderer({
     await handleExportClick(payload);
   };
 
+  const onContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const anchor = target.closest('a') as HTMLAnchorElement | null;
+    const href = anchor?.getAttribute('href') || '';
+    if (href.startsWith('export:')) {
+      e.preventDefault();
+      e.stopPropagation();
+      const payload = href.replace(/^export:/, '');
+      handleExportClickLocal(payload);
+    }
+  };
+
   const remarkPlugins = [remarkGfm];
   const rehypePlugins: any[] = [rehypeHighlight, rehypeRaw];
 
@@ -239,7 +251,7 @@ export function AdvancedMarkdownRenderer({
   const processedContent = processExportLinks(content);
 
   return (
-    <div className={cn("prose prose-slate dark:prose-invert max-w-none", className)}>
+    <div className={cn("prose prose-slate dark:prose-invert max-w-none", className)} onClick={onContainerClick}>
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}
