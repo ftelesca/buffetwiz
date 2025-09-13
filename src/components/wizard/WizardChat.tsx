@@ -229,38 +229,6 @@ const exportToPDF = async (chatId: string) => {
   }
 };
 
-  
-  const deleteChat = async (chatId: string) => {
-    try {
-      const { error } = await supabase
-        .from('wizard_chats')
-        .delete()
-        .eq('id', chatId);
-
-      if (error) throw error;
-
-      setChats(prev => prev.filter(chat => chat.id !== chatId));
-      
-      if (currentChatId === chatId) {
-        setCurrentChatId(null);
-        setMessages([]);
-      }
-
-      toast({
-        title: "Chat excluído",
-        description: "Conversa removida com sucesso",
-      });
-
-    } catch (error) {
-      console.error('Error deleting chat:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao excluir conversa",
-        variant: "destructive",
-      });
-    }
-  };
-
   const startNewChat = () => {
     setCurrentChatId(null);
     setMessages([]);
