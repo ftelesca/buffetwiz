@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { html2pdf } from "html2pdf.js"; 
+import html2pdf from "html2pdf.js"; 
 import { 
   Send, 
   Bot, 
