@@ -451,19 +451,20 @@ const exportToPDF = async (chatId: string) => {
                              </div>
                            ) : (
                              <div className="p-4">
-                               {msg.isTyping && typingMessageId === msg.id ? (
-                                 <TypingAnimation 
-                                   text={msg.content}
-                                   speed={15}
-                                   onComplete={() => setTypingMessageId(null)}
-                                   className="text-sm"
-                                 />
-                               ) : (
-                                 <MarkdownRenderer 
-                                   content={msg.content}
-                                   className="text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-                                 />
-                               )}
+                                {msg.isTyping && typingMessageId === msg.id ? (
+                                  <TypingAnimation 
+                                    text={msg.content}
+                                    speed={25}
+                                    enableMarkdown={true}
+                                    onComplete={() => setTypingMessageId(null)}
+                                    className="prose prose-sm max-w-none dark:prose-invert text-foreground/90"
+                                  />
+                                ) : (
+                                  <MarkdownRenderer 
+                                    content={msg.content}
+                                    className="prose prose-sm max-w-none dark:prose-invert text-foreground/90 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                                  />
+                                )}
                              </div>
                            )}
                            

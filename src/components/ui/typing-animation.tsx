@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
+import { MarkdownRenderer } from './markdown-renderer';
 
 interface TypingAnimationProps {
   text: string;
   speed?: number;
   onComplete?: () => void;
   className?: string;
+  enableMarkdown?: boolean;
 }
 
 export function TypingAnimation({ 
   text, 
-  speed = 20, 
+  speed = 30, 
   onComplete, 
-  className = "" 
+  className = "",
+  enableMarkdown = false
 }: TypingAnimationProps) {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
     if (currentIndex < text.length) {
@@ -24,21 +28,36 @@ export function TypingAnimation({
       }, speed);
 
       return () => clearTimeout(timer);
-    } else if (onComplete) {
-      onComplete();
+    } else if (!isComplete) {
+      setIsComplete(true);
+      if (onComplete) {
+        onComplete();
+      }
     }
-  }, [currentIndex, text, speed, onComplete]);
+  }, [currentIndex, text, speed, onComplete, isComplete]);
 
   useEffect(() => {
     setDisplayedText('');
     setCurrentIndex(0);
+    setIsComplete(false);
   }, [text]);
+
+  if (enableMarkdown) {
+    return (
+      <div className={className}>
+        <MarkdownRenderer content={displayedText} />
+        {currentIndex < text.length && (
+          <span className="inline-block w-2 h-5 bg-primary/70 animate-pulse ml-1 align-text-bottom" />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={className}>
       {displayedText}
       {currentIndex < text.length && (
-        <span className="animate-pulse">|</span>
+        <span className="inline-block w-2 h-5 bg-primary/70 animate-pulse ml-1 align-text-bottom" />
       )}
     </div>
   );
