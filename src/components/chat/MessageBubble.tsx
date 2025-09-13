@@ -1,7 +1,8 @@
+import React, { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AdvancedMarkdownRenderer } from "./AdvancedMarkdownRenderer";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { 
   Bot, 
@@ -13,7 +14,6 @@ import {
   ThumbsDown,
   RotateCcw
 } from "lucide-react";
-import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 
@@ -42,6 +42,7 @@ export function MessageBubble({ message, onRegenerate, onFeedback }: MessageBubb
   const [copied, setCopied] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const { toast } = useToast();
+
 
   const copyToClipboard = async () => {
     try {
@@ -126,6 +127,7 @@ export function MessageBubble({ message, onRegenerate, onFeedback }: MessageBubb
             onMouseEnter={() => setShowActions(true)}
             onMouseLeave={() => setShowActions(false)}
           >
+
             {message.isTyping ? (
               <TypingAnimation 
                 text={message.content}
@@ -134,9 +136,10 @@ export function MessageBubble({ message, onRegenerate, onFeedback }: MessageBubb
                 className="text-foreground/90"
               />
             ) : message.content && message.content.trim() ? (
-              <AdvancedMarkdownRenderer 
+              <MarkdownRenderer 
                 content={message.content}
                 className="text-foreground/90 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                enableExports={true}
               />
             ) : (
               <div className="text-muted-foreground italic text-sm">

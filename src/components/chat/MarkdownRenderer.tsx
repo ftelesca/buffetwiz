@@ -10,16 +10,183 @@ import { Copy, Check, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { handleExportClick as globalHandleExportClick } from "@/lib/export-handler";
+import { handleExportClick } from "@/lib/export-handler";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
-// Process export links (no-op; handled in custom link renderer)
-function processExportLinks(md: string): string {
-  return md || '';
+// Função de exportação integrada (caso o arquivo externo não esteja disponível)
+async function exportToFile(payload: string) {
+  console.log('=== EXPORT TO FILE STARTED ===');
+  console.log('Raw payload:', payload);
+  console.log('Payload type:', typeof payload);
+  console.log('Payload length:', payload?.length);
+  
+  try {
+    console.log('exportToFile called with payload:', payload);
+    
+    // Decodifica o payload se estiver em URL encoding
+    let decodedPayload;
+    try {
+      decodedPayload = decodeURIComponent(payload);
+    } catch (e) {
+      // Se falhar a decodificação, usar o payload original
+      decodedPayload = payload;
+    }
+    
+    console.log('Decoded payload:', decodedPayload);
+    
+    // Parse do JSON
+    const exportData = JSON.parse(decodedPayload);
+    console.log('Parsed export data:', exportData);
+    
+    const { filename, content, type = 'text/plain' } = exportData;
+    
+    if (!filename || content === undefined) {
+      throw new Error('Dados de exportação inválidos: filename e content são obrigatórios');
+    }
+
+    // Cria o blob com base no tipo
+    let blob: Blob;
+    let finalContent: string;
+    
+    if (typeof content === 'object') {
+      finalContent = JSON.stringify(content, null, 2);
+      blob = new Blob([finalContent], { type: 'application/json' });
+    } else if (type === 'application/json') {
+      finalContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+      blob = new Blob([finalContent], { type: 'application/json' });
+    } else if (type === 'text/csv') {
+      finalContent = String(content);
+      blob = new Blob([finalContent], { type: 'text/csv;charset=utf-8' });
+    } else if (type === 'text/html') {
+      finalContent = String(content);
+      blob = new Blob([finalContent], { type: 'text/html;charset=utf-8' });
+    } else {
+      // Padrão para texto simples
+      finalContent = String(content);
+      blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
+    }
+
+    console.log('Created blob:', blob.size, 'bytes, type:', blob.type);
+
+    // Método mais confiável para forçar download
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    // Configurar o link
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    link.style.position = 'absolute';
+    link.style.left = '-9999px';
+    
+    // Adicionar ao DOM
+    document.body.appendChild(link);
+    
+    console.log('Created download link:', link.href, 'filename:', link.download);
+    
+    // Forçar o clique
+    link.click();
+    
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      console.log('Cleanup completed');
+    }, 100);
+    
+    console.log(`Download de ${filename} iniciado com sucesso`);
+    return true;
+    
+  } catch (error) {
+    console.error('Erro detalhado ao exportar arquivo:', error);
+    console.error('Payload original:', payload);
+    throw new Error(`Falha ao exportar arquivo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+  }
 }
 
-interface AdvancedMarkdownRendererProps {
+// Process export links: robustly convert raw occurrences like "export:{...}" or "export:%7B...%7D" into markdown links, skipping code blocks
+function processExportLinks(md: string): string {
+  if (!md) return '';
+
+  const wrapPercentEncoded = (segment: string) =>
+    segment.replace(/(?<!\])\bexport:%7B[^\s)]+%7D\b/gi, (match) => `[📥 Baixar arquivo](${match})`);
+
+  const wrapRawJson = (segment: string) => {
+    let out = '';
+    let i = 0;
+    while (i < segment.length) {
+      const idx = segment.indexOf('export:', i);
+      if (idx === -1) {
+        out += segment.slice(i);
+        break;
+      }
+      // copy text up to the match
+      out += segment.slice(i, idx);
+
+      // Avoid wrapping if part of an existing markdown link like "](export:...)"
+      if (idx > 0 && segment[idx - 1] === ']') {
+        out += 'export:';
+        i = idx + 7;
+        continue;
+      }
+
+      let j = idx + 7; // after 'export:'
+      // skip whitespace
+      while (j < segment.length && /\s/.test(segment[j])) j++;
+      if (segment[j] !== '{') {
+        // not a raw JSON payload; just copy 'export:' and continue
+        out += 'export:';
+        i = idx + 7;
+        continue;
+      }
+
+      // parse balanced JSON braces
+      let brace = 0;
+      let k = j;
+      let found = false;
+      while (k < segment.length) {
+        const ch = segment[k];
+        if (ch === '{') brace++;
+        else if (ch === '}') {
+          brace--;
+          if (brace === 0) { k++; found = true; break; }
+        }
+        k++;
+      }
+      if (!found) {
+        out += segment.slice(idx);
+        i = segment.length;
+        break;
+      }
+
+      const jsonStr = segment.slice(j, k);
+      const encoded = encodeURIComponent(jsonStr);
+      out += `[📥 Baixar arquivo](export:${encoded})`;
+      i = k;
+    }
+    return out;
+  };
+
+  // Split content to avoid altering code blocks or inline code
+  const parts = md.split(/(```[\s\S]*?```|`[^`]*`)/g);
+  for (let p = 0; p < parts.length; p++) {
+    const part = parts[p];
+    if (!part) continue;
+    if (part.startsWith('```') || part.startsWith('`')) continue; // skip code
+
+    let processed = part;
+    // keep existing markdown export links as-is
+    processed = processed.replace(/(\[[^\]]+\]\(export:[^)]+\))/g, '$1');
+    processed = wrapPercentEncoded(processed);
+    processed = wrapRawJson(processed);
+    parts[p] = processed;
+  }
+
+  return parts.join('');
+}
+
+interface MarkdownRendererProps {
   content: string;
   className?: string;
   enableCodeCopy?: boolean;
@@ -27,13 +194,13 @@ interface AdvancedMarkdownRendererProps {
   enableExports?: boolean;
 }
 
-export function AdvancedMarkdownRenderer({ 
+export function MarkdownRenderer({ 
   content, 
   className = "",
   enableCodeCopy = true,
   enableMath = true,
   enableExports = true
-}: AdvancedMarkdownRendererProps) {
+}: MarkdownRendererProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -56,10 +223,11 @@ export function AdvancedMarkdownRenderer({
     }
   };
 
-  const handleExportClick = async (payload: string) => {
+  const handleExportClickLocal = async (payload: string) => {
     if (!enableExports) return;
-    await globalHandleExportClick(payload);
+    await handleExportClick(payload);
   };
+
 
   const remarkPlugins = [remarkGfm];
   const rehypePlugins: any[] = [rehypeHighlight, rehypeRaw];
@@ -70,27 +238,6 @@ export function AdvancedMarkdownRenderer({
   }
 
   const processedContent = processExportLinks(content);
-
-  // Set up global export handler
-  React.useEffect(() => {
-    (window as any).handleExportClick = async (encodedPayload: string) => {
-      try {
-        const payload = decodeURIComponent(encodedPayload);
-        await handleExportClick(payload);
-      } catch (error) {
-        console.error('Export click error:', error);
-        toast({
-          title: "Erro na exportação",
-          description: "Não foi possível processar o arquivo para download",
-          variant: "destructive",
-        });
-      }
-    };
-
-    return () => {
-      delete (window as any).handleExportClick;
-    };
-  }, [handleExportClick, toast]);
 
   return (
     <div className={cn("prose prose-slate dark:prose-invert max-w-none", className)}>
@@ -275,9 +422,13 @@ export function AdvancedMarkdownRenderer({
               return (
                 <button
                   type="button"
-                  data-export-payload={payload}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleExportClickLocal(payload);
+                  }}
                   className={cn(
-                    "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground", 
+                    "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground cursor-pointer", 
                     className
                   )}
                 >
@@ -312,8 +463,6 @@ export function AdvancedMarkdownRenderer({
                   className
                 )} 
                 href={href} 
-                target="_blank"
-                rel="noopener noreferrer"
                 {...props}
               >
                 {children}
