@@ -5,7 +5,7 @@ import rehypeRaw from "rehype-raw";
 import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { handleExportClick as globalHandleExportClick } from "@/lib/export-handler";
+import { exportToFile } from "@/lib/export-file";
 
 // Process export links: robustly convert raw occurrences like "export:{...}" or "export:%7B...%7D" into markdown links, skipping code blocks
 function processExportLinks(md: string): string {
@@ -100,31 +100,11 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
   };
 
   const handleExportClick = async (payload: string) => {
-    await globalHandleExportClick(payload);
+    await exportToFile(payload);
   };
 
   const processedContent = processExportLinks(content);
 
-  // Set up global export handler
-  React.useEffect(() => {
-    (window as any).handleExportClick = async (encodedPayload: string) => {
-      try {
-        const payload = decodeURIComponent(encodedPayload);
-        await handleExportClick(payload);
-      } catch (error) {
-        console.error('Export click error:', error);
-        toast({
-          title: "Erro na exportação",
-          description: "Não foi possível processar o arquivo para download",
-          variant: "destructive",
-        });
-      }
-    };
-
-    return () => {
-      delete (window as any).handleExportClick;
-    };
-  }, [handleExportClick, toast]);
 
   return (
     <div className={cn("markdown-content leading-7", className)}>

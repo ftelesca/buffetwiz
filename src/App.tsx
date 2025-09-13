@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ResetPasswordPage } from "@/components/auth/ResetPasswordPage";
-import { handleExportClick } from "@/lib/export-handler";
+
 // Regular imports for immediate loading
 import Index from "./pages/Index";
 import Events from "./pages/Events";
@@ -30,43 +30,6 @@ const queryClient = new QueryClient({
 
 
 const App = () => {
-  // Global click handler for export links
-  React.useEffect(() => {
-    const handleClick = (event: MouseEvent) => {
-      const path = (event.composedPath ? event.composedPath() : []) as HTMLElement[];
-      const target = event.target as HTMLElement | null;
-
-      // 1) Handle explicit export buttons anywhere in the DOM
-      const btnEl = (path.find((el: any) => el && el instanceof HTMLElement && el.dataset && el.dataset.exportPayload) ||
-        (target && (target as any).dataset?.exportPayload ? target : null)) as HTMLElement | null;
-      if (btnEl && (btnEl as any).dataset?.exportPayload) {
-        event.preventDefault();
-        event.stopPropagation();
-        const payload = (btnEl as any).dataset.exportPayload as string;
-        console.log('🔗 Intercepted export button click:', payload);
-        handleExportClick(payload);
-        return false;
-      }
-
-      // 2) Handle anchor tags with href="export:..." clicked via any child
-      const anchorEl = path.find((el: any) => el && el instanceof HTMLAnchorElement) as HTMLAnchorElement | undefined;
-      const rawHref = anchorEl?.getAttribute?.('href') || '';
-      if (rawHref && rawHref.startsWith('export:')) {
-        event.preventDefault();
-        event.stopPropagation();
-        const payload = rawHref.replace(/^export:/, '');
-        console.log('🔗 Intercepted export link click (anchor):', { rawHref, payload });
-        handleExportClick(payload);
-        return false;
-      }
-    };
-
-    document.addEventListener('click', handleClick, true);
-    
-    return () => {
-      document.removeEventListener('click', handleClick, true);
-    };
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -10,7 +10,7 @@ import { Copy, Check, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { handleExportClick as globalHandleExportClick } from "@/lib/export-handler";
+import { exportToFile } from "@/lib/export-file";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
@@ -134,7 +134,7 @@ export function AdvancedMarkdownRenderer({
 
   const handleExportClick = async (payload: string) => {
     if (!enableExports) return;
-    await globalHandleExportClick(payload);
+    await exportToFile(payload);
   };
 
   const remarkPlugins = [remarkGfm];
@@ -147,26 +147,6 @@ export function AdvancedMarkdownRenderer({
 
   const processedContent = processExportLinks(content);
 
-  // Set up global export handler
-  React.useEffect(() => {
-    (window as any).handleExportClick = async (encodedPayload: string) => {
-      try {
-        const payload = decodeURIComponent(encodedPayload);
-        await handleExportClick(payload);
-      } catch (error) {
-        console.error('Export click error:', error);
-        toast({
-          title: "Erro na exportação",
-          description: "Não foi possível processar o arquivo para download",
-          variant: "destructive",
-        });
-      }
-    };
-
-    return () => {
-      delete (window as any).handleExportClick;
-    };
-  }, [handleExportClick, toast]);
 
   return (
     <div className={cn("prose prose-slate dark:prose-invert max-w-none", className)}>
