@@ -361,34 +361,23 @@ SEMPRE inclua dados estruturados com chaves em português e valores apropriados.
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
             const filename = `${dataType.replace(/\s+/g, '_')}_${timestamp}`;
             
-            // Ensure all data is properly escaped for JSON
-            const sanitizedData = exportData.map(item => {
-              const sanitized: any = {};
-              for (const [key, value] of Object.entries(item)) {
-                // Escape special characters in strings
-                if (typeof value === 'string') {
-                  sanitized[key] = value.replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, ' ');
-                } else {
-                  sanitized[key] = value;
-                }
-              }
-              return sanitized;
-            });
-            
-            // Create export data object
+            // Create export data object (raw data; JSON.stringify will escape it)
             const exportDataObj = {
               type: format,
-              data: sanitizedData,
-              filename: filename
+              data: exportData,
+              filename
             };
             
+            // Encode payload to avoid breaking markdown/link parsing
+            const payload = encodeURIComponent(JSON.stringify(exportDataObj));
+            
             // Create a clean export link at the end of the response
-            const exportLink = `\n\n📁 **Arquivo pronto para download:**\n\n[📥 Baixar ${filename}.${format}](export:${JSON.stringify(exportDataObj)})`;
+            const exportLink = `\n\n📁 **Arquivo pronto para download:**\n\n[📥 Baixar ${filename}.${format}](export:${payload})`;
             
             // Remove any existing export links and JSON data, then add clean export link
             assistantResponse = assistantResponse
-              .replace(/\[🔗[^\]]*\]\(export:[^)]*\)[^]*/g, '')
-              .replace(/\[📥[^\]]*\]\(export:[^)]*\)[^]*/g, '')
+              .replace(/\[🔗[^\]]*\]\(export:[^)]*\)[\s\S]*/g, '')
+              .replace(/\[📥[^\]]*\]\(export:[^)]*\)[\s\S]*/g, '')
               .trim() + exportLink;
           }
         }
