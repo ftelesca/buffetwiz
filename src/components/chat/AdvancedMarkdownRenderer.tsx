@@ -15,20 +15,9 @@ import { parseExportPayload } from "@/lib/export-utils";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
-// Process export links by replacing them with HTML buttons
+// Process export links (no-op; handled in custom link renderer)
 function processExportLinks(md: string): string {
-  if (!md) return md;
-  
-  return md.replace(/\[([^\]]+)\]\(export:([^)]+)\)/g, (match, linkText, payload) => {
-    // Clean up the payload
-    let cleanPayload = payload.replace(/[\r\n\t]+/g, '').trim();
-    
-    // Create a unique ID for this button
-    const buttonId = `export-btn-${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Return HTML button that will be processed by rehype-raw
-    return `<button class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-sm font-medium transition-colors cursor-pointer border-0" data-export-payload="${encodeURIComponent(cleanPayload)}" data-export-id="${buttonId}" onclick="window.handleExportClick && window.handleExportClick('${encodeURIComponent(cleanPayload)}')">${linkText}</button>`;
-  });
+  return md || '';
 }
 
 interface AdvancedMarkdownRendererProps {
@@ -87,12 +76,26 @@ export function AdvancedMarkdownRenderer({
         });
         if (error) throw error;
         if (response?.downloadUrl) {
-          const link = document.createElement('a');
-          link.href = response.downloadUrl;
-          link.download = response.filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          // Convert data URL to Blob and use object URL for reliable download
+          const match = response.downloadUrl.match(/^data:([^;]+);base64,(.*)$/);
+          if (match) {
+            const mime = match[1];
+            const b64 = match[2];
+            const byteChars = atob(b64);
+            const byteNums = new Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+            const blob = new Blob([new Uint8Array(byteNums)], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = response.filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          } else {
+            window.open(response.downloadUrl, '_blank');
+          }
 
           toast({
             title: 'Arquivo exportado',
@@ -109,12 +112,25 @@ export function AdvancedMarkdownRenderer({
       if (error) throw error;
 
       if (response?.downloadUrl) {
-        const link = document.createElement('a');
-        link.href = response.downloadUrl;
-        link.download = response.filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const match = response.downloadUrl.match(/^data:([^;]+);base64,(.*)$/);
+        if (match) {
+          const mime = match[1];
+          const b64 = match[2];
+          const byteChars = atob(b64);
+          const byteNums = new Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+          const blob = new Blob([new Uint8Array(byteNums)], { type: mime });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = response.filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        } else {
+          window.open(response.downloadUrl, '_blank');
+        }
         
         toast({
           title: 'Arquivo exportado',
