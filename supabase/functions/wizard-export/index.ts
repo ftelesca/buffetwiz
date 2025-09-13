@@ -20,9 +20,12 @@ serve(async (req) => {
   try {
     const { type, data, filename } = await req.json();
     
+    console.log('Export request received:', { type, filename, dataLength: data?.length });
+    
     // Get authorization header
     const authorization = req.headers.get('authorization');
     if (!authorization) {
+      console.error('No authorization header provided');
       throw new Error('No authorization header');
     }
 

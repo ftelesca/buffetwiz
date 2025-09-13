@@ -197,15 +197,16 @@ Quando o usuário solicitar exportações como:
 VOCÊ DEVE:
 1. Processar e preparar os dados solicitados
 2. Incluir na sua resposta um link especial no formato:
-   [🔗 Baixar arquivo_nome.formato](export:{"type":"formato","data":[dados],"filename":"nome_arquivo"})
+   [🔗 Baixar arquivo_nome.formato](export:dados_codificados)
 
-EXEMPLOS DE EXPORTAÇÃO:
-• Para exportar eventos: [🔗 Baixar eventos.xlsx](export:{"type":"xlsx","data":[{"Evento":"Nome","Data":"2024-01-01"}],"filename":"eventos"})
-• Para exportar produtos: [🔗 Baixar produtos.csv](export:{"type":"csv","data":[{"Produto":"Nome","Custo":10.50}],"filename":"produtos"})
-• Para exportar insumos: [🔗 Baixar insumos.json](export:{"type":"json","data":[{"Insumo":"Nome","Preço":5.00}],"filename":"insumos"})
+⚠️ IMPORTANTE PARA EXPORTAÇÕES:
+- NÃO use funções calculate_recipe_unit_cost() nos dados de exportação
+- Os custos já serão calculados automaticamente pelo sistema
+- Apenas mencione que o arquivo conterá os custos calculados
+- Use uma linguagem simples como "Segue o arquivo Excel com a tabela dos produtos e seus custos unitários"
 
 FORMATOS SUPORTADOS: xlsx, csv, json
-SEMPRE inclua dados estruturados com chaves em português e valores apropriados.
+O sistema processará automaticamente os dados e calculará os custos em tempo real.
 `;
 
       // Call GPT-5 only if no valid cache
@@ -329,25 +330,44 @@ SEMPRE inclua dados estruturados com chaves em português e valores apropriados.
           
           // Determine what data to export based on the request
           if (dataType.includes('produto') || dataType.includes('receita')) {
-            exportData = context.recipes.map(recipe => ({
-              'Produto': recipe.description,
-              'Rendimento': recipe.efficiency || 1,
-              'Insumos': recipe.recipe_item?.length || 0
-            }));
+            // Calculate unit costs for each recipe
+            const recipesWithCosts = [];
+            for (const recipe of context.recipes) {
+              try {
+                const { data: unitCost, error } = await supabase.rpc('calculate_recipe_unit_cost', { 
+                  recipe_id_param: recipe.id 
+                });
+                
+                recipesWithCosts.push({
+                  'Produto': recipe.description,
+                  'Custo Unitário (R$)': error ? 0 : (parseFloat(unitCost) || 0),
+                  'Rendimento': recipe.efficiency || 1,
+                  'Insumos': recipe.recipe_item?.length || 0
+                });
+              } catch (err) {
+                recipesWithCosts.push({
+                  'Produto': recipe.description,
+                  'Custo Unitário (R$)': 0,
+                  'Rendimento': recipe.efficiency || 1,
+                  'Insumos': recipe.recipe_item?.length || 0
+                });
+              }
+            }
+            exportData = recipesWithCosts;
           } else if (dataType.includes('evento')) {
             exportData = context.events.map(event => ({
               'Evento': event.title,
               'Data': event.date,
               'Cliente': event.customer?.name || 'N/A',
               'Convidados': event.numguests || 0,
-              'Custo': event.cost || 0,
-              'Preço': event.price || 0
+              'Custo (R$)': event.cost || 0,
+              'Preço (R$)': event.price || 0
             }));
           } else if (dataType.includes('insumo') || dataType.includes('item')) {
             exportData = context.items.map(item => ({
               'Insumo': item.description,
-              'Custo': item.cost || 0,
-              'Unidade': 'un' // Default unit
+              'Custo (R$)': item.cost || 0,
+              'Unidade': 'un'
             }));
           } else if (dataType.includes('cliente')) {
             exportData = context.customers.map(customer => ({
