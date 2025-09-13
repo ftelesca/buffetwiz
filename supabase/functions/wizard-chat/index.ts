@@ -138,6 +138,7 @@ ${context.events.slice(0, 10).map(event => `
   Cliente: ${event.customer?.name || 'N/A'}
   Custo: R$ ${event.cost || 'N/A'} | Preço: R$ ${event.price || 'N/A'}
   Menu: ${event.event_menu?.map(m => `${m.recipe?.description} (${m.qty})`).join(', ') || 'Vazio'}
+`).join('\n')}
 
 PRODUTOS PRINCIPAIS:
 ${context.recipes.slice(0, 15).map(recipe => `
