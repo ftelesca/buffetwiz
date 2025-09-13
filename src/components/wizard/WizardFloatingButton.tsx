@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
-import { ChatInterface } from "../chat/ChatInterface";
+import { ChatInterface } from "../wizard/WizardChat";
 
 export function WizardFloatingButton() {
   const [isOpen, setIsOpen] = useState(false);
