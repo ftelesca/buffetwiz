@@ -15,6 +15,11 @@ import "katex/dist/katex.min.css";
 
 // Função de exportação integrada (caso o arquivo externo não esteja disponível)
 async function exportToFile(payload: string) {
+  console.log('=== EXPORT TO FILE STARTED ===');
+  console.log('Raw payload:', payload);
+  console.log('Payload type:', typeof payload);
+  console.log('Payload length:', payload?.length);
+  
   try {
     console.log('exportToFile called with payload:', payload);
     
