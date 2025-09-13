@@ -42,6 +42,11 @@ export async function handleExportClick(payload: string): Promise<void> {
       const filenameMatch = cleaned.match(/filename\"?\s*:\s*\"([^\"]+)/);
       const filename = filenameMatch?.[1] || 'export';
       const filenameLower = filename.toLowerCase();
+      const inferredType: 'csv' | 'json' | 'xlsx' = filenameLower.endsWith('.xlsx')
+        ? 'xlsx'
+        : filenameLower.endsWith('.json')
+        ? 'json'
+        : 'csv';
 
       let target: 'produtos' | 'eventos' | 'insumos' | 'clientes' = 'produtos';
       if (filenameLower.includes('evento')) target = 'eventos';
@@ -107,7 +112,7 @@ export async function handleExportClick(payload: string): Promise<void> {
 
       console.log('📊 Dados obtidos:', { target, count: exportData.length });
 
-      const fallbackData = { type: 'csv', filename, data: exportData };
+      const fallbackData = { type: inferredType, filename, data: exportData };
       const { data: response, error } = await supabase.functions.invoke('wizard-export', {
         body: fallbackData
       });

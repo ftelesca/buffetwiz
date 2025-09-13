@@ -34,12 +34,28 @@ const App = () => {
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const anchor = (target && (target as any).closest) ? (target.closest('a') as HTMLAnchorElement | null) : null;
-      const href = anchor?.getAttribute('href') || '';
+      if (!anchor) return;
+
+      const href = anchor.getAttribute('href') || '';
+      // Case 1: explicit export: links
       if (href.startsWith('export:')) {
         e.preventDefault();
         e.stopPropagation();
         const payload = href.replace(/^export:/, '');
         handleExportClick(payload);
+        return;
+      }
+
+      // Case 2: ChatGPT-like text links: "Baixar arquivo.ext" pointing to a page URL
+      const text = (anchor.textContent || '').toLowerCase();
+      const fileMatch = text.match(/\bbaixar\s+([\w\-\s]+\.(xlsx|csv|json))\b/i);
+      if (fileMatch) {
+        e.preventDefault();
+        e.stopPropagation();
+        const file = fileMatch[1];
+        // Trigger fallback inference by passing only filename in a pseudo-payload
+        handleExportClick(`filename:"${file}"`);
+        return;
       }
     };
     document.addEventListener('click', onDocClick, true);
