@@ -35,10 +35,10 @@ const App = () => {
       const target = e.target as HTMLElement;
       const anchor = (target && (target as any).closest) ? (target.closest('a') as HTMLAnchorElement | null) : null;
       const href = anchor?.getAttribute('href') || '';
-      if (href.startsWith('export:')) {
+      if (href.toLowerCase().startsWith('export:')) {
         e.preventDefault();
         e.stopPropagation();
-        const payload = href.replace(/^export:/, '');
+        const payload = href.replace(/^export:/i, '');
         console.log('🖱️ Doc-level export link clicked. Payload preview:', payload?.slice(0,120));
         handleExportClick(payload);
       }

@@ -177,8 +177,8 @@ function processExportLinks(md: string): string {
     if (part.startsWith('```') || part.startsWith('`')) continue; // skip code
 
     let processed = part;
-    // keep existing markdown export links as-is
-    processed = processed.replace(/(\[[^\]]+\]\(export:[^)]+\))/g, '$1');
+    // keep existing markdown export links as-is (case-insensitive)
+    processed = processed.replace(/(\[[^\]]+\]\(export:[^)]+\))/gi, '$1');
     processed = wrapPercentEncoded(processed);
     processed = wrapRawJson(processed);
     parts[p] = processed;
@@ -432,8 +432,8 @@ export function MarkdownRenderer({
 
           // Enhanced links and export buttons
           a: ({ className, href, children, ...props }) => {
-            if (href && href.startsWith('export:')) {
-              const payload = href.replace(/^export:/, '');
+            if (href && href.toLowerCase().startsWith('export:')) {
+              const payload = href.replace(/^export:/i, '');
               return (
                 <button
                   type="button"
