@@ -2,14 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import html2pdf from "html2pdf.js"; 
+
+import html2pdf from "html2pdf.js";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+
 import { 
   Send, 
   Bot, 
@@ -180,7 +183,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     }
   };
 
-  const exportToPDF = async (chatId: string) => {
+const exportToPDF = async (chatId: string) => {
   try {
     setIsLoading(true);
 
@@ -189,20 +192,17 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     });
     if (error) throw error;
 
-    // Cria um elemento DOM temporário com o HTML retornado
     const element = document.createElement("div");
     element.innerHTML = data.html;
 
-    // Configurações do PDF
     const opt = {
       margin: 0.5,
       filename: data.filename,
       image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
+      html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
     };
 
-    // Gera e baixa o PDF
     await html2pdf().set(opt).from(element).save();
 
     toast({
@@ -220,6 +220,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     setIsLoading(false);
   }
 };
+
   
   const deleteChat = async (chatId: string) => {
     try {
