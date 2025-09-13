@@ -119,6 +119,7 @@ export async function handleExportClick(payload: string): Promise<void> {
 
       console.log('✅ Resposta da função (fallback):', response);
       await downloadFile(response, filename);
+      loadingToast.dismiss();
       return;
     }
 
@@ -131,6 +132,7 @@ export async function handleExportClick(payload: string): Promise<void> {
       const base64 = btoa(unescape(encodeURIComponent(contentStr)));
       const downloadUrl = `data:${contentType};base64,${base64}`;
       await downloadFile({ downloadUrl, filename }, filename);
+      loadingToast.dismiss();
       return;
     }
 
@@ -146,9 +148,11 @@ export async function handleExportClick(payload: string): Promise<void> {
 
     console.log('✅ Resposta da função:', response);
     await downloadFile(response, parsed.filename || 'export');
+    loadingToast.dismiss();
 
   } catch (err) {
     console.error('💥 Erro durante exportação:', err);
+    try { loadingToast.dismiss(); } catch {}
     toast({
       title: 'Erro na exportação',
       description: 'Não foi possível exportar o arquivo. Verifique os logs para mais detalhes.',
