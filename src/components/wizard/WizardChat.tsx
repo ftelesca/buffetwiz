@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
+import { TypingAnimation } from "@/components/ui/typing-animation";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,6 +39,7 @@ interface Message {
   content: string;
   created_at: string;
   metadata?: any;
+  isTyping?: boolean;
 }
 
 interface Chat {
@@ -53,6 +56,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -144,15 +148,17 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         await loadChatHistory();
       }
 
-      // Optimistic UI: show assistant response immediately if present, then reload from DB
+      // Optimistic UI: show assistant response immediately with typing animation
       if (resolvedChatId) {
         const immediateText = (data as any)?.response || (data as any)?.generatedText || (data as any)?.answer || (data as any)?.output;
         if (immediateText) {
+          const tempAssistantId = `temp-assistant-${Date.now()}`;
           const tempAssistant: Message = {
-            id: `temp-assistant-${Date.now()}`,
+            id: tempAssistantId,
             role: 'assistant',
             content: immediateText,
             created_at: new Date().toISOString(),
+            isTyping: true,
           };
           setMessages(prev => {
             const filtered = prev.filter(m => m.id !== tempUserMessage.id);
@@ -162,8 +168,10 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
               tempAssistant,
             ];
           });
+          setTypingMessageId(tempAssistantId);
         }
         await loadChatMessages(resolvedChatId);
+        setTypingMessageId(null);
       }
 
 
@@ -431,25 +439,48 @@ const exportToPDF = async (chatId: string) => {
                         </div>
                       )}
                       
-                       <Card className={`max-w-[80%] p-4 ${
+                       <Card className={`max-w-[85%] ${
                          msg.role === 'user' 
                            ? 'bg-primary text-primary-foreground' 
-                           : 'bg-muted/50'
+                           : 'bg-card border shadow-sm'
                        }`}>
-                         <div className="whitespace-pre-wrap text-sm leading-relaxed break-words overflow-wrap-anywhere">
-                           {msg.content}
+                         <div className={`${msg.role === 'user' ? 'p-4' : 'p-0'}`}>
+                           {msg.role === 'user' ? (
+                             <div className="whitespace-pre-wrap text-sm leading-relaxed break-words">
+                               {msg.content}
+                             </div>
+                           ) : (
+                             <div className="p-4">
+                               {msg.isTyping && typingMessageId === msg.id ? (
+                                 <TypingAnimation 
+                                   text={msg.content}
+                                   speed={15}
+                                   onComplete={() => setTypingMessageId(null)}
+                                   className="text-sm"
+                                 />
+                               ) : (
+                                 <MarkdownRenderer 
+                                   content={msg.content}
+                                   className="text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                                 />
+                               )}
+                             </div>
+                           )}
+                           
+                           <div className={`flex items-center justify-between mt-2 pt-2 border-t border-border/20 ${
+                             msg.role === 'user' ? '' : 'mx-4 pb-4'
+                           }`}>
+                             <span className="text-xs opacity-70">
+                               {new Date(msg.created_at).toLocaleTimeString('pt-BR')}
+                             </span>
+                             {msg.metadata?.tokens_used && (
+                               <Badge variant="outline" className="text-xs">
+                                 {msg.metadata.tokens_used} tokens
+                               </Badge>
+                             )}
+                           </div>
                          </div>
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/20">
-                          <span className="text-xs opacity-70">
-                            {new Date(msg.created_at).toLocaleTimeString('pt-BR')}
-                          </span>
-                          {msg.metadata?.tokens_used && (
-                            <Badge variant="outline" className="text-xs">
-                              {msg.metadata.tokens_used} tokens
-                            </Badge>
-                          )}
-                        </div>
-                      </Card>
+                       </Card>
 
                       {msg.role === 'user' && (
                         <div className="flex-shrink-0">
