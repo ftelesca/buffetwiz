@@ -23,9 +23,80 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
 
   const handleExportClick = async (payload: string) => {
     try {
-      // Decode and parse payload
-      const decoded = decodeURIComponent(payload);
-      const parsed = JSON.parse(decoded);
+      // Decode and try to parse payload
+      const decoded = decodeURIComponent(payload || '');
+      let parsed: any = null;
+
+      try {
+        parsed = JSON.parse(decoded);
+      } catch (parseErr) {
+        console.warn('Malformed export payload, attempting to rebuild from context...', { parseErr, decoded });
+        // Extract minimal info and rebuild data client-side
+        const typeMatch = decoded.match(/"type"\s*:\s*"([^"]+)"/i);
+        const filenameMatch = decoded.match(/"filename"\s*:\s*"([^"]+)"/i);
+        const type = (typeMatch?.[1] || 'csv').toLowerCase();
+        const filename = filenameMatch?.[1] || 'export';
+        const filenameLower = filename.toLowerCase();
+
+        // Infer export target from filename
+        let target: 'produtos' | 'eventos' | 'insumos' | 'clientes' = 'produtos';
+        if (filenameLower.includes('evento')) target = 'eventos';
+        else if (filenameLower.includes('insumo') || filenameLower.includes('item')) target = 'insumos';
+        else if (filenameLower.includes('cliente')) target = 'clientes';
+
+        // Build export data from DB as a fallback
+        let exportData: any[] = [];
+        const { data: userResp } = await supabase.auth.getUser();
+        const userId = userResp.user?.id;
+
+        if (target === 'produtos') {
+          const { data: recipes } = await supabase
+            .from('recipe')
+            .select('id, description')
+            .eq('user_id', userId as string)
+            .limit(200);
+
+          const rows = await Promise.all((recipes || []).map(async (r) => {
+            try {
+              const { data: uc } = await supabase.rpc('calculate_recipe_unit_cost', { recipe_id_param: r.id });
+              return { 'Produto': r.description, 'Custo Unitário (R$)': Number(uc ?? 0) };
+            } catch {
+              return { 'Produto': r.description, 'Custo Unitário (R$)': 0 };
+            }
+          }));
+          exportData = rows;
+        } else if (target === 'eventos') {
+          const { data: events } = await supabase
+            .from('event')
+            .select('title, date, numguests, cost, price, customer:customer(name)')
+            .eq('user_id', userId as string)
+            .limit(200);
+          exportData = (events || []).map((e: any) => ({
+            'Evento': e.title,
+            'Data': e.date,
+            'Convidados': e.numguests || 0,
+            'Custo (R$)': e.cost || 0,
+            'Preço (R$)': e.price || 0,
+            'Cliente': e?.customer?.name || ''
+          }));
+        } else if (target === 'insumos') {
+          const { data: items } = await supabase
+            .from('item')
+            .select('description, cost')
+            .eq('user_id', userId as string)
+            .limit(500);
+          exportData = (items || []).map((i: any) => ({ 'Insumo': i.description, 'Custo (R$)': i.cost || 0 }));
+        } else if (target === 'clientes') {
+          const { data: customers } = await supabase
+            .from('customer')
+            .select('name, email, phone')
+            .eq('user_id', userId as string)
+            .limit(500);
+          exportData = (customers || []).map((c: any) => ({ 'Cliente': c.name, 'Email': c.email || '', 'Telefone': c.phone || '' }));
+        }
+
+        parsed = { type, filename, data: exportData };
+      }
 
       const { data: response, error } = await supabase.functions.invoke('wizard-export', {
         body: parsed
@@ -41,7 +112,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
         document.body.removeChild(link);
         
         toast({
-          title: "Arquivo exportado",
+          title: 'Arquivo exportado',
           description: `${response.filename} foi baixado com sucesso`,
         });
       } else {
@@ -50,9 +121,9 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     } catch (err) {
       console.error('Export error:', err);
       toast({
-        title: "Erro na exportação",
-        description: "Não foi possível exportar o arquivo",
-        variant: "destructive",
+        title: 'Erro na exportação',
+        description: 'Não foi possível exportar o arquivo',
+        variant: 'destructive',
       });
     }
   };
