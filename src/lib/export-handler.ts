@@ -132,30 +132,18 @@ export async function handleExportClick(payload: string): Promise<void> {
     }
 
     // Normal path with successfully parsed payload
-    console.log('📤 Invocando função wizard-export...');
-    let response: any | null = null;
-    let error: any = null;
-    try {
-      const resp = await supabase.functions.invoke('wizard-export', {
-        body: parsed
-      });
-      response = resp.data;
-      error = resp.error;
-    } catch (e) {
-      error = e;
-    }
+    const type = (parsed.type || 'csv').toLowerCase();
 
-    if (error || !response?.downloadUrl) {
-      console.warn('⚠️ Falha na wizard-export ou resposta inválida, usando fallback local', { hasResponse: !!response, error });
-      // Local generation as fallback
-      const type = (parsed.type || 'csv').toLowerCase();
+    // Prefer local generation for CSV/JSON to ensure reliability
+    if (type === 'csv' || type === 'json') {
+      console.log('🧩 Gerando arquivo localmente (sem edge function)...');
       let fileContent = '';
       let contentType = '';
+
       if (type === 'json') {
         fileContent = JSON.stringify(parsed.data ?? [], null, 2);
         contentType = 'application/json';
       } else {
-        // CSV default
         const dataArr = Array.isArray(parsed.data) ? parsed.data : [];
         if (dataArr.length === 0) {
           fileContent = '';
@@ -174,10 +162,52 @@ export async function handleExportClick(payload: string): Promise<void> {
         }
         contentType = 'text/csv';
       }
+
       const b64 = btoa(unescape(encodeURIComponent(fileContent)));
       const localResp = {
         filename: parsed.filename || 'export',
         downloadUrl: `data:${contentType};base64,${b64}`,
+      };
+      await downloadFile(localResp, parsed.filename || 'export');
+      return;
+    }
+
+    // For Excel/XLSX, use the edge function and fallback to local CSV if needed
+    console.log('📤 Invocando função wizard-export (xlsx)...');
+    let response: any | null = null;
+    let error: any = null;
+    try {
+      const resp = await supabase.functions.invoke('wizard-export', {
+        body: parsed
+      });
+      response = resp.data;
+      error = resp.error;
+    } catch (e) {
+      error = e;
+    }
+
+    if (error || !response?.downloadUrl) {
+      console.warn('⚠️ Falha na wizard-export ou resposta inválida, usando fallback local CSV', { hasResponse: !!response, error });
+      // Local CSV fallback
+      const dataArr = Array.isArray(parsed.data) ? parsed.data : [];
+      let fileContent = '';
+      if (dataArr.length > 0) {
+        const headers = Object.keys(dataArr[0]);
+        const headerRow = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
+        const rows = dataArr.map(row =>
+          headers.map(h => {
+            const v = (row as any)[h];
+            const s = (v === null || v === undefined) ? '' : String(v);
+            const escaped = s.replace(/"/g, '""');
+            return `"${escaped}"`;
+          }).join(',')
+        );
+        fileContent = [headerRow, ...rows].join('\n');
+      }
+      const b64 = btoa(unescape(encodeURIComponent(fileContent)));
+      const localResp = {
+        filename: (parsed.filename || 'export') + '.csv',
+        downloadUrl: `data:text/csv;base64,${b64}`,
       };
       await downloadFile(localResp, parsed.filename || 'export');
       return;
