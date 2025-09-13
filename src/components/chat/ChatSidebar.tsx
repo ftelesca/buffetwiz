@@ -110,7 +110,7 @@ export function ChatSidebar({
   if (!open) return null;
 
   return (
-    <div className="w-80 bg-muted/30 border-r border-border flex flex-col h-full max-h-[90vh] overflow-hidden">
+    <div className="w-80 bg-muted/30 border-r border-border flex flex-col h-full min-h-0 overflow-hidden">
       {/* Header */}
       <div className="flex-shrink-0 p-4 border-b bg-background/50">
         <div className="flex items-center justify-between mb-3">
@@ -147,7 +147,7 @@ export function ChatSidebar({
       </div>
 
       {/* Sessions List */}
-      <ScrollArea className="flex-1 min-h-0">
+      <ScrollArea className="flex-1 min-h-0 overflow-y-auto">
         <div className="p-2">
           {filteredSessions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">

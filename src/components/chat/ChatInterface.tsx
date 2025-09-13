@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -327,6 +327,10 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md">
+          <div className="sr-only">
+            <DialogTitle>Assistente IA</DialogTitle>
+            <DialogDescription>Janela de chat do assistente</DialogDescription>
+          </div>
           <div className="text-center py-8">
             <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">Faça login para continuar</h3>
@@ -342,6 +346,10 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl h-[90vh] max-h-[90vh] p-0 gap-0 overflow-hidden">
+        <div className="sr-only">
+          <DialogTitle>Assistente IA</DialogTitle>
+          <DialogDescription>Janela de chat do assistente</DialogDescription>
+        </div>
         <div className="flex h-full max-h-full overflow-hidden">
           {/* Sidebar */}
           <ChatSidebar
