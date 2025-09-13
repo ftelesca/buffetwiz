@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { createClient } from "@supabase/supabase-js";
@@ -8,12 +8,13 @@ import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import ChatSidebar from "./ChatSidebar";
 
+// ✅ Usa NEXT_PUBLIC_ (injetado no bundle) e evita process no browser
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
 const supabase =
   typeof window !== "undefined"
-    ? createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
+    ? createClient(supabaseUrl, supabaseAnon)
     : (null as any);
 
 type Session = {
@@ -38,12 +39,12 @@ function ChatInterface() {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto scroll
+  // Auto scroll sempre que mensagens mudam
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Carrega sessões do usuário ao montar
+  // Carrega sessões ao montar
   useEffect(() => {
     (async () => {
       if (!supabase) return;
@@ -51,16 +52,18 @@ function ChatInterface() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
+
       const { data } = await supabase
         .from("wizard_chats")
         .select("id, title, updated_at")
         .eq("user_id", user.id)
         .order("updated_at", { ascending: false });
+
       setSessions((data ?? []) as Session[]);
-      // se houver sessão, seleciona a primeira
+
+      // seleciona a primeira sessão automaticamente
       if (data && data.length) {
         setCurrentSessionId(data[0].id);
-        // carrega mensagens desta sessão
         const { data: msgs } = await supabase
           .from("wizard_messages")
           .select("*")
@@ -71,7 +74,7 @@ function ChatInterface() {
     })();
   }, []);
 
-  // Render de mensagem com Markdown + highlight
+  // Renderiza cada mensagem (com Markdown e highlight)
   const renderMessage = (m: Message, i: number) => {
     const isUser = m.role === "user";
     return (
@@ -87,7 +90,12 @@ function ChatInterface() {
             code({ className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || "");
               return match ? (
-                <SyntaxHighlighter style={atomOneLight} language={match[1]} PreTag="div" {...props}>
+                <SyntaxHighlighter
+                  style={atomOneLight}
+                  language={match[1]}
+                  PreTag="div"
+                  {...props}
+                >
                   {String(children).replace(/\n$/, "")}
                 </SyntaxHighlighter>
               ) : (
@@ -97,7 +105,6 @@ function ChatInterface() {
               );
             },
             a({ href, children }) {
-              // links de download assinados funcionam normalmente
               return (
                 <a
                   href={href}
@@ -129,10 +136,10 @@ function ChatInterface() {
 
       const body = {
         message: input.trim(),
-        sessionId: currentSessionId, // pode ser null para criar nova
+        sessionId: currentSessionId,
       };
 
-      // Otimismo: mostra mensagem do usuário imediatamente
+      // Mostra mensagem do usuário antes da resposta
       const optimisticUser: Message = {
         chat_id: currentSessionId || "__pending__",
         role: "user",
@@ -141,7 +148,8 @@ function ChatInterface() {
       setMessages((prev) => [...prev, optimisticUser]);
       setInput("");
 
-      const r = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`, {
+      const functionUrl = `${supabaseUrl}/functions/v1/chat`;
+      const r = await fetch(functionUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,15 +161,11 @@ function ChatInterface() {
       const data = await r.json();
 
       if (!r.ok) {
-        // rollback da última mensagem do usuário
-        setMessages((prev) => prev.slice(0, -1));
+        setMessages((prev) => prev.slice(0, -1)); // rollback
         throw new Error(data?.error || "Falha ao enviar mensagem");
       }
 
-      // Atualiza sessão corrente
       setCurrentSessionId(data.sessionId || null);
-
-      // Corrige exibição no painel: usa mensagens/sessões retornadas do backend
       setMessages(data.messages || []);
       setSessions(data.sessions || []);
     } catch (e: any) {
@@ -174,7 +178,6 @@ function ChatInterface() {
 
   async function handleSelectSession(chatId: string) {
     setCurrentSessionId(chatId);
-    // Carrega mensagens dessa sessão
     const { data: msgs } = await supabase
       .from("wizard_messages")
       .select("*")
@@ -186,14 +189,11 @@ function ChatInterface() {
   async function handleDeleteSession(chatId: string) {
     if (!confirm("Deseja apagar este chat?")) return;
     try {
-      // Apaga mensagens + sessão (somente do próprio user via RLS)
       await supabase.from("wizard_messages").delete().eq("chat_id", chatId);
       await supabase.from("wizard_chats").delete().eq("id", chatId);
 
-      // Atualiza lista local de sessões
       setSessions((prev) => prev.filter((s) => s.id !== chatId));
 
-      // Se estava aberta, limpa painel
       if (currentSessionId === chatId) {
         setCurrentSessionId(null);
         setMessages([]);
@@ -206,7 +206,7 @@ function ChatInterface() {
 
   return (
     <div className="flex h-full w-full">
-      {/* Sidebar do histórico */}
+      {/* Sidebar */}
       <ChatSidebar
         sessions={sessions}
         activeSessionId={currentSessionId}
@@ -214,20 +214,17 @@ function ChatInterface() {
         onDelete={handleDeleteSession}
       />
 
-      {/* Área do chat */}
+      {/* Área principal */}
       <div className="flex min-h-0 flex-1 flex-col">
-        {/* Header simples */}
         <div className="border-b p-3">
           <h1 className="text-lg font-semibold">Assistente BuffetWiz</h1>
         </div>
 
-        {/* Mensagens */}
         <div className="flex-1 space-y-2 overflow-y-auto bg-gray-50 p-3">
           {messages.map((m, i) => renderMessage(m, i))}
           <div ref={scrollRef} />
         </div>
 
-        {/* Input */}
         <div className="border-t p-3">
           <div className="flex gap-2">
             <input
