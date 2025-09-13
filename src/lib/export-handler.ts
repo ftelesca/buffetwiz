@@ -1,12 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { parseExportPayload } from "./export-utils";
-import { exportToFile } from "./export-file";
 import { toast } from "@/hooks/use-toast";
 
 export async function handleExportClick(payload: string): Promise<void> {
   console.log('🔄 Iniciando exportação...', { payload });
-  console.log('🔍 Payload string:', payload);
-  console.log('🔍 Payload substring 0-100:', payload?.substring(0, 100));
   
   // Show loading toast
   const loadingToast = toast({
@@ -19,14 +16,7 @@ export async function handleExportClick(payload: string): Promise<void> {
     console.log('📝 Payload parseado:', parsed);
 
     if (!parsed) {
-      console.warn('❌ Falha no parse, tentando payload com content/filename...');
-      try {
-        await exportToFile(payload);
-        console.log('✅ Download iniciado via exportToFile (content/filename).');
-        return;
-      } catch {
-        console.log('↪️ Payload não é do tipo content/filename. Prosseguindo com fallback.');
-      }
+      console.warn('❌ Falha no parse, usando fallback');
       
       // Fallback: try to infer export target and rebuild data
       const cleaned = (payload || '').toLowerCase();
@@ -103,27 +93,9 @@ export async function handleExportClick(payload: string): Promise<void> {
         body: fallbackData
       });
 
-      if (error || !response?.downloadUrl) {
-        console.warn('⚠️ Falha na função de export (fallback) via edge, usando geração local', { error, hasResponse: !!response });
-        // Geração local CSV
-        const headers = exportData.length ? Object.keys(exportData[0]) : [];
-        const headerRow = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
-        const rows = exportData.map(row =>
-          headers.map(h => {
-            const v = (row as any)[h];
-            const s = (v === null || v === undefined) ? '' : String(v);
-            const escaped = s.replace(/"/g, '""');
-            return `"${escaped}"`;
-          }).join(',')
-        );
-        const fileContent = [headerRow, ...rows].join('\n');
-        const b64 = btoa(unescape(encodeURIComponent(fileContent)));
-        const localResp = {
-          filename,
-          downloadUrl: `data:text/csv;base64,${b64}`,
-        };
-        await downloadFile(localResp, filename);
-        return;
+      if (error) {
+        console.error('❌ Erro na função de export (fallback):', error);
+        throw error;
       }
 
       console.log('✅ Resposta da função (fallback):', response);
@@ -132,85 +104,14 @@ export async function handleExportClick(payload: string): Promise<void> {
     }
 
     // Normal path with successfully parsed payload
-    const type = (parsed.type || 'csv').toLowerCase();
+    console.log('📤 Invocando função wizard-export...');
+    const { data: response, error } = await supabase.functions.invoke('wizard-export', {
+      body: parsed
+    });
 
-    // Prefer local generation for CSV/JSON to ensure reliability
-    if (type === 'csv' || type === 'json') {
-      console.log('🧩 Gerando arquivo localmente (sem edge function)...');
-      let fileContent = '';
-      let contentType = '';
-
-      if (type === 'json') {
-        fileContent = JSON.stringify(parsed.data ?? [], null, 2);
-        contentType = 'application/json';
-      } else {
-        const dataArr = Array.isArray(parsed.data) ? parsed.data : [];
-        if (dataArr.length === 0) {
-          fileContent = '';
-        } else {
-          const headers = Object.keys(dataArr[0]);
-          const headerRow = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
-          const rows = dataArr.map(row =>
-            headers.map(h => {
-              const v = (row as any)[h];
-              const s = (v === null || v === undefined) ? '' : String(v);
-              const escaped = s.replace(/"/g, '""');
-              return `"${escaped}"`;
-            }).join(',')
-          );
-          fileContent = [headerRow, ...rows].join('\n');
-        }
-        contentType = 'text/csv';
-      }
-
-      const b64 = btoa(unescape(encodeURIComponent(fileContent)));
-      const localResp = {
-        filename: parsed.filename || 'export',
-        downloadUrl: `data:${contentType};base64,${b64}`,
-      };
-      await downloadFile(localResp, parsed.filename || 'export');
-      return;
-    }
-
-    // For Excel/XLSX, use the edge function and fallback to local CSV if needed
-    console.log('📤 Invocando função wizard-export (xlsx)...');
-    let response: any | null = null;
-    let error: any = null;
-    try {
-      const resp = await supabase.functions.invoke('wizard-export', {
-        body: parsed
-      });
-      response = resp.data;
-      error = resp.error;
-    } catch (e) {
-      error = e;
-    }
-
-    if (error || !response?.downloadUrl) {
-      console.warn('⚠️ Falha na wizard-export ou resposta inválida, usando fallback local CSV', { hasResponse: !!response, error });
-      // Local CSV fallback
-      const dataArr = Array.isArray(parsed.data) ? parsed.data : [];
-      let fileContent = '';
-      if (dataArr.length > 0) {
-        const headers = Object.keys(dataArr[0]);
-        const headerRow = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
-        const rows = dataArr.map(row =>
-          headers.map(h => {
-            const v = (row as any)[h];
-            const s = (v === null || v === undefined) ? '' : String(v);
-            const escaped = s.replace(/"/g, '""');
-            return `"${escaped}"`;
-          }).join(',')
-        );
-        fileContent = [headerRow, ...rows].join('\n');
-      }
-      const b64 = btoa(unescape(encodeURIComponent(fileContent)));
-      const localResp = {
-        filename: (parsed.filename || 'export') + '.csv',
-        downloadUrl: `data:text/csv;base64,${b64}`,
-      };
-      await downloadFile(localResp, parsed.filename || 'export');
-      return;
+    if (error) {
+      console.error('❌ Erro na função de export:', error);
+      throw error;
     }
 
     console.log('✅ Resposta da função:', response);

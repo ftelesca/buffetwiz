@@ -47,13 +47,6 @@ serve(async (req) => {
     let assistantResponse = '';
     let tokensUsed = 0;
     let cachedMeta: any = null;
-    // Track counts to expose in metadata consistently
-    let contextCounts: { events: number; recipes: number; items: number; customers: number } = {
-      events: 0,
-      recipes: 0,
-      items: 0,
-      customers: 0,
-    };
 
     const { data: cachedResponse } = await supabase
       .from('wizard_cache')
@@ -108,14 +101,6 @@ serve(async (req) => {
         recipes: recipesResponse.data || [],
         items: itemsResponse.data || [],
         customers: customersResponse.data || []
-      };
-
-      // Update counts for metadata
-      contextCounts = {
-        events: context.events.length,
-        recipes: context.recipes.length,
-        items: context.items.length,
-        customers: context.customers.length,
       };
 
       // Create comprehensive context for GPT-5
@@ -590,16 +575,16 @@ O sistema processará automaticamente os dados e calculará os custos em tempo r
         chat_id: currentChatId,
         role: 'assistant',
         content: assistantResponse,
-        metadata: isCacheHit 
-          ? ({
-              ...cachedMeta,
-              context_items: (cachedMeta?.context_summary ?? contextCounts)
-            })
-          : {
-              model: model || 'gpt-4.1-mini-2025-04-14',
-              tokens_used: tokensUsed,
-              context_items: contextCounts,
-            }
+        metadata: isCacheHit ? cachedMeta : {
+          model: model || 'gpt-4.1-mini-2025-04-14',
+          tokens_used: tokensUsed,
+          context_items: {
+            events: 0, // Will be set properly below if not cached
+            recipes: 0,
+            items: 0,
+            customers: 0
+          }
+        }
       });
 
     if (assistantMsgError) throw assistantMsgError;
@@ -616,18 +601,11 @@ O sistema processará automaticamente os dados e calculará os custos em tempo r
     const finalResponse = {
       response: assistantResponse,
       chatId: currentChatId,
-      metadata: isCacheHit 
-        ? ({
-            ...cachedMeta,
-            cached: true,
-            context_items: (cachedMeta?.context_summary ?? contextCounts),
-          })
-        : {
-            model: model || 'gpt-4.1-mini-2025-04-14',
-            tokens_used: tokensUsed,
-            cached: false,
-            context_items: contextCounts,
-          }
+      metadata: isCacheHit ? cachedMeta : {
+        model: model || 'gpt-4.1-mini-2025-04-14',
+        tokens_used: tokensUsed,
+        cached: isCacheHit
+      }
     };
 
     return new Response(JSON.stringify(finalResponse), {

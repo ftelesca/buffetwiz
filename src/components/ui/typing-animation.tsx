@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MarkdownRenderer from '../chat/MarkdownRenderer';
+import { MarkdownRenderer } from './markdown-renderer';
 
 interface TypingAnimationProps {
   text: string;
@@ -7,7 +7,6 @@ interface TypingAnimationProps {
   onComplete?: () => void;
   className?: string;
   enableMarkdown?: boolean;
-  enableExportsDuringTyping?: boolean; // new: default false
 }
 
 export function TypingAnimation({ 
@@ -15,8 +14,7 @@ export function TypingAnimation({
   speed = 30, 
   onComplete, 
   className = "",
-  enableMarkdown = false,
-  enableExportsDuringTyping = false
+  enableMarkdown = false
 }: TypingAnimationProps) {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -47,7 +45,7 @@ export function TypingAnimation({
   if (enableMarkdown) {
     return (
       <div className={className}>
-        <MarkdownRenderer content={displayedText} enableExports={isComplete || enableExportsDuringTyping} />
+        <MarkdownRenderer content={displayedText} />
         {currentIndex < text.length && (
           <span className="inline-block w-2 h-5 bg-primary/70 animate-pulse ml-1 align-text-bottom" />
         )}

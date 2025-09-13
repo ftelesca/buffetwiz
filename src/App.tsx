@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ResetPasswordPage } from "@/components/auth/ResetPasswordPage";
-
+import { handleExportClick } from "@/lib/export-handler";
 // Regular imports for immediate loading
 import Index from "./pages/Index";
 import Events from "./pages/Events";
@@ -15,8 +15,7 @@ import Customers from "./pages/Customers";
 import Recipes from "./pages/Recipes";
 import Supplies from "./pages/Supplies";
 import NotFound from "./pages/NotFound";
-import React, { useEffect } from "react";
-import { handleExportClick } from "@/lib/export-handler";
+import React from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,22 +28,44 @@ const queryClient = new QueryClient({
   },
 });
 
+
 const App = () => {
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const anchor = (target && (target as any).closest) ? (target.closest('a') as HTMLAnchorElement | null) : null;
-      const href = anchor?.getAttribute('href') || '';
-      if (href.toLowerCase().startsWith('export:')) {
-        e.preventDefault();
-        e.stopPropagation();
-        const payload = href.replace(/^export:/i, '');
-        console.log('🖱️ Doc-level export link clicked. Payload preview:', payload?.slice(0,120));
+  // Global click handler for export links
+  React.useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      const path = (event.composedPath ? event.composedPath() : []) as HTMLElement[];
+      const target = event.target as HTMLElement | null;
+
+      // 1) Handle explicit export buttons anywhere in the DOM
+      const btnEl = (path.find((el: any) => el && el instanceof HTMLElement && el.dataset && el.dataset.exportPayload) ||
+        (target && (target as any).dataset?.exportPayload ? target : null)) as HTMLElement | null;
+      if (btnEl && (btnEl as any).dataset?.exportPayload) {
+        event.preventDefault();
+        event.stopPropagation();
+        const payload = (btnEl as any).dataset.exportPayload as string;
+        console.log('🔗 Intercepted export button click:', payload);
         handleExportClick(payload);
+        return false;
+      }
+
+      // 2) Handle anchor tags with href="export:..." clicked via any child
+      const anchorEl = path.find((el: any) => el && el instanceof HTMLAnchorElement) as HTMLAnchorElement | undefined;
+      const rawHref = anchorEl?.getAttribute?.('href') || '';
+      if (rawHref && rawHref.startsWith('export:')) {
+        event.preventDefault();
+        event.stopPropagation();
+        const payload = rawHref.replace(/^export:/, '');
+        console.log('🔗 Intercepted export link click (anchor):', { rawHref, payload });
+        handleExportClick(payload);
+        return false;
       }
     };
-    document.addEventListener('click', onDocClick, true);
-    return () => document.removeEventListener('click', onDocClick, true);
+
+    document.addEventListener('click', handleClick, true);
+    
+    return () => {
+      document.removeEventListener('click', handleClick, true);
+    };
   }, []);
 
   return (
