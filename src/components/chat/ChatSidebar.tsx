@@ -110,7 +110,7 @@ export function ChatSidebar({
   if (!open) return null;
 
   return (
-    <div className="w-80 bg-muted/30 border-r border-border flex flex-col h-full min-h-0 overflow-hidden">
+    <div className="flex-none shrink-0 w-80 bg-muted/30 border-r border-border flex flex-col h-full min-h-0 overflow-hidden relative z-0">
       {/* Header */}
       <div className="flex-shrink-0 p-4 border-b bg-background/50">
         <div className="flex items-center justify-between mb-3">
@@ -176,8 +176,8 @@ export function ChatSidebar({
                       <div
                         key={session.id}
                         className={cn(
-                          "group relative rounded-lg p-3 mb-2 cursor-pointer transition-all duration-200 hover:bg-accent/60",
-                          currentSession?.id === session.id && "bg-accent border border-border/60"
+                          "group relative rounded-lg p-3 mb-2 cursor-pointer transition-colors duration-200 hover:bg-accent/60 overflow-hidden border border-transparent",
+                          currentSession?.id === session.id && "bg-accent border-border/60"
                         )}
                         onClick={() => onSessionSelect(session)}
                       >
