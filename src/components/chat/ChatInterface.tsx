@@ -362,7 +362,7 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
           />
 
           {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col min-w-0 max-h-full overflow-hidden">
+          <div className="flex-1 flex flex-col min-w-0 max-h-full overflow-hidden border-l border-border">
             {/* Header */}
             <div className="flex-shrink-0 flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="flex items-center gap-3">
