@@ -133,11 +133,15 @@ export function MessageBubble({ message, onRegenerate, onFeedback }: MessageBubb
                 enableMarkdown={true}
                 className="text-foreground/90"
               />
-            ) : (
+            ) : message.content && message.content.trim() ? (
               <AdvancedMarkdownRenderer 
                 content={message.content}
                 className="text-foreground/90 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
               />
+            ) : (
+              <div className="text-muted-foreground italic text-sm">
+                Resposta vazia recebida
+              </div>
             )}
           </div>
           

@@ -257,7 +257,22 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
 
       if (error) throw error;
 
-      const assistantContent = String(data?.response ?? data?.generatedText ?? data?.answer ?? '');
+      // Better response parsing with fallbacks
+      const assistantContent = String(
+        data?.response || 
+        data?.generatedText || 
+        data?.answer || 
+        data?.content ||
+        data?.text ||
+        data?.message ||
+        'Desculpe, não consegui gerar uma resposta. Tente reformular sua pergunta.'
+      ).trim();
+
+      // Skip if still empty after processing
+      if (!assistantContent || assistantContent.length < 3) {
+        throw new Error('Resposta vazia recebida do servidor');
+      }
+
       const assistantEmbedding = assistantContent ? await embeddingsManager.getEmbedding(assistantContent) : [];
 
       const assistantMessage: ChatMessage = {
@@ -401,7 +416,7 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
 
             {/* Messages */}
             <ScrollArea className="flex-1 min-h-0 overflow-auto">
-              <div className="max-w-4xl mx-auto p-4 space-y-6">
+              <div className="max-w-4xl mx-auto p-4 space-y-4 min-h-full">
                 {messages.length === 0 ? (
                   <div className="text-center py-12">
                     <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
@@ -429,14 +444,17 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
                       ))}
                     </div>
                   </div>
-                ) : (
-                  <>
-                    {messages.map((message) => (
-                      <MessageBubble key={message.id} message={message} />
-                    ))}
-                    {isTyping && <TypingIndicator />}
-                  </>
-                )}
+                 ) : (
+                   <>
+                     {messages
+                       .filter(message => message.content && message.content.trim().length > 0)
+                       .map((message) => (
+                         <MessageBubble key={message.id} message={message} />
+                       ))
+                     }
+                     {isTyping && <TypingIndicator />}
+                   </>
+                 )}
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
