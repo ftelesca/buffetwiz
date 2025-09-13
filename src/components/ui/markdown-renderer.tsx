@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Copy, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { parseExportPayload } from "@/lib/export-utils";
 
 interface MarkdownRendererProps {
   content: string;
@@ -23,28 +24,21 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
 
   const handleExportClick = async (payload: string) => {
     try {
-      // Decode and try to parse payload
-      const decoded = decodeURIComponent(payload || '');
-      let parsed: any = null;
+      // Try to parse robustly
+      const parsed = parseExportPayload(payload);
 
-      try {
-        parsed = JSON.parse(decoded);
-      } catch (parseErr) {
-        console.warn('Malformed export payload, attempting to rebuild from context...', { parseErr, decoded });
-        // Extract minimal info and rebuild data client-side
-        const typeMatch = decoded.match(/"type"\s*:\s*"([^"]+)"/i);
-        const filenameMatch = decoded.match(/"filename"\s*:\s*"([^"]+)"/i);
-        const type = (typeMatch?.[1] || 'csv').toLowerCase();
+      if (!parsed) {
+        // Fallback: infer target from filename and rebuild minimal data
+        const cleaned = (payload || '').toLowerCase();
+        const filenameMatch = cleaned.match(/filename\"?\s*:\s*\"([^\"]+)/);
         const filename = filenameMatch?.[1] || 'export';
         const filenameLower = filename.toLowerCase();
 
-        // Infer export target from filename
         let target: 'produtos' | 'eventos' | 'insumos' | 'clientes' = 'produtos';
         if (filenameLower.includes('evento')) target = 'eventos';
         else if (filenameLower.includes('insumo') || filenameLower.includes('item')) target = 'insumos';
         else if (filenameLower.includes('cliente')) target = 'clientes';
 
-        // Build export data from DB as a fallback
         let exportData: any[] = [];
         const { data: userResp } = await supabase.auth.getUser();
         const userId = userResp.user?.id;
@@ -95,9 +89,28 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
           exportData = (customers || []).map((c: any) => ({ 'Cliente': c.name, 'Email': c.email || '', 'Telefone': c.phone || '' }));
         }
 
-        parsed = { type, filename, data: exportData };
+        const { data: response, error } = await supabase.functions.invoke('wizard-export', {
+          body: { type: 'csv', filename, data: exportData }
+        });
+        if (error) throw error;
+
+        if (response?.downloadUrl) {
+          const link = document.createElement('a');
+          link.href = response.downloadUrl;
+          link.download = response.filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          toast({
+            title: 'Arquivo exportado',
+            description: `${response.filename} foi baixado com sucesso`,
+          });
+        }
+        return;
       }
 
+      // Normal path with parsed payload
       const { data: response, error } = await supabase.functions.invoke('wizard-export', {
         body: parsed
       });
@@ -110,7 +123,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         toast({
           title: 'Arquivo exportado',
           description: `${response.filename} foi baixado com sucesso`,

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { parseExportPayload } from "@/lib/export-utils";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
@@ -52,24 +53,36 @@ export function AdvancedMarkdownRenderer({
 
   const handleExportClick = async (payload: string) => {
     if (!enableExports) return;
-    
-    try {
-      const decoded = decodeURIComponent(payload || '');
-      let parsed: any = null;
 
-      try {
-        parsed = JSON.parse(decoded);
-      } catch (parseErr) {
-        console.warn('Malformed export payload, attempting to rebuild...', { parseErr, decoded });
-        
-        // Extract info and rebuild data
-        const typeMatch = decoded.match(/"type"\s*:\s*"([^"]+)"/i);
-        const filenameMatch = decoded.match(/"filename"\s*:\s*"([^"]+)"/i);
-        const type = (typeMatch?.[1] || 'csv').toLowerCase();
-        const filename = filenameMatch?.[1] || 'export';
-        
-        // Fallback export logic here...
-        parsed = { type, filename, data: [] };
+    try {
+      const parsed = parseExportPayload(payload);
+
+      if (!parsed) {
+        // Minimal graceful failure notice
+        toast({
+          title: 'Formato do link inválido',
+          description: 'Tentando reconstruir dados automaticamente...'
+        });
+
+        // As a safe fallback, just ask the Edge Function to export an empty CSV
+        const { data: response, error } = await supabase.functions.invoke('wizard-export', {
+          body: { type: 'csv', filename: 'export', data: [] }
+        });
+        if (error) throw error;
+        if (response?.downloadUrl) {
+          const link = document.createElement('a');
+          link.href = response.downloadUrl;
+          link.download = response.filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          toast({
+            title: 'Arquivo exportado',
+            description: `${response.filename} foi baixado com sucesso`,
+          });
+        }
+        return;
       }
 
       const { data: response, error } = await supabase.functions.invoke('wizard-export', {
