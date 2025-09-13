@@ -15,7 +15,8 @@ import Customers from "./pages/Customers";
 import Recipes from "./pages/Recipes";
 import Supplies from "./pages/Supplies";
 import NotFound from "./pages/NotFound";
-import React from "react";
+import React, { useEffect } from "react";
+import { handleExportClick } from "@/lib/export-handler";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,8 +29,22 @@ const queryClient = new QueryClient({
   },
 });
 
-
 const App = () => {
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = (target && (target as any).closest) ? (target.closest('a') as HTMLAnchorElement | null) : null;
+      const href = anchor?.getAttribute('href') || '';
+      if (href.startsWith('export:')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const payload = href.replace(/^export:/, '');
+        handleExportClick(payload);
+      }
+    };
+    document.addEventListener('click', onDocClick, true);
+    return () => document.removeEventListener('click', onDocClick, true);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
