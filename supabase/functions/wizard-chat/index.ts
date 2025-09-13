@@ -228,7 +228,7 @@ INSTRUÇÕES FINAIS:
         messages: messagesPayload
       };
       if (isNewModel) {
-        payload.max_completion_tokens = 1500; // Reduced for faster responses
+        payload.max_completion_tokens = 3000; // Increased to allow longer responses
       } else {
         payload.max_tokens = 1500; // Reduced for faster responses
       }
