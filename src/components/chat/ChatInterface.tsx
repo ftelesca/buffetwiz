@@ -1,478 +1,260 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { AdvancedMarkdownRenderer } from "./AdvancedMarkdownRenderer";
-import { ChatSidebar } from "./ChatSidebar";
-import { MessageBubble } from "./MessageBubble";
-import { TypingIndicator } from "./TypingIndicator";
-import { EmbeddingsManager } from "./EmbeddingsManager";
-import { 
-  Send, 
-  Bot, 
-  User, 
-  Menu,
-  Plus,
-  Settings,
-  Sparkles
-} from "lucide-react";
+"use client";
 
-interface ChatMessage {
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { createClient } from "@supabase/supabase-js";
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import ChatSidebar from "./ChatSidebar";
+
+const supabase =
+  typeof window !== "undefined"
+    ? createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+    : (null as any);
+
+type Session = {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  title: string | null;
+  updated_at?: string | null;
+};
+
+type Message = {
+  id?: string;
+  chat_id: string;
+  role: "user" | "assistant";
   content: string;
-  timestamp: string;
-  metadata?: {
-    model?: string;
-    tokens?: number;
-    cached?: boolean;
-    embedding?: number[];
-    relevantContext?: string[];
-  };
-  isTyping?: boolean;
-}
+  created_at?: string;
+};
 
-interface ChatSession {
-  id: string;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
-  messages: ChatMessage[];
-  summary?: string;
-  embedding?: number[];
-}
+export default function ChatInterface() {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-interface ChatInterfaceProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+  // Auto scroll
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputValue, setInputValue] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [embeddingsManager] = useState(() => new EmbeddingsManager());
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuth();
-  const { toast } = useToast();
-
-  // Auto-scroll to bottom
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // Carrega sessões do usuário ao montar
+  useEffect(() => {
+    (async () => {
+      if (!supabase) return;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("wizard_chats")
+        .select("id, title, updated_at")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false });
+      setSessions((data ?? []) as Session[]);
+      // se houver sessão, seleciona a primeira
+      if (data && data.length) {
+        setCurrentSessionId(data[0].id);
+        // carrega mensagens desta sessão
+        const { data: msgs } = await supabase
+          .from("wizard_messages")
+          .select("*")
+          .eq("chat_id", data[0].id)
+          .order("created_at", { ascending: true });
+        setMessages((msgs ?? []) as Message[]);
+      }
+    })();
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  // Load sessions on mount
-  useEffect(() => {
-    if (open && user) {
-      loadSessions();
-      embeddingsManager.initialize();
-    }
-  }, [open, user]);
-
-  const loadSessions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('wizard_chats')
-        .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-
-      const sessionsWithMessages = await Promise.all(
-        (data || []).map(async (session) => {
-          const { data: messagesData } = await supabase
-            .from('wizard_messages')
-            .select('*')
-            .eq('chat_id', session.id)
-            .order('created_at');
-
-          return {
-            id: session.id,
-            title: session.title,
-            createdAt: session.created_at,
-            updatedAt: session.updated_at,
-            messages: (messagesData || []).map(msg => ({
-              id: msg.id,
-              role: msg.role as 'user' | 'assistant',
-              content: msg.content,
-              timestamp: msg.created_at,
-              metadata: (msg.metadata as any) || {}
-            }))
-          };
-        })
-      );
-
-      setSessions(sessionsWithMessages);
-      
-      // Auto-select most recent session
-      if (sessionsWithMessages.length > 0 && !currentSession) {
-        selectSession(sessionsWithMessages[0]);
-      }
-    } catch (error) {
-      console.error('Error loading sessions:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar conversas",
-        variant: "destructive",
-      });
-    }
+  // Render de mensagem com Markdown + highlight
+  const renderMessage = (m: Message, i: number) => {
+    const isUser = m.role === "user";
+    return (
+      <div
+        key={`${m.id ?? i}-${m.created_at ?? i}`}
+        className={`max-w-[85%] whitespace-pre-wrap rounded-lg p-3 shadow ${
+          isUser ? "self-end bg-blue-100 text-right" : "self-start bg-white"
+        }`}
+      >
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            code({ className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || "");
+              return match ? (
+                <SyntaxHighlighter style={atomOneLight} language={match[1]} PreTag="div" {...props}>
+                  {String(children).replace(/\n$/, "")}
+                </SyntaxHighlighter>
+              ) : (
+                <code className="rounded bg-gray-200 px-1" {...props}>
+                  {children}
+                </code>
+              );
+            },
+            a({ href, children }) {
+              // links de download assinados funcionam normalmente
+              return (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:no-underline"
+                >
+                  {children}
+                </a>
+              );
+            },
+          }}
+        >
+          {m.content?.trim() || (isUser ? "" : "[⚠️ Resposta vazia]")}
+        </ReactMarkdown>
+      </div>
+    );
   };
 
-  const selectSession = (session: ChatSession) => {
-    setCurrentSession(session);
-    setMessages(session.messages);
-  };
-
-  const createNewSession = async () => {
-    const newSession: ChatSession = {
-      id: `temp-${Date.now()}`,
-      title: "Nova Conversa",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      messages: []
-    };
-    
-    setCurrentSession(newSession);
-    setMessages([]);
-    setSidebarOpen(false);
-    inputRef.current?.focus();
-  };
-
-  const findRelevantContext = async (query: string): Promise<string[]> => {
-    try {
-      // Get embedding for the query
-      const queryEmbedding = await embeddingsManager.getEmbedding(query);
-      
-      // Search through all previous messages to find relevant context
-      const allMessages = sessions.flatMap(session => session.messages);
-      const relevantMessages: Array<{ message: ChatMessage; similarity: number }> = [];
-
-      for (const message of allMessages) {
-        if (message.metadata?.embedding) {
-          const similarity = embeddingsManager.cosineSimilarity(
-            queryEmbedding,
-            message.metadata.embedding
-          );
-          
-          if (similarity > 0.7) { // Threshold for relevance
-            relevantMessages.push({ message, similarity });
-          }
-        }
-      }
-
-      // Sort by similarity and return top 5 contexts
-      return relevantMessages
-        .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, 5)
-        .map(item => `${item.message.role}: ${item.message.content.substring(0, 200)}...`);
-        
-    } catch (error) {
-      console.error('Error finding relevant context:', error);
-      return [];
-    }
-  };
-
-  const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
-
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: inputValue.trim(),
-      timestamp: new Date().toISOString(),
-      metadata: {}
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue("");
-    setIsLoading(true);
-    setIsTyping(true);
+  async function handleSend() {
+    if (!input.trim() || sending) return;
+    setSending(true);
 
     try {
-      // Get embedding for user message (with safety check)
-      const userEmbedding = userMessage.content ? await embeddingsManager.getEmbedding(userMessage.content) : [];
-      if (userEmbedding.length > 0) {
-        userMessage.metadata!.embedding = userEmbedding;
-      }
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Sessão inválida.");
 
-      // Find relevant context from conversation history
-      const relevantContext = await findRelevantContext(userMessage.content);
-      
-      // Check cache first
-      const cachedResponse = await embeddingsManager.getCachedResponse(userMessage.content);
-      
-      if (cachedResponse) {
-        const assistantMessage: ChatMessage = {
-          id: `assistant-${Date.now()}`,
-          role: 'assistant',
-          content: cachedResponse.content,
-          timestamp: new Date().toISOString(),
-          metadata: {
-            cached: true,
-            embedding: cachedResponse.embedding,
-            relevantContext
-          },
-          isTyping: true
-        };
-
-        setMessages(prev => [...prev, assistantMessage]);
-        
-        // Simulate typing effect for cached responses
-        setTimeout(() => {
-          setMessages(prev => prev.map(msg => 
-            msg.id === assistantMessage.id ? { ...msg, isTyping: false } : msg
-          ));
-          setIsTyping(false);
-        }, 1000);
-        
-        return;
-      }
-
-      // Send to AI backend with context
-      const { data, error } = await supabase.functions.invoke('wizard-chat-advanced', {
-        body: {
-          message: userMessage.content,
-          sessionId: currentSession?.id.startsWith('temp-') ? null : currentSession?.id,
-          context: relevantContext,
-          model: 'gpt-5-2025-08-07'
-        }
-      });
-
-      if (error) throw error;
-
-      const assistantContent = String(data?.response ?? data?.generatedText ?? data?.answer ?? '');
-      const assistantEmbedding = assistantContent ? await embeddingsManager.getEmbedding(assistantContent) : [];
-
-      const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: assistantContent,
-        timestamp: new Date().toISOString(),
-        metadata: {
-          model: data.model || 'gpt-5-2025-08-07',
-          tokens: data.tokens,
-          embedding: assistantEmbedding.length > 0 ? assistantEmbedding : undefined,
-          relevantContext
-        },
-        isTyping: true
+      const body = {
+        message: input.trim(),
+        sessionId: currentSessionId, // pode ser null para criar nova
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      // Otimismo: mostra mensagem do usuário imediatamente
+      const optimisticUser: Message = {
+        chat_id: currentSessionId || "__pending__",
+        role: "user",
+        content: input.trim(),
+      };
+      setMessages((prev) => [...prev, optimisticUser]);
+      setInput("");
 
-      // Cache the response (with safety check)
-      if (assistantContent && assistantEmbedding.length > 0) {
-        await embeddingsManager.cacheResponse(
-          userMessage.content,
-          assistantContent,
-          assistantEmbedding
-        );
-      }
-
-      // Update or create session
-      if (currentSession?.id.startsWith('temp-')) {
-        const sessionId = data.sessionId;
-        if (sessionId) {
-          const updatedSession = {
-            ...currentSession,
-            id: sessionId,
-            title: userMessage.content.substring(0, 50) + '...'
-          };
-          setCurrentSession(updatedSession);
-          setSessions(prev => [updatedSession, ...prev.filter(s => s.id !== currentSession.id)]);
-        }
-      }
-
-      // Simulate typing effect
-      const typingDuration = Math.min(((assistantContent?.length || 60) * 20), 3000);
-      setTimeout(() => {
-        setMessages(prev => prev.map(msg => 
-          msg.id === assistantMessage.id ? { ...msg, isTyping: false } : msg
-        ));
-        setIsTyping(false);
-      }, typingDuration);
-
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => prev.slice(0, -1)); // Remove user message on error
-      toast({
-        title: "Erro",
-        description: "Falha ao enviar mensagem",
-        variant: "destructive",
+      const r = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(body),
       });
+
+      const data = await r.json();
+
+      if (!r.ok) {
+        // rollback da última mensagem do usuário
+        setMessages((prev) => prev.slice(0, -1));
+        throw new Error(data?.error || "Falha ao enviar mensagem");
+      }
+
+      // Atualiza sessão corrente
+      setCurrentSessionId(data.sessionId || null);
+
+      // Corrige exibição no painel: usa mensagens/sessões retornadas do backend
+      setMessages(data.messages || []);
+      setSessions(data.sessions || []);
+    } catch (e: any) {
+      console.error(e);
+      alert(e.message ?? "Erro ao enviar mensagem");
     } finally {
-      setIsLoading(false);
+      setSending(false);
     }
-  };
+  }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+  async function handleSelectSession(chatId: string) {
+    setCurrentSessionId(chatId);
+    // Carrega mensagens dessa sessão
+    const { data: msgs } = await supabase
+      .from("wizard_messages")
+      .select("*")
+      .eq("chat_id", chatId)
+      .order("created_at", { ascending: true });
+    setMessages((msgs ?? []) as Message[]);
+  }
+
+  async function handleDeleteSession(chatId: string) {
+    if (!confirm("Deseja apagar este chat?")) return;
+    try {
+      // Deleta direto via RLS, assumindo política por user_id (mais simples que criar outra Function)
+      const {
+        data: { user, session },
+      } = await supabase.auth.getUser().then(async (u) => ({
+        data: { user: u.data.user, session: (await supabase.auth.getSession()).data.session },
+      }));
+
+      if (!user?.id) throw new Error("Usuário não autenticado.");
+      // Apaga mensagens + sessão (somente do próprio user)
+      await supabase.from("wizard_messages").delete().eq("chat_id", chatId);
+      await supabase.from("wizard_chats").delete().eq("id", chatId);
+
+      // Atualiza lista local de sessões
+      setSessions((prev) => prev.filter((s) => s.id !== chatId));
+
+      // Se estava aberta, limpa painel
+      if (currentSessionId === chatId) {
+        setCurrentSessionId(null);
+        setMessages([]);
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert(e.message ?? "Falha ao apagar chat");
     }
-  };
-
-  if (!user) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
-          <div className="sr-only">
-            <DialogTitle>Assistente IA</DialogTitle>
-            <DialogDescription>Janela de chat do assistente</DialogDescription>
-          </div>
-          <div className="text-center py-8">
-            <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">Faça login para continuar</h3>
-            <p className="text-muted-foreground">
-              É necessário estar logado para usar o chat IA
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl h-[90vh] max-h-[90vh] p-0 gap-0 overflow-hidden">
-        <div className="sr-only">
-          <DialogTitle>Assistente IA</DialogTitle>
-          <DialogDescription>Janela de chat do assistente</DialogDescription>
+    <div className="flex h-full w-full">
+      {/* Sidebar do histórico */}
+      <ChatSidebar
+        sessions={sessions}
+        activeSessionId={currentSessionId}
+        onSelect={handleSelectSession}
+        onDelete={handleDeleteSession}
+      />
+
+      {/* Área do chat */}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {/* Header simples */}
+        <div className="border-b p-3">
+          <h1 className="text-lg font-semibold">Assistente BuffetWiz</h1>
         </div>
-        <div className="flex h-full max-h-full overflow-hidden">
-          {/* Sidebar */}
-          <ChatSidebar
-            open={sidebarOpen}
-            sessions={sessions}
-            currentSession={currentSession}
-            onSessionSelect={selectSession}
-            onNewSession={createNewSession}
-            onClose={() => setSidebarOpen(false)}
-          />
 
-          {/* Divider */}
-          <div className="w-px bg-border self-stretch relative z-10" aria-hidden="true" />
+        {/* Mensagens */}
+        <div className="flex-1 space-y-2 overflow-y-auto bg-gray-50 p-3">
+          {messages.map((m, i) => renderMessage(m, i))}
+          <div ref={scrollRef} />
+        </div>
 
-          {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col min-w-0 max-h-full overflow-hidden">
-            {/* Header */}
-            <div className="flex-shrink-0 flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                >
-                  <Menu className="h-4 w-4" />
-                </Button>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <h2 className="font-semibold">
-                    {currentSession?.title || "BuffetWiz IA"}
-                  </h2>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm">
-                  <Settings className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" onClick={createNewSession}>
-                  <Plus className="h-4 w-4" />
-                  Nova
-                </Button>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <ScrollArea className="flex-1 min-h-0 overflow-auto">
-              <div className="max-w-4xl mx-auto p-4 space-y-6">
-                {messages.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-xl font-semibold mb-2">
-                      Como posso ajudar você hoje?
-                    </h3>
-                    <p className="text-muted-foreground mb-6">
-                      Pergunte sobre custos, receitas, eventos ou qualquer análise do seu buffet
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
-                      {[
-                        "Analise a rentabilidade dos últimos eventos",
-                        "Calcule o custo das receitas principais",
-                        "Sugira melhorias para reduzir despesas",
-                        "Compare preços com a concorrência"
-                      ].map((suggestion, index) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          className="p-4 h-auto text-left justify-start whitespace-normal"
-                          onClick={() => setInputValue(suggestion)}
-                        >
-                          {suggestion}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {messages.map((message) => (
-                      <MessageBubble key={message.id} message={message} />
-                    ))}
-                    {isTyping && <TypingIndicator />}
-                  </>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
-
-            {/* Input */}
-            <div className="flex-shrink-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="max-w-4xl mx-auto p-4">
-                <div className="flex gap-3">
-                  <div className="flex-1 relative">
-                    <Input
-                      ref={inputRef}
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Digite sua mensagem... (Enter para enviar)"
-                      className="pr-12 min-h-[44px] resize-none"
-                      disabled={isLoading}
-                    />
-                    <Button
-                      onClick={sendMessage}
-                      disabled={!inputValue.trim() || isLoading}
-                      size="sm"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground mt-2 text-center">
-                  IA pode cometer erros. Verifique informações importantes.
-                </div>
-              </div>
-            </div>
+        {/* Input */}
+        <div className="border-t p-3">
+          <div className="flex gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              placeholder="Digite sua mensagem..."
+              className="flex-1 rounded border px-3 py-2 outline-none focus:ring"
+            />
+            <button
+              onClick={handleSend}
+              disabled={sending || !input.trim()}
+              className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {sending ? "Enviando..." : "Enviar"}
+            </button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
