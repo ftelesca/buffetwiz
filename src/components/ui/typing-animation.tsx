@@ -7,6 +7,7 @@ interface TypingAnimationProps {
   onComplete?: () => void;
   className?: string;
   enableMarkdown?: boolean;
+  enableExportsDuringTyping?: boolean; // new: default false
 }
 
 export function TypingAnimation({ 
@@ -14,7 +15,8 @@ export function TypingAnimation({
   speed = 30, 
   onComplete, 
   className = "",
-  enableMarkdown = false
+  enableMarkdown = false,
+  enableExportsDuringTyping = false
 }: TypingAnimationProps) {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -45,7 +47,7 @@ export function TypingAnimation({
   if (enableMarkdown) {
     return (
       <div className={className}>
-        <MarkdownRenderer content={displayedText} />
+        <MarkdownRenderer content={displayedText} enableExports={isComplete || enableExportsDuringTyping} />
         {currentIndex < text.length && (
           <span className="inline-block w-2 h-5 bg-primary/70 animate-pulse ml-1 align-text-bottom" />
         )}
