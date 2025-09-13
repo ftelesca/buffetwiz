@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [exportButtons, setExportButtons] = useState<Array<{id: string, text: string, data: string}>>([]);
   const { toast } = useToast();
 
   const copyToClipboard = async (code: string) => {
@@ -55,25 +56,26 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     }
   };
 
-  // Process export links in content
-  const processedContent = content.replace(
-    /\[([^\]]+)\]\(export:([^)]+)\)/g,
-    (match, linkText, exportData) => {
-      const buttonId = `export-btn-${Math.random().toString(36).substr(2, 9)}`;
-      setTimeout(() => {
-        const button = document.getElementById(buttonId);
-        if (button) {
-          button.onclick = () => handleExportClick(exportData);
-        }
-      }, 0);
-      
-      return `<button id="${buttonId}" class="inline-flex items-center px-3 py-1 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors cursor-pointer border border-primary/20 hover:border-primary/30">${linkText}</button>`;
+  // Extract export buttons and clean content
+  useEffect(() => {
+    const exportMatches = content.match(/\[([^\]]+)\]\(export:([^)]+)\)/g);
+    if (exportMatches) {
+      const buttons = exportMatches.map((match) => {
+        const [, linkText, exportData] = match.match(/\[([^\]]+)\]\(export:([^)]+)\)/) || [];
+        return {
+          id: `export-btn-${Math.random().toString(36).substr(2, 9)}`,
+          text: linkText,
+          data: exportData
+        };
+      });
+      setExportButtons(buttons);
+    } else {
+      setExportButtons([]);
     }
-  ).replace(
-    // Remove any trailing JSON data that might appear after the button
-    /(<button[^>]*>[^<]*<\/button>)([^<]*\{[^}]*\}[^<]*)/g,
-    '$1'
-  );
+  }, [content]);
+
+  // Clean content by removing export links
+  const cleanContent = content.replace(/\[([^\]]+)\]\(export:([^)]+)\)/g, '**EXPORT_BUTTON_PLACEHOLDER**');
 
   return (
     <div className={cn("markdown-content leading-7", className)}>
@@ -110,12 +112,39 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
           ),
 
           // Enhanced paragraphs and lists
-          p: ({ className, ...props }) => (
-            <p
-              className={cn("leading-relaxed mb-4 text-foreground/90 [&:not(:first-child)]:mt-4", className)}
-              {...props}
-            />
-          ),
+          p: ({ className, children, ...props }) => {
+            // Handle export button placeholders
+            if (typeof children === 'string' && children.includes('EXPORT_BUTTON_PLACEHOLDER')) {
+              const parts = children.split('**EXPORT_BUTTON_PLACEHOLDER**');
+              return (
+                <p className={cn("leading-relaxed mb-4 text-foreground/90 [&:not(:first-child)]:mt-4", className)} {...props}>
+                  {parts.map((part, index) => (
+                    <span key={index}>
+                      {part}
+                      {index < exportButtons.length && (
+                        <button
+                          key={exportButtons[index].id}
+                          onClick={() => handleExportClick(exportButtons[index].data)}
+                          className="inline-flex items-center px-3 py-1 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors cursor-pointer border border-primary/20 hover:border-primary/30 mr-2 ml-1"
+                        >
+                          {exportButtons[index].text}
+                        </button>
+                      )}
+                    </span>
+                  ))}
+                </p>
+              );
+            }
+            
+            return (
+              <p
+                className={cn("leading-relaxed mb-4 text-foreground/90 [&:not(:first-child)]:mt-4", className)}
+                {...props}
+              >
+                {children}
+              </p>
+            );
+          },
           ul: ({ className, ...props }) => (
             <ul className={cn("my-4 ml-6 list-disc space-y-1 [&>li]:mt-1", className)} {...props} />
           ),
@@ -230,7 +259,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
           ),
         }}
       >
-        {processedContent}
+        {cleanContent}
       </ReactMarkdown>
     </div>
   );
