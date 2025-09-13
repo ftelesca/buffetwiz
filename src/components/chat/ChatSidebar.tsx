@@ -16,7 +16,6 @@ import {
   Archive
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface ChatSession {
@@ -89,8 +88,7 @@ export function ChatSidebar({
 
   function formatTime(timestamp: string) {
     return formatDistanceToNow(new Date(timestamp), {
-      addSuffix: true,
-      locale: ptBR
+      addSuffix: true
     });
   }
 

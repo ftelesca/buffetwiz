@@ -16,7 +16,6 @@ import {
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 interface ChatMessage {
   id: string;
@@ -65,8 +64,7 @@ export function MessageBubble({ message, onRegenerate, onFeedback }: MessageBubb
 
   const formatTime = (timestamp: string) => {
     return formatDistanceToNow(new Date(timestamp), {
-      addSuffix: true,
-      locale: ptBR
+      addSuffix: true
     });
   };
 
