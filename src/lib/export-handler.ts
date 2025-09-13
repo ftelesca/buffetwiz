@@ -23,21 +23,30 @@ function generateCSV(rows: any[]): string {
 }
 
 function localDownloadXLSX(rows: any[], filename: string) {
-  if (!rows || !Array.isArray(rows)) rows = [];
-  const safeName = filename && filename.toLowerCase().endsWith('.xlsx') ? filename : `${filename || 'export'}.xlsx`;
-  const ws = XLSX.utils.json_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Planilha');
-  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = safeName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  try {
+    if (!rows || !Array.isArray(rows)) rows = [];
+    const safeName = filename && filename.toLowerCase().endsWith('.xlsx') ? filename : `${filename || 'export'}.xlsx`;
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Dados');
+    // Use the library's writer to avoid encoding issues
+    XLSX.writeFile(wb, safeName, { bookType: 'xlsx', compression: true });
+  } catch (e) {
+    // Fallback to Blob method
+    const ws = XLSX.utils.json_to_sheet(rows || []);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Dados');
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || 'export.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
 }
 
 export async function handleExportClick(payload: string): Promise<void> {
