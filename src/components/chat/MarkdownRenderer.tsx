@@ -489,3 +489,5 @@ export function MarkdownRenderer({
     </div>
   );
 }
+
+export default MarkdownRenderer;
