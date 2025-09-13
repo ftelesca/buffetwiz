@@ -14,6 +14,25 @@ import { parseExportPayload } from "@/lib/export-utils";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
+// Normalize export links by base64-encoding JSON payloads to avoid markdown parsing issues
+const INVIS_CHARS = /[\u200B-\u200D\uFEFF\u2060\u00AD]/g;
+function normalizeExportLinks(md: string): string {
+  if (!md) return md;
+  return md.replace(/\]\(\s*export:([\s\S]*?)\)/g, (_whole, raw) => {
+    let payload = String(raw || '');
+    try { payload = decodeURIComponent(payload); } catch {}
+    payload = payload.replace(INVIS_CHARS, '').replace(/[\r\n\t]+/g, '').trim();
+    try {
+      const parsed = parseExportPayload(payload);
+      if (parsed) {
+        const b64 = btoa(JSON.stringify(parsed));
+        return `](export:base64,${b64})`;
+      }
+    } catch {}
+    return `](export:${payload})`;
+  });
+}
+
 interface AdvancedMarkdownRendererProps {
   content: string;
   className?: string;
@@ -122,11 +141,14 @@ export function AdvancedMarkdownRenderer({
     rehypePlugins.push(rehypeKatex as any);
   }
 
+  const safeContent = normalizeExportLinks(content);
+
   return (
     <div className={cn("prose prose-slate dark:prose-invert max-w-none", className)}>
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}
+        urlTransform={(url) => url}
         components={{
           // Headers with better styling
           h1: ({ className, ...props }) => (
@@ -362,7 +384,7 @@ export function AdvancedMarkdownRenderer({
           ),
         }}
       >
-        {content}
+        {safeContent}
       </ReactMarkdown>
     </div>
   );

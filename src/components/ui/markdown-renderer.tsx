@@ -7,6 +7,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { parseExportPayload } from "@/lib/export-utils";
 
+// Normalize export links by base64-encoding JSON payloads to avoid markdown parsing issues
+const INVIS_CHARS = /[\u200B-\u200D\uFEFF\u2060\u00AD]/g;
+function normalizeExportLinks(md: string): string {
+  if (!md) return md;
+  return md.replace(/\]\(\s*export:([\s\S]*?)\)/g, (_whole, raw) => {
+    let payload = String(raw || '');
+    try { payload = decodeURIComponent(payload); } catch {}
+    payload = payload.replace(INVIS_CHARS, '').replace(/[\r\n\t]+/g, '').trim();
+    try {
+      const parsed = parseExportPayload(payload);
+      if (parsed) {
+        const b64 = btoa(JSON.stringify(parsed));
+        return `](export:base64,${b64})`;
+      }
+    } catch {}
+    return `](export:${payload})`;
+  });
+}
+
 interface MarkdownRendererProps {
   content: string;
   className?: string;
@@ -141,10 +160,13 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     }
   };
 
+  const safeContent = normalizeExportLinks(content);
+
   return (
     <div className={cn("markdown-content leading-7", className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        urlTransform={(url) => url}
         components={{
           h1: ({ className, ...props }) => (
             <h1 className={cn("scroll-m-20 text-2xl font-bold tracking-tight mb-4 pb-2 border-b border-border/40", className)} {...props} />
@@ -243,7 +265,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
           ),
         }}
       >
-        {content}
+        {safeContent}
       </ReactMarkdown>
     </div>
   );
