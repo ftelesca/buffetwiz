@@ -397,6 +397,8 @@ export function AdvancedMarkdownRenderer({
                   className
                 )} 
                 href={href} 
+                target="_blank"
+                rel="noopener noreferrer"
                 {...props}
               >
                 {children}

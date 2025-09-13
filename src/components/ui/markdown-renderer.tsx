@@ -287,7 +287,13 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
               );
             }
             return (
-              <a className={cn("font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors", className)} href={href} {...props}>
+              <a 
+                className={cn("font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors", className)} 
+                href={href} 
+                target="_blank"
+                rel="noopener noreferrer"
+                {...props}
+              >
                 {children}
               </a>
             );
