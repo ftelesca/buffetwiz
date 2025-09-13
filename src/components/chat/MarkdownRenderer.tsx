@@ -186,7 +186,7 @@ function processExportLinks(md: string): string {
   return parts.join('');
 }
 
-interface AdvancedMarkdownRendererProps {
+interface MarkdownRendererProps {
   content: string;
   className?: string;
   enableCodeCopy?: boolean;
@@ -194,13 +194,13 @@ interface AdvancedMarkdownRendererProps {
   enableExports?: boolean;
 }
 
-export function AdvancedMarkdownRenderer({ 
+export function MarkdownRenderer({ 
   content, 
   className = "",
   enableCodeCopy = true,
   enableMath = true,
   enableExports = true
-}: AdvancedMarkdownRendererProps) {
+}: MarkdownRendererProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const { toast } = useToast();
 

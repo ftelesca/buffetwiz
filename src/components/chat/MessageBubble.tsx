@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AdvancedMarkdownRenderer } from "./AdvancedMarkdownRenderer";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { 
   Bot, 
@@ -136,7 +136,7 @@ export function MessageBubble({ message, onRegenerate, onFeedback }: MessageBubb
                 className="text-foreground/90"
               />
             ) : message.content && message.content.trim() ? (
-              <AdvancedMarkdownRenderer 
+              <MarkdownRenderer 
                 content={message.content}
                 className="text-foreground/90 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
                 enableExports={true}
