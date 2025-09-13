@@ -235,7 +235,7 @@ INSTRUÇÕES FINAIS:
 
       // Add timeout to prevent hanging requests
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 20 second timeout
 
       const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
