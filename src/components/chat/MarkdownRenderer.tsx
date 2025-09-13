@@ -439,6 +439,18 @@ export function MarkdownRenderer({
             }
 
             if (href && (href.startsWith('http') || href.startsWith('https'))) {
+              const onSmartDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
+                try {
+                  const text = (e.currentTarget.textContent || '').toLowerCase();
+                  const match = text.match(/\bbaixar\s+([\w\-\s]+\.(xlsx|csv|json))\b/i);
+                  if (match) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const file = match[1];
+                    handleExportClickLocal(`filename:"${file}"`);
+                  }
+                } catch {}
+              };
               return (
                 <a 
                   className={cn(
@@ -448,6 +460,7 @@ export function MarkdownRenderer({
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={onSmartDownload}
                   {...props}
                 >
                   {children}
