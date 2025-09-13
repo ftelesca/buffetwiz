@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
-import { ChatInterface } from "../wizard/WizardChat";
+import { WizardChat } from "../wizard/WizardChat";
 
 export function WizardFloatingButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +19,7 @@ export function WizardFloatingButton() {
       </Button>
 
       {/* Chat Modal */}
-      <ChatInterface open={isOpen} onOpenChange={setIsOpen} />
+      <WizardChat open={isOpen} onOpenChange={setIsOpen} />
     </>
   );
 }
