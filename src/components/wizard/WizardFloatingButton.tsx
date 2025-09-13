@@ -1,25 +1,30 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
 import { ChatInterface } from "../chat/ChatInterface";
 
-export function WizardFloatingButton() {
-  const [isOpen, setIsOpen] = useState(false);
+export default function WizardFloatingButton() {
+  const [open, setOpen] = useState(false);
 
   return (
     <>
-      {/* Floating Button */}
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-r from-primary to-secondary shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
-        size="lg"
-      >
-        <Sparkles className="h-6 w-6" />
-        <span className="sr-only">Abrir Assistente IA</span>
-      </Button>
+      {/* Botão flutuante para abrir o chat */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-4 right-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-2xl text-white shadow-lg hover:bg-blue-700 focus:outline-none"
+          title="Abrir Assistente"
+        >
+          💬
+        </button>
+      )}
 
-      {/* Chat Modal */}
-      <ChatInterface open={isOpen} onOpenChange={setIsOpen} />
+      {/* Janela de chat */}
+      {open && (
+        <div className="fixed bottom-16 right-4 z-50 flex h-[600px] w-[400px] flex-col overflow-hidden rounded-lg border bg-white shadow-xl">
+          <ChatInterface open={open} onOpenChange={setOpen} />
+        </div>
+      )}
     </>
   );
 }
