@@ -3,10 +3,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { createClient } from "@supabase/supabase-js";
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import ChatSidebar from "./ChatSidebar";
-import { supabase } from "@/lib/supabaseClient";
+
+// ✅ Agora usando import.meta.env (compatível com Lovable)
+const supabaseUrl = (import.meta as any).env?.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnon = (import.meta as any).env?.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+if (!supabaseUrl || !supabaseAnon) {
+  console.error("❌ Variáveis de ambiente do Supabase não configuradas!");
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnon);
 
 type Session = {
   id: string;
@@ -35,12 +45,12 @@ function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto scroll sempre que mensagens mudam
+  // Auto scroll
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Carrega sessões ao montar
+  // Carregar histórico de sessões
   useEffect(() => {
     (async () => {
       const {
@@ -84,9 +94,10 @@ function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
               const match = /language-(\w+)/.exec(className || "");
               return match ? (
                 <SyntaxHighlighter
-                  style={atomOneLight as any}
-                  language={match[1] as any}
+                  style={atomOneLight as any} // 👈 fix do TS
+                  language={match[1]}
                   PreTag="div"
+                  {...props}
                 >
                   {String(children).replace(/\n$/, "")}
                 </SyntaxHighlighter>
@@ -139,7 +150,7 @@ function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
       setMessages((prev) => [...prev, optimisticUser]);
       setInput("");
 
-      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+      const functionUrl = `${supabaseUrl}/functions/v1/chat`;
       const r = await fetch(functionUrl, {
         method: "POST",
         headers: {
