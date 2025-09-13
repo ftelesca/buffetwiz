@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { parseExportPayload } from "./export-utils";
+import { exportToFile } from "./export-file";
 import { toast } from "@/hooks/use-toast";
 
 export async function handleExportClick(payload: string): Promise<void> {
@@ -18,7 +19,14 @@ export async function handleExportClick(payload: string): Promise<void> {
     console.log('📝 Payload parseado:', parsed);
 
     if (!parsed) {
-      console.warn('❌ Falha no parse, usando fallback');
+      console.warn('❌ Falha no parse, tentando payload com content/filename...');
+      try {
+        await exportToFile(payload);
+        console.log('✅ Download iniciado via exportToFile (content/filename).');
+        return;
+      } catch {
+        console.log('↪️ Payload não é do tipo content/filename. Prosseguindo com fallback.');
+      }
       
       // Fallback: try to infer export target and rebuild data
       const cleaned = (payload || '').toLowerCase();

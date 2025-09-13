@@ -117,7 +117,8 @@ function processExportLinks(md: string): string {
     let out = '';
     let i = 0;
     while (i < segment.length) {
-      const idx = segment.indexOf('export:', i);
+      const lower = segment.toLowerCase();
+      const idx = lower.indexOf('export:', i);
       if (idx === -1) {
         out += segment.slice(i);
         break;
@@ -127,7 +128,7 @@ function processExportLinks(md: string): string {
 
       // Avoid wrapping if part of an existing markdown link like "](export:...)"
       if (idx > 0 && segment[idx - 1] === ']') {
-        out += 'export:';
+        out += segment.slice(idx, idx + 7);
         i = idx + 7;
         continue;
       }
@@ -136,8 +137,8 @@ function processExportLinks(md: string): string {
       // skip whitespace
       while (j < segment.length && /\s/.test(segment[j])) j++;
       if (segment[j] !== '{') {
-        // not a raw JSON payload; just copy 'export:' and continue
-        out += 'export:';
+        // not a raw JSON payload; just copy literal and continue
+        out += segment.slice(idx, idx + 7);
         i = idx + 7;
         continue;
       }
