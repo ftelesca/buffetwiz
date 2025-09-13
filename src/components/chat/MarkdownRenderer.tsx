@@ -395,33 +395,89 @@ export function MarkdownRenderer({
 
             return (
               <div className="relative group my-6">
-                <div className="flex items-center justify-between bg-muted/80 px-4 py-2 rounded-t-lg border border-b-0 border-border/40">
-                  {language && (
-                    <Badge variant="secondary" className="text-xs">
-                      {language}
-                    </Badge>
-                  )}
-                  {enableCodeCopy && (
-                    <Button
-                      onClick={() => copyToClipboard(code)}
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2"
-                    >
-                      {copiedCode === code ? (
-                        <>
-                          <Check className="h-3 w-3 mr-1 text-green-600" />
-                          <span className="text-xs">Copiado</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Copiar</span>
-                        </>
+                {(() => {
+                  // Detect export payloads inside code blocks (common when LLM prints JSON)
+                  function extractExportPayload(text: string): string | null {
+                    const lower = text.toLowerCase();
+                    const idx = lower.indexOf('export:');
+                    if (idx === -1) return null;
+                    let j = idx + 7; // after 'export:'
+                    while (j < text.length && /\s/.test(text[j])) j++;
+
+                    // Case 1: raw JSON starting with {
+                    if (text[j] === '{') {
+                      let brace = 0;
+                      let k = j;
+                      while (k < text.length) {
+                        const ch = text[k];
+                        if (ch === '{') brace++;
+                        else if (ch === '}') { brace--; if (brace === 0) { k++; break; } }
+                        k++;
+                      }
+                      if (brace === 0) {
+                        return text.slice(j, k); // return raw JSON (no 'export:')
+                      }
+                      return null;
+                    }
+
+                    // Case 2: percent-encoded JSON starting with %7B ... %7D
+                    const encStart = lower.indexOf('%7b', j);
+                    if (encStart === j || (encStart > -1 && encStart < j + 5)) {
+                      const encEnd = lower.indexOf('%7d', encStart);
+                      if (encEnd !== -1) {
+                        return text.slice(encStart, encEnd + 3); // keep encoded payload
+                      }
+                    }
+                    return null;
+                  }
+
+                  const exportPayload = extractExportPayload(code);
+                  return (
+                    <div className="flex items-center justify-between bg-muted/80 px-4 py-2 rounded-t-lg border border-b-0 border-border/40">
+                      {language && (
+                        <Badge variant="secondary" className="text-xs">
+                          {language}
+                        </Badge>
                       )}
-                    </Button>
-                  )}
-                </div>
+                      <div className="flex items-center gap-2">
+                        {exportPayload && (
+                          <Button
+                            onClick={() => {
+                              console.log('⬇️ Export payload found in code block:', exportPayload.slice(0, 120));
+                              handleExportClickLocal(exportPayload);
+                            }}
+                            variant="default"
+                            size="sm"
+                            className="h-8 px-2"
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            <span className="text-xs">Baixar</span>
+                          </Button>
+                        )}
+                        {enableCodeCopy && (
+                          <Button
+                            onClick={() => copyToClipboard(code)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2"
+                          >
+                            {copiedCode === code ? (
+                              <>
+                                <Check className="h-3 w-3 mr-1 text-green-600" />
+                                <span className="text-xs">Copiado</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-3 w-3 mr-1" />
+                                <span className="text-xs">Copiar</span>
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
                 <pre className="overflow-x-auto rounded-b-lg border border-t-0 border-border/40 bg-slate-950 p-4 font-mono text-sm">
                   <code className={cn("text-slate-50", className)} {...props}>
                     {children}
