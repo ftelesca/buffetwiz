@@ -253,6 +253,13 @@ export function AdvancedMarkdownRenderer({
 
   return (
     <div className={cn("prose prose-slate dark:prose-invert max-w-none", className)}>
+      {/* Debug info visível */}
+      {debugInfo && (
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-3 py-2 rounded mb-4 text-sm">
+          DEBUG: {debugInfo} - Componente atualizado: {new Date().toLocaleTimeString()}
+        </div>
+      )}
+      
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}
