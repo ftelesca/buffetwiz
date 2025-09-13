@@ -32,13 +32,12 @@ serve(async (req) => {
     const userId = user.user.id;
     console.log('Processing request for user:', userId);
 
-    // 🔑 define currentChatId logo no início
     let currentChatId = chatId;
 
     // Create query hash for cache
     const queryHash = await crypto.subtle.digest(
       'SHA-256',
-      new TextEncoder().encode(message + (model || 'gpt-5-2025-08-07'))
+      new TextEncoder().encode(message + (model || 'gpt-4.1-mini'))
     );
     const hashArray = Array.from(new Uint8Array(queryHash));
     const queryHashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -102,18 +101,57 @@ serve(async (req) => {
 
       const businessContext = `
 CONTEXTO DO NEGÓCIO - BUFFETWIZ:
-... (mantive suas instruções completas aqui)
+Você é o assistente inteligente da BuffetWiz, uma plataforma completa para gestão de buffets e eventos. Sua função é ajudar profissionais do setor de alimentação a otimizar suas operações, calcular custos precisos e maximizar a rentabilidade.
+
+CONHECIMENTO TÉCNICO ESSENCIAL:
+
+1. ESTRUTURA DE DADOS:
+- Eventos: contêm data, cliente, local, número de pessoas e menu
+- Receitas: compostas por itens com quantidades específicas e eficiência de rendimento
+- Itens: ingredientes/produtos com custo, unidade de medida e fator de conversão
+- Clientes: informações de contato e histórico de eventos
+
+2. CÁLCULOS FINANCEIROS:
+- Custo base da receita = Σ(quantidade_item × custo_item ÷ fator_item)
+- Custo unitário da receita = custo_base ÷ eficiência_receita
+- Custo total do evento = Σ(quantidade_receita × custo_unitário_receita)
+
+3. MÉTRICAS DE EFICIÊNCIA:
+- Eficiência da receita: rendimento real vs. teórico (ex: 0.85 = 85% de aproveitamento)
+- Margem de lucro: (preço_venda - custo_total) ÷ preço_venda × 100
+- Custo por pessoa: custo_total_evento ÷ número_pessoas
+
+CAPACIDADES ANALÍTICAS:
+- Análise de rentabilidade por evento e receita
+- Identificação de itens com maior impacto no custo
+- Sugestões de otimização de menu
+- Projeções de custo para diferentes cenários
+- Comparação de eficiência entre receitas similares
+
+DADOS DISPONÍVEIS NO CONTEXTO:
+${JSON.stringify(context, null, 2)}
+
+DIRETRIZES DE COMUNICAÇÃO:
+- Sempre cite números específicos dos dados reais quando disponíveis
+- Explique os cálculos de forma clara e educativa
+- Forneça insights acionáveis para melhorar a rentabilidade
+- Use linguagem profissional mas acessível
+- Quando apropriado, sugira análises complementares
+
+Responda sempre em português brasileiro de forma objetiva e útil.
       `;
 
-      // Call GPT only if no valid cache
-      const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY') ||
-        'sk-proj-xxxxxxxx'; // fallback opcional para teste local
+      // Call OpenAI API
+      const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
       if (!OPENAI_API_KEY) {
         console.error('Missing OPENAI_API_KEY secret');
         return new Response(JSON.stringify({
-          error: 'OPENAI_API_KEY não configurada',
+          error: 'OPENAI_API_KEY not configured',
         }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
+
+      console.log('Using OpenAI API key:', OPENAI_API_KEY ? 'PRESENT' : 'MISSING');
+      console.log('Using model:', model || 'gpt-4.1-mini');
 
       const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
