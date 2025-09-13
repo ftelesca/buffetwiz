@@ -14,9 +14,15 @@ import { handleExportClick as globalHandleExportClick } from "@/lib/export-handl
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
-// Process export links (no-op; handled in custom link renderer)
+// Process export links: convert raw occurrences like "export:%7B...%7D" into markdown links
 function processExportLinks(md: string): string {
-  return md || '';
+  if (!md) return '';
+  // If there's already a markdown link using export:, keep as-is
+  if (/(\[[^\]]+\]\(export:[^)]+\))/.test(md)) return md;
+  // Wrap raw percent-encoded export payloads as a markdown link
+  return md.replace(/(?<!\])\bexport:%7B[^\s)]+%7D\b/gi, (match) => {
+    return `[📥 Baixar arquivo](${match})`;
+  });
 }
 
 interface AdvancedMarkdownRendererProps {
