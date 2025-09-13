@@ -3,20 +3,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { createClient } from "@supabase/supabase-js";
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import ChatSidebar from "./ChatSidebar";
-
-// ✅ Agora usando import.meta.env (compatível com Lovable)
-const supabaseUrl = (import.meta as any).env?.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnon = (import.meta as any).env?.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-if (!supabaseUrl || !supabaseAnon) {
-  console.error("❌ Variáveis de ambiente do Supabase não configuradas!");
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnon);
 
 type Session = {
   id: string;
@@ -50,30 +39,33 @@ function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Carregar histórico de sessões
+  // 🔹 Carregar histórico inicial de sessões
   useEffect(() => {
     (async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+      try {
+        const token = localStorage.getItem("sb-access-token"); // token salvo pelo supabase.auth
+        if (!token) return;
 
-      const { data } = await supabase
-        .from("wizard_chats")
-        .select("id, title, updated_at")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false });
+        const r = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ message: "__init__" }),
+          }
+        );
 
-      setSessions((data ?? []) as Session[]);
-
-      if (data && data.length) {
-        setCurrentSessionId(data[0].id);
-        const { data: msgs } = await supabase
-          .from("wizard_messages")
-          .select("*")
-          .eq("chat_id", data[0].id)
-          .order("created_at", { ascending: true });
-        setMessages((msgs ?? []) as Message[]);
+        const data = await r.json();
+        if (data.sessions) setSessions(data.sessions);
+        if (data.messages) {
+          setMessages(data.messages);
+          setCurrentSessionId(data.sessionId || null);
+        }
+      } catch (e) {
+        console.error("Erro carregando histórico:", e);
       }
     })();
   }, []);
@@ -94,7 +86,7 @@ function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
               const match = /language-(\w+)/.exec(className || "");
               return match ? (
                 <SyntaxHighlighter
-                  style={atomOneLight as any} // 👈 fix do TS
+                  style={atomOneLight as any}
                   language={match[1]}
                   PreTag="div"
                   {...props}
@@ -132,16 +124,15 @@ function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
     setSending(true);
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Sessão inválida.");
+      const token = localStorage.getItem("sb-access-token");
+      if (!token) throw new Error("Usuário não autenticado.");
 
       const body = {
         message: input.trim(),
         sessionId: currentSessionId,
       };
 
+      // mostra otimismo
       const optimisticUser: Message = {
         chat_id: currentSessionId || "__pending__",
         role: "user",
@@ -150,15 +141,17 @@ function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
       setMessages((prev) => [...prev, optimisticUser]);
       setInput("");
 
-      const functionUrl = `${supabaseUrl}/functions/v1/chat`;
-      const r = await fetch(functionUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify(body),
-      });
+      const r = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
 
       const data = await r.json();
 
@@ -180,29 +173,54 @@ function ChatInterface({ open = true, onOpenChange }: ChatInterfaceProps) {
 
   async function handleSelectSession(chatId: string) {
     setCurrentSessionId(chatId);
-    const { data: msgs } = await supabase
-      .from("wizard_messages")
-      .select("*")
-      .eq("chat_id", chatId)
-      .order("created_at", { ascending: true });
-    setMessages((msgs ?? []) as Message[]);
+    try {
+      const token = localStorage.getItem("sb-access-token");
+      if (!token) return;
+
+      const r = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ message: "__load__", sessionId: chatId }),
+        }
+      );
+
+      const data = await r.json();
+      if (data.messages) setMessages(data.messages);
+    } catch (e) {
+      console.error("Erro ao carregar sessão:", e);
+    }
   }
 
   async function handleDeleteSession(chatId: string) {
     if (!confirm("Deseja apagar este chat?")) return;
     try {
-      await supabase.from("wizard_messages").delete().eq("chat_id", chatId);
-      await supabase.from("wizard_chats").delete().eq("id", chatId);
+      const token = localStorage.getItem("sb-access-token");
+      if (!token) return;
+
+      await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ message: "__delete__", sessionId: chatId }),
+        }
+      );
 
       setSessions((prev) => prev.filter((s) => s.id !== chatId));
-
       if (currentSessionId === chatId) {
         setCurrentSessionId(null);
         setMessages([]);
       }
-    } catch (e: any) {
-      console.error(e);
-      alert(e.message ?? "Falha ao apagar chat");
+    } catch (e) {
+      console.error("Erro ao deletar chat:", e);
     }
   }
 
