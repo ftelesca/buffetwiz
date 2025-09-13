@@ -10,6 +10,7 @@ import { TypingAnimation } from "@/components/ui/typing-animation";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { handleExportClick } from "@/lib/export-handler";
 
 import html2pdf from "html2pdf.js";
 import jsPDF from "jspdf";
@@ -386,6 +387,26 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                   >
                     <MessageSquare className="h-4 w-4 mr-1" />
                     Nova Conversa
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const sample = {
+                        type: 'csv',
+                        filename: 'teste-export',
+                        data: [
+                          { ColunaA: 'valor 1', ColunaB: 123 },
+                          { ColunaA: 'valor 2', ColunaB: 456 }
+                        ]
+                      };
+                      const payload = encodeURIComponent(JSON.stringify(sample));
+                      console.log('🧪 Disparando teste de export com payload:', payload.slice(0, 120));
+                      handleExportClick(payload);
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    Teste Export
                   </Button>
                 </div>
               </div>
