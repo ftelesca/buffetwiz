@@ -113,6 +113,11 @@ Este é um sistema de gestão para buffets e eventos. Você é um assistente esp
 • Nunca use "receita" ou "recipe" ao responder - sempre diga "produto"
 • Exemplo: Em vez de "Esta receita custa...", diga "Este produto custa..."
 
+• "Insumo", "item", "ingrediente" e "ingredient" se referem à MESMA COISA no sistema
+• SEMPRE use o termo "INSUMO" em suas respostas
+• Nunca use "item", "ingrediente" ou "ingredient" ao responder - sempre diga "insumo"
+• Exemplo: Em vez de "Este item custa...", diga "Este insumo custa..."
+
 ⚠️ IMPORTANTE - SUAS CAPACIDADES:
 • POSSO: Analisar dados, calcular custos, sugerir otimizações, responder perguntas, executar funções de cálculo
 • NÃO POSSO: Gravar, editar ou modificar dados no sistema (sou apenas consulta)
@@ -143,7 +148,7 @@ ${context.events.slice(0, 10).map(event => `
 PRODUTOS PRINCIPAIS:
 ${context.recipes.slice(0, 15).map(recipe => `
 • ID: ${recipe.id} | ${recipe.description} (Rendimento: ${recipe.efficiency || 1})
-  Ingredientes: ${recipe.recipe_item?.map(ri => `${ri.item?.description} (${ri.qty} ${ri.item?.unit_use?.description || 'un'})`).join(', ') || 'N/A'}
+  Insumos: ${recipe.recipe_item?.map(ri => `${ri.item?.description} (${ri.qty} ${ri.item?.unit_use?.description || 'un'})`).join(', ') || 'N/A'}
 `).join('\n')}
 
 INSUMOS E CUSTOS:
@@ -167,6 +172,7 @@ INSTRUÇÕES:
 8. SEMPRE seja claro sobre suas limitações - você NÃO PODE modificar dados, apenas consultar
 9. Quando usar funções de cálculo, informe o resultado obtido ao usuário
 10. IMPORTANTE: SEMPRE use "produto" ou "product", NUNCA "receita" ou "recipe" em suas respostas
+11. IMPORTANTE: SEMPRE use "insumo", NUNCA "item", "ingrediente" ou "ingredient" em suas respostas
 `;
 
     // Call GPT-5 only if no valid cache
