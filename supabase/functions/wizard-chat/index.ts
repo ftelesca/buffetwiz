@@ -183,6 +183,29 @@ INSTRUÇÕES FINAIS:
 6. SEMPRE seja claro sobre suas limitações - você NÃO PODE modificar dados, apenas consultar
 7. IMPORTANTE: SEMPRE use "produto" em vez de "receita" e "insumo" em vez de "item"
 8. IMPORTANTE: SEMPRE use NOMES/DESCRIÇÕES, NUNCA IDs ao se comunicar com o usuário
+
+🔗 CAPACIDADE DE EXPORTAÇÃO:
+=============================
+IMPORTANTE: VOCÊ TEM CAPACIDADE TOTAL DE GERAR ARQUIVOS PARA DOWNLOAD!
+
+Quando o usuário solicitar exportações como:
+• "exportar tabela para excel"
+• "exportar produtos para csv" 
+• "baixar lista de eventos"
+• "gerar planilha dos insumos"
+
+VOCÊ DEVE:
+1. Processar e preparar os dados solicitados
+2. Incluir na sua resposta um link especial no formato:
+   [🔗 Baixar arquivo_nome.formato](export:{"type":"formato","data":[dados],"filename":"nome_arquivo"})
+
+EXEMPLOS DE EXPORTAÇÃO:
+• Para exportar eventos: [🔗 Baixar eventos.xlsx](export:{"type":"xlsx","data":[{"Evento":"Nome","Data":"2024-01-01"}],"filename":"eventos"})
+• Para exportar produtos: [🔗 Baixar produtos.csv](export:{"type":"csv","data":[{"Produto":"Nome","Custo":10.50}],"filename":"produtos"})
+• Para exportar insumos: [🔗 Baixar insumos.json](export:{"type":"json","data":[{"Insumo":"Nome","Preço":5.00}],"filename":"insumos"})
+
+FORMATOS SUPORTADOS: xlsx, csv, json
+SEMPRE inclua dados estruturados com chaves em português e valores apropriados.
 `;
 
       // Call GPT-5 only if no valid cache
