@@ -110,9 +110,9 @@ export function ChatSidebar({
   if (!open) return null;
 
   return (
-    <div className="w-80 bg-muted/30 border-r border-border flex flex-col h-full">
+    <div className="w-80 bg-muted/30 border-r border-border flex flex-col h-full max-h-[90vh] overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b bg-background/50">
+      <div className="flex-shrink-0 p-4 border-b bg-background/50">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-sm">Conversas</h2>
           <Button
@@ -147,7 +147,7 @@ export function ChatSidebar({
       </div>
 
       {/* Sessions List */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-2">
           {filteredSessions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -266,7 +266,7 @@ export function ChatSidebar({
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-3 border-t bg-background/50">
+      <div className="flex-shrink-0 p-3 border-t bg-background/50">
         <div className="text-xs text-muted-foreground text-center">
           {sessions.length} conversa{sessions.length !== 1 ? 's' : ''}
         </div>

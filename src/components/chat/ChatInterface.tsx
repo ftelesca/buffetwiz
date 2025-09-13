@@ -341,8 +341,8 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl h-[90vh] p-0 gap-0">
-        <div className="flex h-full">
+      <DialogContent className="max-w-7xl h-[90vh] max-h-[90vh] p-0 gap-0 overflow-hidden">
+        <div className="flex h-full max-h-full overflow-hidden">
           {/* Sidebar */}
           <ChatSidebar
             open={sidebarOpen}
@@ -354,9 +354,9 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
           />
 
           {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-w-0 max-h-full overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex-shrink-0 flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
@@ -384,7 +384,7 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-0">
+            <ScrollArea className="flex-1 min-h-0 overflow-auto">
               <div className="max-w-4xl mx-auto p-4 space-y-6">
                 {messages.length === 0 ? (
                   <div className="text-center py-12">
@@ -426,7 +426,7 @@ export function ChatInterface({ open, onOpenChange }: ChatInterfaceProps) {
             </ScrollArea>
 
             {/* Input */}
-            <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex-shrink-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="max-w-4xl mx-auto p-4">
                 <div className="flex gap-3">
                   <div className="flex-1 relative">
