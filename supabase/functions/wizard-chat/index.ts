@@ -183,8 +183,58 @@ INSTRUÇÕES:
 12. IMPORTANTE: SEMPRE use NOMES/DESCRIÇÕES, NUNCA IDs ao se comunicar com o usuário
 `;
 
+    // Fast path: handle requests to list all products and their unit costs without calling the LLM
+    const normalizedMsg = (message || '').toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    const wantsProductUnitCostList =
+      (normalizedMsg.includes('listar') || normalizedMsg.includes('liste') || normalizedMsg.includes('lista') || normalizedMsg.includes('todos')) &&
+      (normalizedMsg.includes('produto') || normalizedMsg.includes('produtos')) &&
+      normalizedMsg.includes('custo') &&
+      (normalizedMsg.includes('unit') || normalizedMsg.includes('unitario') || normalizedMsg.includes('unitaria'));
+
+    if (!isCacheHit && !assistantResponse && wantsProductUnitCostList) {
+      console.log('Fast path: listing products with unit costs for user:', userId);
+      const { data: allRecipes, error: allRecipesError } = await supabase
+        .from('recipe')
+        .select('id, description')
+        .eq('user_id', userId)
+        .order('description', { ascending: true })
+        .limit(1000);
+
+      if (allRecipesError) {
+        console.error('Error fetching recipes for fast path:', allRecipesError);
+      } else if (!allRecipes || allRecipes.length === 0) {
+        assistantResponse = 'Não encontrei produtos cadastrados.';
+      } else {
+        // Calculate unit cost for each product in small concurrent batches
+        const batchSize = 20;
+        const costsMap: Record<string, number> = {};
+
+        for (let i = 0; i < allRecipes.length; i += batchSize) {
+          const batch = allRecipes.slice(i, i + batchSize);
+          await Promise.all(
+            batch.map(async (rec) => {
+              const { data, error } = await supabase.rpc('calculate_recipe_unit_cost', { recipe_id_param: rec.id });
+              if (error) {
+                console.warn('Unit cost RPC failed for recipe', rec.id, error);
+                costsMap[String(rec.id)] = 0;
+              } else {
+                costsMap[String(rec.id)] = Number(data ?? 0);
+              }
+            })
+          );
+        }
+
+        const lines = allRecipes.map((rec) => {
+          const cost = costsMap[String(rec.id)] ?? 0;
+          return `• "${rec.description}": R$ ${Number(cost).toFixed(2)} por unidade`;
+        });
+
+        assistantResponse = `Aqui está a lista de produtos com seu custo unitário:\n\n${lines.join('\n')}\n\nTotal de produtos: ${allRecipes.length}.`;
+      }
+    }
+
     // Call GPT-5 only if no valid cache
-    if (!isCacheHit) {
+    if (!isCacheHit && !assistantResponse) {
       const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
       if (!OPENAI_API_KEY) {
         console.error('Missing OPENAI_API_KEY secret');
