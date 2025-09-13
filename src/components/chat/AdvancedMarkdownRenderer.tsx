@@ -14,15 +14,85 @@ import { handleExportClick as globalHandleExportClick } from "@/lib/export-handl
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
-// Process export links: convert raw occurrences like "export:%7B...%7D" into markdown links
+// Process export links: robustly convert raw occurrences like "export:{...}" or "export:%7B...%7D" into markdown links, skipping code blocks
 function processExportLinks(md: string): string {
   if (!md) return '';
-  // If there's already a markdown link using export:, keep as-is
-  if (/(\[[^\]]+\]\(export:[^)]+\))/.test(md)) return md;
-  // Wrap raw percent-encoded export payloads as a markdown link
-  return md.replace(/(?<!\])\bexport:%7B[^\s)]+%7D\b/gi, (match) => {
-    return `[📥 Baixar arquivo](${match})`;
-  });
+
+  const wrapPercentEncoded = (segment: string) =>
+    segment.replace(/(?<!\])\bexport:%7B[^\s)]+%7D\b/gi, (match) => `[📥 Baixar arquivo](${match})`);
+
+  const wrapRawJson = (segment: string) => {
+    let out = '';
+    let i = 0;
+    while (i < segment.length) {
+      const idx = segment.indexOf('export:', i);
+      if (idx === -1) {
+        out += segment.slice(i);
+        break;
+      }
+      // copy text up to the match
+      out += segment.slice(i, idx);
+
+      // Avoid wrapping if part of an existing markdown link like "](export:...)"
+      if (idx > 0 && segment[idx - 1] === ']') {
+        out += 'export:';
+        i = idx + 7;
+        continue;
+      }
+
+      let j = idx + 7; // after 'export:'
+      // skip whitespace
+      while (j < segment.length && /\s/.test(segment[j])) j++;
+      if (segment[j] !== '{') {
+        // not a raw JSON payload; just copy 'export:' and continue
+        out += 'export:';
+        i = idx + 7;
+        continue;
+      }
+
+      // parse balanced JSON braces
+      let brace = 0;
+      let k = j;
+      let found = false;
+      while (k < segment.length) {
+        const ch = segment[k];
+        if (ch === '{') brace++;
+        else if (ch === '}') {
+          brace--;
+          if (brace === 0) { k++; found = true; break; }
+        }
+        k++;
+      }
+      if (!found) {
+        out += segment.slice(idx);
+        i = segment.length;
+        break;
+      }
+
+      const jsonStr = segment.slice(j, k);
+      const encoded = encodeURIComponent(jsonStr);
+      out += `[📥 Baixar arquivo](export:${encoded})`;
+      i = k;
+    }
+    return out;
+  };
+
+  // Split content to avoid altering code blocks or inline code
+  const parts = md.split(/(```[\s\S]*?```|`[^`]*`)/g);
+  for (let p = 0; p < parts.length; p++) {
+    const part = parts[p];
+    if (!part) continue;
+    if (part.startsWith('```') || part.startsWith('`')) continue; // skip code
+
+    let processed = part;
+    // keep existing markdown export links as-is
+    processed = processed.replace(/(\[[^\]]+\]\(export:[^)]+\))/g, '$1');
+    processed = wrapPercentEncoded(processed);
+    processed = wrapRawJson(processed);
+    parts[p] = processed;
+  }
+
+  return parts.join('');
 }
 
 interface AdvancedMarkdownRendererProps {
