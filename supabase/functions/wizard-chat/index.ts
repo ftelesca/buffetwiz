@@ -362,10 +362,13 @@ SEMPRE inclua dados estruturados com chaves em português e valores apropriados.
             const filename = `${dataType.replace(/\s+/g, '_')}_${timestamp}`;
             
             // Create a clean export link at the end of the response
-            const exportLink = `\n\n📁 **Arquivo pronto para download:**\n\n[🔗 Baixar ${filename}.${format}](export:${JSON.stringify({type: format, data: exportData, filename})})`;
+            const exportLink = `\n\n📁 **Arquivo pronto para download:**\n\n[📥 Baixar ${filename}.${format}](export:${JSON.stringify({type: format, data: exportData, filename})})`;
             
-            // Add the export link and ensure clean formatting
-            assistantResponse = assistantResponse.replace(/\[🔗[^\]]*\]\(export:[^)]*\)[^]*/g, '') + exportLink;
+            // Remove any existing export links and JSON data, then add clean export link
+            assistantResponse = assistantResponse
+              .replace(/\[🔗[^\]]*\]\(export:[^)]*\)[^]*/g, '')
+              .replace(/\[📥[^\]]*\]\(export:[^)]*\)[^]*/g, '')
+              .trim() + exportLink;
           }
         }
       }

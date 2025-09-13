@@ -74,8 +74,10 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     }
   }, [content]);
 
-  // Clean content by removing export links
-  const cleanContent = content.replace(/\[([^\]]+)\]\(export:([^)]+)\)/g, '**EXPORT_BUTTON_PLACEHOLDER**');
+  // Clean content by removing export links and their trailing JSON data
+  const cleanContent = content
+    .replace(/\[([^\]]+)\]\(export:([^)]+)\)[^]*$/g, '\n\n**Arquivo pronto para download:**\n\nEXPORT_BUTTON_PLACEHOLDER')
+    .replace(/\[([^\]]+)\]\(export:([^)]+)\)/g, 'EXPORT_BUTTON_PLACEHOLDER');
 
   return (
     <div className={cn("markdown-content leading-7", className)}>
@@ -115,25 +117,23 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
           p: ({ className, children, ...props }) => {
             // Handle export button placeholders
             if (typeof children === 'string' && children.includes('EXPORT_BUTTON_PLACEHOLDER')) {
-              const parts = children.split('**EXPORT_BUTTON_PLACEHOLDER**');
-              return (
-                <p className={cn("leading-relaxed mb-4 text-foreground/90 [&:not(:first-child)]:mt-4", className)} {...props}>
-                  {parts.map((part, index) => (
-                    <span key={index}>
-                      {part}
-                      {index < exportButtons.length && (
-                        <button
-                          key={exportButtons[index].id}
-                          onClick={() => handleExportClick(exportButtons[index].data)}
-                          className="inline-flex items-center px-3 py-1 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors cursor-pointer border border-primary/20 hover:border-primary/30 mr-2 ml-1"
-                        >
-                          {exportButtons[index].text}
-                        </button>
-                      )}
-                    </span>
-                  ))}
-                </p>
-              );
+              const buttonIndex = exportButtons.length > 0 ? 0 : -1;
+              
+              if (buttonIndex >= 0 && buttonIndex < exportButtons.length) {
+                const beforeText = children.split('EXPORT_BUTTON_PLACEHOLDER')[0];
+                
+                return (
+                  <div className={cn("leading-relaxed mb-4 text-foreground/90 [&:not(:first-child)]:mt-4", className)}>
+                    {beforeText && <span>{beforeText}</span>}
+                    <button
+                      onClick={() => handleExportClick(exportButtons[buttonIndex].data)}
+                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors cursor-pointer shadow-sm"
+                    >
+                      📥 {exportButtons[buttonIndex].text}
+                    </button>
+                  </div>
+                );
+              }
             }
             
             return (
