@@ -114,12 +114,24 @@ function generateCSVContent(data: any[]): string {
     headers.join(','), // Header row
     ...data.map(row => 
       headers.map(header => {
-        const value = row[header];
-        // Handle values that contain commas or quotes
-        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-          return `"${value.replace(/"/g, '""')}"`;
+        let value = row[header];
+        
+        // Convert value to string and handle special cases
+        if (value === null || value === undefined) {
+          value = '';
+        } else {
+          value = String(value);
         }
-        return value || '';
+        
+        // Handle values that contain commas, quotes, or newlines
+        if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('\r')) {
+          // Escape quotes by doubling them
+          value = value.replace(/"/g, '""');
+          // Wrap in quotes
+          value = `"${value}"`;
+        }
+        
+        return value;
       }).join(',')
     )
   ].join('\n');

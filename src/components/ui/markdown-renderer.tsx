@@ -24,7 +24,25 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
 
   const handleExportClick = async (exportData: string) => {
     try {
-      const parsedData = JSON.parse(exportData);
+      console.log('Raw export data:', exportData);
+      
+      // Clean the export data before parsing
+      const cleanedData = exportData.trim();
+      
+      let parsedData;
+      try {
+        parsedData = JSON.parse(cleanedData);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Raw data that failed:', cleanedData);
+        
+        toast({
+          title: "Erro de formato",
+          description: "Os dados de exportação estão malformados. Tente novamente.",
+          variant: "destructive",
+        });
+        return;
+      }
       
       const { data: response, error } = await supabase.functions.invoke('wizard-export', {
         body: parsedData
