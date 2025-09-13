@@ -446,6 +446,65 @@ O sistema processará automaticamente os dados e calculará os custos em tempo r
         }
       }
 
+      // Sanitize export links even when using cached responses
+      try {
+        if (/\(export:\s*\{/.test(assistantResponse)) {
+          const lower = assistantResponse.toLowerCase();
+          let target: 'produtos'|'eventos'|'insumos'|'clientes' = 'produtos';
+          if (/evento/.test(lower)) target = 'eventos';
+          else if (/insumo|item/.test(lower)) target = 'insumos';
+          else if (/cliente/.test(lower)) target = 'clientes';
+
+          // Fetch minimal context for export regeneration
+          const [eventsResponse, recipesResponse, itemsResponse, customersResponse] = await Promise.all([
+            supabase.from('event').select('id, title, date, numguests, cost, price, customer:customer(name)').eq('user_id', userId).limit(50),
+            supabase.from('recipe').select('id, description, efficiency, recipe_item(count)').eq('user_id', userId).limit(100),
+            supabase.from('item').select('description, cost').eq('user_id', userId).limit(200),
+            supabase.from('customer').select('name, email, phone').eq('user_id', userId).limit(50)
+          ]);
+
+          const context2: any = {
+            events: eventsResponse.data || [],
+            recipes: recipesResponse.data || [],
+            items: itemsResponse.data || [],
+            customers: customersResponse.data || []
+          };
+
+          let exportData: any[] = [];
+          if (target === 'produtos') {
+            for (const r of context2.recipes) {
+              let unit = 0;
+              try {
+                const { data: uc } = await supabase.rpc('calculate_recipe_unit_cost', { recipe_id_param: r.id });
+                unit = parseFloat(String(uc || 0)) || 0;
+              } catch {}
+              exportData.push({ 'Produto': r.description, 'Custo Unitário (R$)': unit });
+            }
+          } else if (target === 'eventos') {
+            exportData = context2.events.map((e: any) => ({ 'Evento': e.title, 'Data': e.date, 'Convidados': e.numguests || 0, 'Custo (R$)': e.cost || 0, 'Preço (R$)': e.price || 0, 'Cliente': e.customer?.name || 'N/A' }));
+          } else if (target === 'insumos') {
+            exportData = context2.items.map((i: any) => ({ 'Insumo': i.description, 'Custo (R$)': i.cost || 0 }));
+          } else if (target === 'clientes') {
+            exportData = context2.customers.map((c: any) => ({ 'Cliente': c.name, 'Email': c.email || '', 'Telefone': c.phone || '' }));
+          }
+
+          const m = assistantResponse.match(/Baixar\s+([^\s]+)\.(xlsx|csv|json)/i);
+          const filenameBase = m?.[1] || target;
+          const format = m?.[2] || 'csv';
+          const exportObj = { type: format, data: exportData, filename: `${filenameBase}` };
+          const payload = encodeURIComponent(JSON.stringify(exportObj));
+          const cleanLink = `\n\n📁 **Arquivo pronto para download:**\n\n[📥 Baixar ${filenameBase}.${format}](export:${payload})`;
+
+          // Remove any previous export blobs and append clean link
+          assistantResponse = assistantResponse
+            .replace(/\(export:[^)]*\)/g, '(export:)')
+            .replace(/\[.*?\]\(export:\)\s*/g, '')
+            .trim() + cleanLink;
+        }
+      } catch (e) {
+        console.warn('Export sanitize error', e);
+      }
+
       // Cache the response for 1 hour
       const responseToCache = {
         response: assistantResponse,
