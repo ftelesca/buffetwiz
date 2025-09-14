@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { Eye, EyeOff, Lock, Loader2, CheckCircle, ChefHat } from "lucide-react"
+import { Eye, EyeOff, Lock, Loader2, CheckCircle } from "lucide-react"
 const logo = "/logo.png"
 
 export function ResetPasswordPage() {

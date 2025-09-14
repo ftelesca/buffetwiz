@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+
 import { WizardChat } from "../wizard/WizardChat";
 
 export function WizardFloatingButton() {
@@ -14,7 +14,7 @@ export function WizardFloatingButton() {
         className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-r from-primary to-secondary shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
         size="lg"
       >
-        <Sparkles className="h-6 w-6" />
+        <img src="/logo.png" alt="BuffetWiz" className="h-6 w-6" />
         <span className="sr-only">Abrir Assistente IA</span>
       </Button>
 

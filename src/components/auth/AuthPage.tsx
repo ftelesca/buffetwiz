@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LoginForm } from "./LoginForm"
 import { SignUpForm } from "./SignUpForm"
 import { ForgotPasswordForm } from "./ForgotPasswordForm"
-import { ChefHat } from "lucide-react"
+
 const logo = "/logo.png"
 
 export function AuthPage() {
