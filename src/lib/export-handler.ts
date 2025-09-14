@@ -102,9 +102,9 @@ export async function handleExportClick(payload: string): Promise<void> {
         const rows = await Promise.all((recipes || []).map(async (r) => {
           try {
             const { data: uc } = await supabase.rpc('calculate_recipe_unit_cost', { recipe_id_param: r.id });
-            return { 'Produto': r.description, 'Custo Unitário (R$)': Number(uc ?? 0) };
+            return { 'Produto': r.description, 'Custo Unitário': Number(uc ?? 0) };
           } catch {
-            return { 'Produto': r.description, 'Custo Unitário (R$)': 0 };
+            return { 'Produto': r.description, 'Custo Unitário': 0 };
           }
         }));
         exportData = rows;
@@ -118,8 +118,8 @@ export async function handleExportClick(payload: string): Promise<void> {
           'Evento': e.title,
           'Data': e.date,
           'Convidados': e.numguests || 0,
-          'Custo (R$)': e.cost || 0,
-          'Preço (R$)': e.price || 0,
+          'Custo': e.cost || 0,
+          'Preço': e.price || 0,
           'Cliente': e?.customer?.name || ''
         }));
       } else if (target === 'insumos') {
@@ -128,7 +128,7 @@ export async function handleExportClick(payload: string): Promise<void> {
           .select('description, cost')
           .eq('user_id', userId)
           .limit(500);
-        exportData = (items || []).map((i: any) => ({ 'Insumo': i.description, 'Custo (R$)': i.cost || 0 }));
+        exportData = (items || []).map((i: any) => ({ 'Insumo': i.description, 'Custo': i.cost || 0 }));
       } else if (target === 'clientes') {
         const { data: customers } = await supabase
           .from('customer')

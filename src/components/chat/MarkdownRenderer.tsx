@@ -239,6 +239,84 @@ export function MarkdownRenderer({
 
   const processedContent = processExportLinks(content);
 
+  // Extrai dados de tabela do markdown atual para usar no export quando o link é genérico
+  const extractTableDataFromMarkdown = (md: string): any[] => {
+    try {
+      if (!md) return [];
+      const clean = (s: string) => s.replace(/\*\*|__/g, '').trim();
+      const text = md.replace(/```[\s\S]*?```/g, '').trim();
+      const lines = text.split(/\r?\n/);
+
+      // Tenta detectar a última tabela em formato pipe (GFM)
+      let i = 0;
+      let lastTable: { headers: string[]; rows: string[][] } | null = null;
+      while (i < lines.length) {
+        if (/^\s*\|/.test(lines[i]) && ((lines[i].match(/\|/g)?.length || 0) >= 2)) {
+          const headerLine = lines[i].trim();
+          const sepLine = lines[i + 1] || '';
+          if (/\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?/.test(sepLine)) {
+            i += 2;
+            const headers = headerLine.split('|').map((s) => clean(s)).filter(Boolean);
+            const rowsArr: string[][] = [];
+            while (i < lines.length && /^\s*\|/.test(lines[i])) {
+              const row = lines[i].split('|').map((s) => clean(s)).filter(Boolean);
+              if (row.length) rowsArr.push(row);
+              i++;
+            }
+            lastTable = { headers, rows: rowsArr };
+            continue;
+          }
+        }
+        i++;
+      }
+      if (lastTable && lastTable.headers.length >= 2 && lastTable.rows.length) {
+        const headers = lastTable.headers;
+        return lastTable.rows.map((r) => {
+          const obj: any = {};
+          headers.forEach((h, idx) => (obj[h] = r[idx] ?? ''));
+          return obj;
+        });
+      }
+
+      // Fallback: detectar bloco de 2 colunas (nome + número ao fim)
+      let headerIdx = lines.findIndex((l) => /insumo/i.test(l) && /(custo|total)/i.test(l));
+      if (headerIdx === -1) {
+        headerIdx = lines.findIndex((l) => /\S+\s{2,}\S+/.test(l));
+      }
+      if (headerIdx !== -1) {
+        const headerParts = lines[headerIdx].split(/\t+| {2,}/).map((s) => clean(s)).filter(Boolean);
+        const h1 = headerParts[0] || 'Coluna 1';
+        const h2 = headerParts[1] || 'Coluna 2';
+        const rows: any[] = [];
+        for (let j = headerIdx + 1; j < lines.length; j++) {
+          const line = lines[j].trim();
+          if (!line) break;
+          const m = line.match(/^(.+?)\s+([\d.,]+)$/);
+          if (m) {
+            rows.push({ [h1]: clean(m[1]), [h2]: m[2] });
+          } else if (/^total/i.test(line)) {
+            const totalNum = line.match(/([\d.,]+)$/)?.[1] || '';
+            rows.push({ [h1]: 'TOTAL', [h2]: totalNum });
+          } else {
+            if (rows.length > 0) break;
+          }
+        }
+        return rows;
+      }
+
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
+  const inferTypeFromFilename = (file: string): 'xlsx' | 'csv' | 'json' => {
+    const f = (file || '').toLowerCase();
+    if (f.endsWith('.csv')) return 'csv';
+    if (f.endsWith('.json')) return 'json';
+    return 'xlsx';
+  };
+
   return (
     <div className={cn("prose prose-slate dark:prose-invert max-w-none", className)}>
       <ReactMarkdown
@@ -446,8 +524,15 @@ export function MarkdownRenderer({
                   if (match) {
                     e.preventDefault();
                     e.stopPropagation();
-                    const file = match[1];
-                    handleExportClickLocal(`filename:"${file}"`);
+                    const file = match[1].trim();
+                    const rows = extractTableDataFromMarkdown(content);
+                    if (rows && rows.length) {
+                      const type = inferTypeFromFilename(file);
+                      const payload = JSON.stringify({ type, filename: file, data: rows });
+                      handleExportClickLocal(payload);
+                    } else {
+                      handleExportClickLocal(`filename:"${file}"`);
+                    }
                   }
                 } catch {}
               };
