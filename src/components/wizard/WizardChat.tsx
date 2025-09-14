@@ -50,12 +50,20 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
   const [showHistory, setShowHistory] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll para o fim ao receber mensagens
   useEffect(() => {
     if (!scrollRef.current) return;
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
+
+  // Focar no input após resposta da IA
+  useEffect(() => {
+    if (messages.length > 0 && messages[messages.length - 1]?.role === "assistant" && !isLoading) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [messages, isLoading]);
 
   // Carregar histórico quando abrir
   useEffect(() => {
@@ -381,6 +389,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             <div className="p-4 border-t">
               <div className="flex gap-2">
                 <Input
+                  ref={inputRef}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Faça sua pergunta sobre o negócio..."
