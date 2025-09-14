@@ -288,20 +288,20 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
           <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
             <DialogHeader className="p-4 border-b flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Bot className="h-5 w-5 text-primary" />
-                  <DialogTitle>Assistente BuffetWiz</DialogTitle>
-                  <Badge variant="secondary" className="text-xs">GPT-5 Premium</Badge>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Bot className="h-5 w-5 text-primary flex-shrink-0" />
+                  <DialogTitle className="truncate">Assistente BuffetWiz</DialogTitle>
+                  <Badge variant="secondary" className="text-xs flex-shrink-0">GPT-5 Premium</Badge>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-shrink-0">
                   <Button variant="outline" size="sm" onClick={() => setShowHistory((s) => !s)}>
                     <History className="h-4 w-4 mr-1" />
-                    Histórico
+                    <span className="hidden sm:inline">Histórico</span>
                   </Button>
                   <Button variant="outline" size="sm" onClick={startNewChat}>
                     <MessageSquare className="h-4 w-4 mr-1" />
-                    Nova Conversa
+                    <span className="hidden sm:inline">Nova Conversa</span>
                   </Button>
                 </div>
               </div>
