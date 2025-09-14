@@ -287,7 +287,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
           {/* Área principal */}
           <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
-            <DialogHeader className="p-4 border-b flex-shrink-0">
+            <DialogHeader className="p-4 pr-12 border-b flex-shrink-0">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2 min-w-0">
                   <Bot className="h-5 w-5 text-primary flex-shrink-0" />
