@@ -270,15 +270,14 @@ O sistema processará automaticamente os dados e calculará os custos em tempo r
           .from('wizard_messages')
           .select('role, content, created_at')
           .eq('chat_id', chatId)
-          .order('created_at', { ascending: true })
-          .limit(50); // Increased from 20 to maintain more context
+          .order('created_at', { ascending: true }); // Removed limit to include all messages
         if (!historyError && history) {
-          const trimmed = history.slice(-30); // Increased from 12 to 30 messages
-          historyMessages = trimmed.map((m: any) => ({
+          // Include ALL messages from the conversation
+          historyMessages = history.map((m: any) => ({
             role: m.role === 'assistant' ? 'assistant' : 'user',
             content: m.content as string,
           }));
-          console.log(`Including ${historyMessages.length} prior messages in context`);
+          console.log(`Including ALL ${historyMessages.length} messages in context`);
         }
       }
 
