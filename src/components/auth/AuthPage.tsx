@@ -5,7 +5,7 @@ import { LoginForm } from "./LoginForm"
 import { SignUpForm } from "./SignUpForm"
 import { ForgotPasswordForm } from "./ForgotPasswordForm"
 import { ChefHat } from "lucide-react"
-import logo from "@/assets/logo.png"
+const logo = "/logo.png"
 
 export function AuthPage() {
   const [currentTab, setCurrentTab] = useState<"login" | "signup" | "forgot">("login")
