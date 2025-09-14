@@ -215,11 +215,11 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[80vh] p-0">
-        <div className="flex h-full">
+      <DialogContent className="max-w-4xl h-[80vh] p-0 flex flex-col">
+        <div className="flex h-full min-h-0">
           {/* Sidebar de histórico */}
-          <div className={`${showHistory ? "w-80" : "w-0"} transition-all duration-300 border-r bg-muted/30 overflow-hidden`}>
-            <div className="p-4 border-b">
+          <div className={`${showHistory ? "w-80" : "w-0"} transition-all duration-300 border-r bg-muted/30 overflow-hidden flex flex-col`}>
+            <div className="p-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-sm">Histórico</h3>
                 <Button variant="ghost" size="sm" onClick={() => setShowHistory(false)}>
@@ -227,7 +227,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                 </Button>
               </div>
             </div>
-            <div className="h-[calc(100%-4rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-muted/40">
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-muted/40 min-h-0">
               <div className="p-2">
                 {chats.map((chat) => (
                   <Card
@@ -285,9 +285,9 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
           </div>
 
           {/* Área principal */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
-            <DialogHeader className="p-4 border-b">
+            <DialogHeader className="p-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Bot className="h-5 w-5 text-primary" />
@@ -311,7 +311,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             </DialogHeader>
 
             {/* Mensagens */}
-            <div ref={scrollRef} className="flex-1 p-4 max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-muted/40">
+            <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-muted/40 min-h-0">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <Bot className="h-16 w-16 text-muted-foreground mb-4" />
