@@ -35,7 +35,7 @@ const navigationItems = [
 ]
 
 export function AppSidebar() {
-  const { state, setOpen } = useSidebar()
+  const { state, setOpen, setOpenMobile, isMobile } = useSidebar()
   const location = useLocation()
   const currentPath = location.pathname
   const isCollapsed = state === "collapsed"
@@ -43,6 +43,14 @@ export function AppSidebar() {
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/"
     return currentPath.startsWith(path)
+  }
+
+  const handleNavigate = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    } else {
+      setOpen(false)
+    }
   }
 
   const getNavClassNames = (path: string) => {
@@ -105,7 +113,7 @@ export function AppSidebar() {
                             <NavLink
                               to={item.url}
                               className={`${getNavClassNames(item.url)} flex items-center justify-center`}
-                              onClick={() => setOpen(false)}
+                              onClick={handleNavigate}
                             >
                               <item.icon className="h-5 w-5" />
                             </NavLink>
@@ -120,7 +128,7 @@ export function AppSidebar() {
                         <NavLink
                           to={item.url}
                           className={`${getNavClassNames(item.url)} flex items-center px-3 py-2`}
-                          onClick={() => setOpen(false)}
+                          onClick={handleNavigate}
                         >
                           <item.icon className="h-5 w-5" />
                           <span className="ml-3">{item.title}</span>
