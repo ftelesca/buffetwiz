@@ -184,21 +184,6 @@ const Sidebar = React.forwardRef<
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
-    // Dynamic expanded width based on actual sidebar content
-    const contentRef = React.useRef<HTMLDivElement>(null)
-    const [expandedWidth, setExpandedWidth] = React.useState<number | null>(null)
-
-    React.useLayoutEffect(() => {
-      if (isMobile) return
-      const el = contentRef.current
-      if (!el) return
-      // Measure full content width (includes overflow beyond current width)
-      const measured = Math.ceil(el.scrollWidth)
-      const current = Math.ceil(el.getBoundingClientRect().width)
-      const width = Math.max(measured, current)
-      setExpandedWidth(width)
-    }, [isMobile, state])
-
     if (collapsible === "none") {
       return (
         <div
@@ -246,20 +231,17 @@ const Sidebar = React.forwardRef<
         {/* Gap element to reserve space equal to sidebar width */}
         <div
           className={cn(
-            "duration-200 relative h-svh w-[--sidebar-width] group-data-[state=expanded]:w-[var(--sidebar-width-expanded)] bg-transparent transition-[width] ease-linear",
+            "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
             "group-data-[collapsible=offcanvas]:w-0",
             "group-data-[side=right]:rotate-180",
             variant === "floating" || variant === "inset"
               ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
               : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]"
           )}
-          style={{
-            ["--sidebar-width-expanded" as any]: expandedWidth ? `${expandedWidth}px` : undefined,
-          } as React.CSSProperties}
         />
         <div
           className={cn(
-            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] group-data-[state=expanded]:w-[var(--sidebar-width-expanded)] transition-[left,right,width] ease-linear md:flex",
+            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
             side === "left"
               ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -269,14 +251,10 @@ const Sidebar = React.forwardRef<
               : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
             className
           )}
-          style={{
-            ["--sidebar-width-expanded" as any]: expandedWidth ? `${expandedWidth}px` : undefined,
-          } as React.CSSProperties}
           {...props}
         >
           <div
             data-sidebar="sidebar"
-            ref={contentRef}
             className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
           >
             {children}
