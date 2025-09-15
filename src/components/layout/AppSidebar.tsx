@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import { 
   Calendar, 
@@ -6,9 +5,7 @@ import {
   Home, 
   Users, 
   ShoppingCart,
-  Menu as MenuIcon,
-  ChefHat as LogoIcon,
-  ChevronLeft
+  ChefHat as LogoIcon
 } from "lucide-react"
 
 import {
@@ -22,7 +19,12 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: Home },
@@ -33,9 +35,10 @@ const navigationItems = [
 ]
 
 export function AppSidebar() {
-  const { state, toggleSidebar } = useSidebar()
+  const { state } = useSidebar()
   const location = useLocation()
   const currentPath = location.pathname
+  const isCollapsed = state === "collapsed"
 
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/"
@@ -43,64 +46,95 @@ export function AppSidebar() {
   }
 
   const getNavClassNames = (path: string) => {
-    return isActive(path) 
-      ? "bg-primary/10 text-primary border-r-2 border-primary font-medium" 
-      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+    const baseClasses = "transition-all duration-300 hover:shadow-card"
+    const activeClasses = isCollapsed 
+      ? "bg-primary text-primary-foreground" 
+      : "bg-primary/10 text-primary border-r-2 border-primary font-medium"
+    const inactiveClasses = "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+    
+    return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses}`
+  }
+
+  const MenuButton = ({ item }: { item: typeof navigationItems[0] }) => {
+    const button = (
+      <SidebarMenuButton asChild>
+        <NavLink
+          to={item.url}
+          className={`${getNavClassNames(item.url)} ${isCollapsed ? "w-10 h-10 rounded-lg flex items-center justify-center mx-auto" : ""}`}
+        >
+          <item.icon className={`${isCollapsed ? "h-5 w-5" : "h-5 w-5"}`} />
+          {!isCollapsed && <span className="ml-3">{item.title}</span>}
+        </NavLink>
+      </SidebarMenuButton>
+    )
+
+    if (isCollapsed) {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {button}
+          </TooltipTrigger>
+          <TooltipContent side="right" className="ml-2">
+            <p>{item.title}</p>
+          </TooltipContent>
+        </Tooltip>
+      )
+    }
+
+    return button
   }
 
   return (
-    <Sidebar className={`${state === "collapsed" ? "w-16" : "w-64"} transition-all duration-300`}>
-      <div className="border-b border-border p-4 flex items-center justify-between">
-        {state !== "collapsed" ? (
-          <>
-            <div className="flex items-center gap-2">
+    <TooltipProvider>
+      <Sidebar className={`${isCollapsed ? "w-16" : "w-70"} transition-all duration-300 ease-in-out`}>
+        {/* Logo Area */}
+        <div className={`border-b border-border transition-all duration-300 ${isCollapsed ? "p-3" : "p-4"} flex items-center ${isCollapsed ? "justify-center" : "justify-start"}`}>
+          {isCollapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center justify-center">
+                  <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded transition-all duration-300" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="ml-2">
+                <p>BuffetWiz</p>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <div className="flex items-center gap-3 transition-all duration-300">
               <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
-              <div>
-                <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
+              <div className="overflow-hidden">
+                <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text transition-all duration-300">
                   BuffetWiz
                 </h1>
-                <p className="text-xs text-muted-foreground">Gestão de Eventos Descomplicada</p>
+                <p className="text-xs text-muted-foreground transition-all duration-300">
+                  Gestão de Eventos Descomplicada
+                </p>
               </div>
             </div>
-            <Button
-              onClick={toggleSidebar}
-              variant="ghost"
-              className="absolute right-0 top-1/2 -translate-y-1/2 h-16 w-3 rounded-l-md bg-primary/20 hover:bg-primary/30 border-l border-t border-b border-primary/30 hover:border-primary/50 shadow-sm transition-all duration-200 flex items-center justify-center p-0"
-            >
-              <ChevronLeft className="h-4 w-4 text-primary" />
-            </Button>
-          </>
-        ) : (
-          <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
-        )}
-      </div>
+          )}
+        </div>
 
-      <SidebarContent className="p-2">
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            {state !== "collapsed" ? "Navegação" : ""}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className={`${getNavClassNames(item.url)} transition-all duration-200 hover:shadow-card`}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {state !== "collapsed" && (
-                        <span className="ml-3">{item.title}</span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+        {/* Navigation Content */}
+        <SidebarContent className={`transition-all duration-300 ${isCollapsed ? "p-2" : "p-3"}`}>
+          <SidebarGroup>
+            {!isCollapsed && (
+              <SidebarGroupLabel className="transition-all duration-300">
+                Navegação
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu className={`space-y-1 ${isCollapsed ? "px-1" : ""}`}>
+                {navigationItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <MenuButton item={item} />
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+    </TooltipProvider>
   )
 }

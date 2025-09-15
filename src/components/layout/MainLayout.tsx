@@ -12,52 +12,37 @@ interface MainLayoutProps {
 }
 
 function LayoutContent({ children }: MainLayoutProps) {
-  const { state, toggleSidebar } = useSidebar()
+  const { state } = useSidebar()
+  const isCollapsed = state === "collapsed"
 
   return (
-    <div className="min-h-screen flex w-full bg-background relative">
+    <div className="min-h-screen flex w-full bg-background">
       <AppSidebar />
       
-      {/* Floating trigger when collapsed */}
-      {state === "collapsed" && (
-        <Button
-          onClick={toggleSidebar}
-          variant="ghost"
-          className="fixed left-0 top-1/2 -translate-y-1/2 z-50 h-16 w-3 rounded-r-md bg-primary/20 hover:bg-primary/30 border-r border-t border-b border-primary/30 hover:border-primary/50 shadow-sm transition-all duration-200 flex items-center justify-center p-0"
-        >
-          <ChevronRight className="h-4 w-4 text-primary" />
-        </Button>
-      )}
-      
-      <main className="flex-1 flex flex-col">
-        {/* Desktop header - only when sidebar is collapsed */}
-        {state === "collapsed" && (
-          <header className="hidden md:block sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
-            <div className="flex h-full items-center px-6 gap-4 justify-between">
-              <div className="flex items-center gap-2">
-                <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
-                <div>
-                  <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
-                    BuffetWiz
-                  </h1>
-                  <p className="text-xs text-muted-foreground">Gestão de Eventos Descomplicada</p>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col transition-all duration-300 ease-in-out">
+        {/* Desktop Header */}
+        <header className="hidden md:block sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
+          <div className="flex h-full items-center justify-between px-6">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              {isCollapsed && (
+                <div className="flex items-center gap-2">
+                  <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
+                  <div>
+                    <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
+                      BuffetWiz
+                    </h1>
+                    <p className="text-xs text-muted-foreground">Gestão de Eventos Descomplicada</p>
+                  </div>
                 </div>
-              </div>
-              <UserMenu />
+              )}
             </div>
-          </header>
-        )}
+            <UserMenu />
+          </div>
+        </header>
         
-        {/* Desktop header - when sidebar is expanded */}
-        {state === "expanded" && (
-          <header className="hidden md:block sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
-            <div className="flex h-full items-center justify-end px-6">
-              <UserMenu />
-            </div>
-          </header>
-        )}
-        
-        {/* Mobile-only header - always visible on mobile */}
+        {/* Mobile Header */}
         <header className="md:hidden sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
           <div className="flex h-full items-center px-6 gap-4 justify-between">
             <SidebarTrigger />
@@ -73,10 +58,12 @@ function LayoutContent({ children }: MainLayoutProps) {
             <UserMenu />
           </div>
         </header>
+
+        {/* Main Content */}
         <div className="flex-1 p-8 overflow-hidden bg-gradient-to-br from-background via-background to-accent/5">
           {children}
         </div>
-      </main>
+      </div>
       
       {/* Wizard Floating Button */}
       <WizardFloatingButton />
