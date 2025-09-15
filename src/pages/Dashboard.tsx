@@ -301,7 +301,6 @@ export default function Dashboard() {
                 {...event}
                 customerName={event.customerName}
                 onEdit={handleEditEvent}
-                onDelete={handleDeleteEvent}
                 onMenu={handleOpenMenu}
               />
             </div>
