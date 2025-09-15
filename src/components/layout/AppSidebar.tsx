@@ -35,7 +35,7 @@ const navigationItems = [
 ]
 
 export function AppSidebar() {
-  const { state } = useSidebar()
+  const { state, setOpen } = useSidebar()
   const location = useLocation()
   const currentPath = location.pathname
   const isCollapsed = state === "collapsed"
@@ -105,6 +105,7 @@ export function AppSidebar() {
                             <NavLink
                               to={item.url}
                               className={`${getNavClassNames(item.url)} flex items-center justify-center`}
+                              onClick={() => setOpen(false)}
                             >
                               <item.icon className="h-5 w-5" />
                             </NavLink>
