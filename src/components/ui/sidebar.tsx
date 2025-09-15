@@ -18,7 +18,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-const SIDEBAR_COOKIE_NAME = "sidebar:state"
+const SIDEBAR_COOKIE_NAME = "sidebar:state" // legacy
+const SIDEBAR_COOKIE_NAME_SAFE = "sidebar_state"
+const SIDEBAR_STORAGE_KEY = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
@@ -73,8 +75,17 @@ const SidebarProvider = React.forwardRef<
     // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState<boolean>(() => {
       try {
-        const match = document.cookie.match(new RegExp(`(?:^|; )${SIDEBAR_COOKIE_NAME}=(true|false)`))
-        if (match) return match[1] === "true"
+        // 1) localStorage (most reliable)
+        const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY)
+        if (stored === "true" || stored === "false") {
+          return stored === "true"
+        }
+        // 2) safe cookie name
+        const safeMatch = document.cookie.match(new RegExp(`(?:^|; )${SIDEBAR_COOKIE_NAME_SAFE}=(true|false)`))
+        if (safeMatch) return safeMatch[1] === "true"
+        // 3) legacy cookie name (backward compatibility)
+        const legacyMatch = document.cookie.match(new RegExp(`(?:^|; )${SIDEBAR_COOKIE_NAME}=(true|false)`))
+        if (legacyMatch) return legacyMatch[1] === "true"
       } catch (_) {
         // no-op
       }
@@ -90,7 +101,13 @@ const SidebarProvider = React.forwardRef<
           _setOpen(openState)
         }
 
-        // This sets the cookie to keep the sidebar state.
+        // Persist state (localStorage + cookies for compatibility)
+        try {
+          localStorage.setItem(SIDEBAR_STORAGE_KEY, String(openState))
+        } catch (_) {
+          // no-op
+        }
+        document.cookie = `${SIDEBAR_COOKIE_NAME_SAFE}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
         document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
       },
       [setOpenProp, open]
