@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom"
+import { useEffect, useRef } from "react"
 import { 
   Calendar, 
   ChefHat, 
@@ -40,6 +41,34 @@ export function AppSidebar() {
   const currentPath = location.pathname
   const isCollapsed = state === "collapsed"
 
+  // Keep main header height in sync with this logo block
+  const logoAreaRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const root = document.documentElement
+    const update = () => {
+      if (logoAreaRef.current && state !== "collapsed") {
+        const h = logoAreaRef.current.getBoundingClientRect().height
+        root.style.setProperty('--sidebar-logo-height', `${Math.ceil(h)}px`)
+      }
+    }
+
+    if (state === "collapsed") {
+      // Fallback height when sidebar is collapsed
+      root.style.setProperty('--sidebar-logo-height', '4rem')
+      return
+    }
+
+    update()
+    const ro = new ResizeObserver(update)
+    if (logoAreaRef.current) ro.observe(logoAreaRef.current)
+    window.addEventListener('resize', update)
+
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [state])
+
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/"
     return currentPath.startsWith(path)
@@ -68,12 +97,7 @@ export function AppSidebar() {
         <Sidebar collapsible="icon" className="transition-all duration-300 ease-in-out">
           {/* Logo Area */}
           <div 
-            ref={(el) => {
-              if (el && !isCollapsed) {
-                const height = el.getBoundingClientRect().height
-                document.documentElement.style.setProperty('--sidebar-logo-height', `${height}px`)
-              }
-            }}
+            ref={logoAreaRef}
             className={`border-b border-border transition-all duration-300 ${isCollapsed ? "p-3" : "p-4"} flex items-center ${isCollapsed ? "justify-center" : "justify-start"}`}
           >
             {isCollapsed ? (
