@@ -22,7 +22,7 @@ function LayoutContent({ children }: MainLayoutProps) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col transition-all duration-300 ease-in-out">
         {/* Desktop Header */}
-        <header className="hidden md:block sticky top-0 z-40 h-16 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80">
+        <header className="hidden md:block sticky top-0 z-40 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80" style={{ height: 'var(--sidebar-logo-height, 4rem)' }}>
           <div className="flex h-full items-center justify-between px-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger />

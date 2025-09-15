@@ -67,7 +67,15 @@ export function AppSidebar() {
       <TooltipProvider>
         <Sidebar collapsible="icon" className="transition-all duration-300 ease-in-out">
           {/* Logo Area */}
-          <div className={`border-b border-border transition-all duration-300 ${isCollapsed ? "p-3" : "p-4"} flex items-center ${isCollapsed ? "justify-center" : "justify-start"}`}>
+          <div 
+            ref={(el) => {
+              if (el && !isCollapsed) {
+                const height = el.getBoundingClientRect().height
+                document.documentElement.style.setProperty('--sidebar-logo-height', `${height}px`)
+              }
+            }}
+            className={`border-b border-border transition-all duration-300 ${isCollapsed ? "p-3" : "p-4"} flex items-center ${isCollapsed ? "justify-center" : "justify-start"}`}
+          >
             {isCollapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -86,7 +94,7 @@ export function AppSidebar() {
                   <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text transition-all duration-300 truncate">
                     BuffetWiz
                   </h1>
-                  <p className="text-xs text-muted-foreground transition-all duration-300 truncate">
+                  <p className="text-xs text-muted-foreground transition-all duration-300 whitespace-normal leading-tight">
                     Gestão de Eventos Descomplicada
                   </p>
                 </div>
