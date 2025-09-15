@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Combobox } from "@/components/ui/combobox"
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
@@ -31,7 +31,6 @@ export default function ProductItemForm({
   const [newProductItem, setNewProductItem] = useState({ item: "", qty: "" })
   const { toast } = useToast()
   const queryClient = useQueryClient()
-  const selectTriggerRef = useRef<HTMLButtonElement>(null)
   const qtyInputRef = useRef<HTMLInputElement>(null)
 
   // Initialize form when editing
@@ -46,17 +45,7 @@ export default function ProductItemForm({
     }
   }, [editingProductItem, isOpen])
 
-  // Focus management
-  useEffect(() => {
-    if (isOpen && selectTriggerRef.current) {
-      // Focus on item field when dialog opens
-      setTimeout(() => {
-        selectTriggerRef.current?.focus()
-      }, 100)
-    }
-  }, [isOpen])
-
-  // Auto focus on quantity when item is selected
+  // Focus management - auto focus on quantity when item is selected
   const handleItemChange = (value: string) => {
     setNewProductItem({ ...newProductItem, item: value })
     // Focus on quantity field after item selection
@@ -145,21 +134,18 @@ export default function ProductItemForm({
         <div className="space-y-4">
           <div>
             <Label htmlFor="item-select">Item</Label>
-            <Select 
-              value={newProductItem.item} 
+            <Combobox
+              options={items.map((item) => ({
+                value: item.id.toString(),
+                label: item.description
+              }))}
+              value={newProductItem.item}
               onValueChange={handleItemChange}
-            >
-              <SelectTrigger ref={selectTriggerRef}>
-                <SelectValue placeholder="Selecione um insumo" />
-              </SelectTrigger>
-              <SelectContent>
-                {items.map((item) => (
-                  <SelectItem key={item.id} value={item.id.toString()}>
-                    {item.description}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Selecione um insumo"
+              searchPlaceholder="Buscar insumos..."
+              emptyText="Nenhum insumo encontrado."
+              autoFocus
+            />
           </div>
           <div>
             <Label htmlFor="qty-input">Quantidade</Label>
