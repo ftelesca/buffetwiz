@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { formatDateWithoutTimezone, formatCurrency } from "@/lib/utils"
 import { formatTimeWithoutSeconds } from "@/lib/utils"
 import { CalendarIntegration } from "@/components/events/CalendarIntegration"
-import { ActionButtons } from "@/components/ui/action-buttons"
+import { EventDeleteConfirmation } from "@/components/events/EventDeleteConfirmation"
 
 interface EventCardProps {
   id: string
@@ -179,13 +179,25 @@ export function EventCard({
             </Button>
           )}
 
-          <ActionButtons
-            onEdit={onEdit ? () => onEdit(id) : undefined}
-            onDelete={() => onDelete?.(id)}
-            itemName={title}
-            itemType="evento"
-            showEdit={!!onEdit}
-          />
+          <div className="flex gap-1 justify-center">
+            {onEdit && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => onEdit(id)}
+                title="Editar"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+            
+            {onDelete && (
+              <EventDeleteConfirmation
+                eventName={title}
+                onDelete={() => onDelete(id)}
+              />
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -65,6 +65,15 @@ export default function Events() {
   // Delete event mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
+      // First delete event_menu items in cascade
+      const { error: menuError } = await supabase
+        .from("event_menu")
+        .delete()
+        .eq("event", id);
+      
+      if (menuError) throw menuError;
+
+      // Then delete the event
       const { error } = await supabase
         .from("event")
         .delete()
