@@ -192,10 +192,41 @@ const Sidebar = React.forwardRef<
       if (isMobile || state !== "expanded") return
       const el = contentRef.current
       if (!el) return
-      const measured = Math.ceil(el.scrollWidth)
-      const current = Math.ceil(el.getBoundingClientRect().width)
-      const width = Math.max(measured, current)
-      setExpandedWidth(width)
+
+      const measure = () => {
+        if (!contentRef.current) return
+        const original = contentRef.current
+        const clone = original.cloneNode(true) as HTMLElement
+        clone.style.position = "absolute"
+        clone.style.left = "-10000px"
+        clone.style.top = "0"
+        clone.style.visibility = "hidden"
+        clone.style.pointerEvents = "none"
+        clone.style.width = "fit-content"
+        clone.style.height = "auto"
+        // Avoid flex stretching inside the clone
+        clone.style.display = "inline-block"
+        document.body.appendChild(clone)
+        const measured = Math.ceil(clone.getBoundingClientRect().width)
+        document.body.removeChild(clone)
+        if (measured && !Number.isNaN(measured)) {
+          setExpandedWidth(measured)
+        }
+      }
+
+      measure()
+
+      const RO = (window as any).ResizeObserver
+      const ro: ResizeObserver | null = RO ? new RO(() => measure()) : null
+      if (ro && el) ro.observe(el)
+
+      const onResize = () => measure()
+      window.addEventListener("resize", onResize)
+
+      return () => {
+        if (ro) ro.disconnect()
+        window.removeEventListener("resize", onResize)
+      }
     }, [isMobile, state])
 
     if (collapsible === "none") {
