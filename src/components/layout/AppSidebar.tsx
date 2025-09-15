@@ -120,6 +120,7 @@ export function AppSidebar() {
                         <NavLink
                           to={item.url}
                           className={`${getNavClassNames(item.url)} flex items-center px-3 py-2`}
+                          onClick={() => setOpen(false)}
                         >
                           <item.icon className="h-5 w-5" />
                           <span className="ml-3">{item.title}</span>
