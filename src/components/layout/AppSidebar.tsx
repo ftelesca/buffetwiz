@@ -93,7 +93,10 @@ export function AppSidebar() {
   const handleNavigate = () => {
     if (isMobile) {
       setOpenMobile(false)
-    } else {
+    }
+    // No desktop, se sidebar está recolhida, mantém recolhida
+    // Se não está recolhida, fecha a sidebar
+    if (!isMobile && !isCollapsed) {
       setOpen(false)
     }
   }
