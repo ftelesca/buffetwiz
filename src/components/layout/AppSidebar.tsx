@@ -57,7 +57,7 @@ export function AppSidebar() {
 
   return (
     <TooltipProvider>
-      <Sidebar className={`${isCollapsed ? "w-16" : "w-64"} transition-all duration-300 ease-in-out`}>
+      <Sidebar collapsible="icon" className="transition-all duration-300 ease-in-out">
         {/* Logo Area */}
         <div className={`border-b border-border transition-all duration-300 ${isCollapsed ? "p-3" : "p-4"} flex items-center ${isCollapsed ? "justify-center" : "justify-start"}`}>
           {isCollapsed ? (
