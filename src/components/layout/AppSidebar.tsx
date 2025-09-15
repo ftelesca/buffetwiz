@@ -104,7 +104,7 @@ export function AppSidebar() {
                           <SidebarMenuButton asChild>
                             <NavLink
                               to={item.url}
-                              className={`${getNavClassNames(item.url)} w-12 h-12 flex items-center justify-center mx-auto`}
+                              className={`${getNavClassNames(item.url)} w-12 h-12 flex items-center justify-center`}
                             >
                               <item.icon className="h-5 w-5" />
                             </NavLink>
