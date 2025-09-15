@@ -87,7 +87,7 @@ export function AppSidebar() {
         </div>
 
         {/* Navigation Content */}
-        <SidebarContent className={`transition-all duration-300 ${isCollapsed ? "p-2" : "p-3"}`}>
+        <SidebarContent className={`transition-all duration-300 ${isCollapsed ? "px-0 py-2" : "p-3"}`}>
           <SidebarGroup>
             {!isCollapsed && (
               <SidebarGroupLabel className="transition-all duration-300">
@@ -104,7 +104,7 @@ export function AppSidebar() {
                           <SidebarMenuButton asChild>
                             <NavLink
                               to={item.url}
-                              className={`${getNavClassNames(item.url)} w-12 h-12 flex items-center justify-center`}
+                              className={`${getNavClassNames(item.url)} flex items-center justify-center`}
                             >
                               <item.icon className="h-5 w-5" />
                             </NavLink>
