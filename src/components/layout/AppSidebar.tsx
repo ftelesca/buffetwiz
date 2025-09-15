@@ -60,9 +60,9 @@ export function AppSidebar() {
       <SidebarMenuButton asChild>
         <NavLink
           to={item.url}
-          className={`${getNavClassNames(item.url)} ${isCollapsed ? "w-10 h-10 rounded-lg flex items-center justify-center mx-auto" : ""}`}
+          className={`${getNavClassNames(item.url)} ${isCollapsed ? "w-12 h-12 rounded-lg flex items-center justify-center" : "flex items-center"}`}
         >
-          <item.icon className={`${isCollapsed ? "h-5 w-5" : "h-5 w-5"}`} />
+          <item.icon className="h-5 w-5 flex-shrink-0" />
           {!isCollapsed && <span className="ml-3">{item.title}</span>}
         </NavLink>
       </SidebarMenuButton>
@@ -86,7 +86,7 @@ export function AppSidebar() {
 
   return (
     <TooltipProvider>
-      <Sidebar className={`${isCollapsed ? "w-16" : "w-70"} transition-all duration-300 ease-in-out`}>
+      <Sidebar className={`${isCollapsed ? "w-16" : "w-64"} transition-all duration-300 ease-in-out`}>
         {/* Logo Area */}
         <div className={`border-b border-border transition-all duration-300 ${isCollapsed ? "p-3" : "p-4"} flex items-center ${isCollapsed ? "justify-center" : "justify-start"}`}>
           {isCollapsed ? (
@@ -124,9 +124,9 @@ export function AppSidebar() {
               </SidebarGroupLabel>
             )}
             <SidebarGroupContent>
-              <SidebarMenu className={`space-y-1 ${isCollapsed ? "px-1" : ""}`}>
+              <SidebarMenu className={`space-y-1 ${isCollapsed ? "flex flex-col items-center" : ""}`}>
                 {navigationItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.title} className={isCollapsed ? "w-full flex justify-center" : ""}>
                     <MenuButton item={item} />
                   </SidebarMenuItem>
                 ))}
