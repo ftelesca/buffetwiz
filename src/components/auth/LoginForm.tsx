@@ -48,6 +48,7 @@ export function LoginForm({ onSwitchToSignUp, onSwitchToForgot }: LoginFormProps
     setIsGoogleLoading(true)
     try {
       await signInWithGoogle()
+      // Don't reset loading here - let the auth state change handle it
     } catch (error: any) {
       toast({
         title: "Erro no login",

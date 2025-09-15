@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react"
 import { User, Session } from "@supabase/supabase-js"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
@@ -34,6 +34,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [initialized, setInitialized] = useState(false)
   const { toast } = useToast()
+  
+  // Activity tracking for session management
+  const lastActivityRef = useRef<number>(Date.now())
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const INACTIVITY_TIMEOUT = 15 * 60 * 1000 // 15 minutes in milliseconds
+
+  // Activity tracking functions
+  const updateActivity = useCallback(() => {
+    lastActivityRef.current = Date.now()
+    
+    // Reset inactivity timer
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current)
+    }
+    
+    // Set new inactivity timer only if user is logged in
+    if (session?.user) {
+      inactivityTimerRef.current = setTimeout(() => {
+        const now = Date.now()
+        const timeSinceLastActivity = now - lastActivityRef.current
+        
+        if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
+          console.log('Session expired due to inactivity')
+          handleInactivityTimeout()
+        }
+      }, INACTIVITY_TIMEOUT)
+    }
+  }, [session?.user])
+
+  const handleInactivityTimeout = useCallback(async () => {
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      setProfile(null)
+      setSession(null)
+      
+      toast({
+        title: "Sessão expirada",
+        description: "Sua sessão foi encerrada por inatividade. Faça login novamente.",
+        variant: "destructive"
+      })
+    } catch (error) {
+      console.error('Error during inactivity timeout:', error)
+    }
+  }, [toast])
 
   useEffect(() => {
     let isMounted = true
@@ -44,6 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null)
 
       if (session?.user) {
+        // Start activity tracking
+        updateActivity()
+        
         // Defer Supabase calls to avoid deadlocks inside the auth callback
         setTimeout(() => {
           if (!isMounted) return
@@ -51,6 +99,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }, 0)
       } else {
         setProfile(null)
+        // Clear activity tracking when logged out
+        if (inactivityTimerRef.current) {
+          clearTimeout(inactivityTimerRef.current)
+          inactivityTimerRef.current = null
+        }
       }
 
       setInitialized(true)
@@ -81,19 +134,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       isMounted = false
       subscription.unsubscribe()
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current)
+      }
     }
   }, [])
+
+  // Activity tracking for user interactions
+  useEffect(() => {
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
+    
+    const handleActivity = () => {
+      if (session?.user) {
+        updateActivity()
+      }
+    }
+    
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity, true)
+    })
+    
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity, true)
+      })
+    }
+  }, [session?.user, updateActivity])
 
   // Refresh session when tab becomes active (prevents apparent expirations)
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        supabase.auth.getSession().catch(() => {})
+      if (document.visibilityState === 'visible' && session?.user) {
+        // Check if we've been inactive for too long
+        const now = Date.now()
+        const timeSinceLastActivity = now - lastActivityRef.current
+        
+        if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
+          handleInactivityTimeout()
+        } else {
+          // Refresh session if still within activity window
+          supabase.auth.getSession().catch(() => {})
+          updateActivity()
+        }
       }
     }
     document.addEventListener('visibilitychange', handleVisibility)
     return () => document.removeEventListener('visibilitychange', handleVisibility)
-  }, [])
+  }, [session?.user, handleInactivityTimeout, updateActivity])
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -153,11 +240,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signInWithGoogle = async () => {
-    const redirectTo = window.location.href
+    const redirectTo = `${window.location.origin}/`
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo
+        redirectTo,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent'
+        }
       }
     })
 
@@ -167,6 +258,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    // Clear activity tracking
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current)
+      inactivityTimerRef.current = null
+    }
+    
     const { error } = await supabase.auth.signOut()
     if (error) {
       throw error
