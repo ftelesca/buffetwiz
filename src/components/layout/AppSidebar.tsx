@@ -55,36 +55,36 @@ export function AppSidebar() {
     return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses}`
   }
 
-  return (
-    <TooltipProvider>
-      <Sidebar collapsible="icon" className="transition-all duration-300 ease-in-out">
-        {/* Logo Area */}
-        <div className={`border-b border-border transition-all duration-300 ${isCollapsed ? "p-3" : "p-4"} flex items-center ${isCollapsed ? "justify-center" : "justify-start"}`}>
-          {isCollapsed ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center justify-center">
-                  <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded transition-all duration-300" />
+    return (
+      <TooltipProvider>
+        <Sidebar collapsible="icon" className="transition-all duration-300 ease-in-out">
+          {/* Logo Area */}
+          <div className={`border-b border-border transition-all duration-300 ${isCollapsed ? "p-3" : "p-4"} flex items-center ${isCollapsed ? "justify-center" : "justify-start"}`}>
+            {isCollapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center justify-center">
+                    <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded transition-all duration-300" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="ml-2">
+                  <p>BuffetWiz</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <div className="flex items-center gap-3 transition-all duration-300 w-full">
+                <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
+                <div className="overflow-hidden">
+                  <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text transition-all duration-300">
+                    BuffetWiz
+                  </h1>
+                  <p className="text-xs text-muted-foreground transition-all duration-300">
+                    Gestão de Eventos Descomplicada
+                  </p>
                 </div>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="ml-2">
-                <p>BuffetWiz</p>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <div className="flex items-center gap-3 transition-all duration-300">
-              <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
-              <div className="overflow-hidden">
-                <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text transition-all duration-300">
-                  BuffetWiz
-                </h1>
-                <p className="text-xs text-muted-foreground transition-all duration-300">
-                  Gestão de Eventos Descomplicada
-                </p>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
         {/* Navigation Content */}
         <SidebarContent className={`transition-all duration-300 ${isCollapsed ? "px-0 py-2" : "p-3"}`}>
