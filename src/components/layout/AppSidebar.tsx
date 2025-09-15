@@ -46,42 +46,13 @@ export function AppSidebar() {
   }
 
   const getNavClassNames = (path: string) => {
-    const baseClasses = "transition-all duration-300 hover:shadow-card"
+    const baseClasses = "transition-all duration-300"
     const activeClasses = isCollapsed 
-      ? "bg-primary text-primary-foreground" 
+      ? "bg-primary text-primary-foreground rounded-lg" 
       : "bg-primary/10 text-primary border-r-2 border-primary font-medium"
     const inactiveClasses = "text-muted-foreground hover:text-foreground hover:bg-accent/50"
     
     return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses}`
-  }
-
-  const MenuButton = ({ item }: { item: typeof navigationItems[0] }) => {
-    const button = (
-      <SidebarMenuButton asChild>
-        <NavLink
-          to={item.url}
-          className={`${getNavClassNames(item.url)} ${isCollapsed ? "w-12 h-12 rounded-lg flex items-center justify-center" : "flex items-center"}`}
-        >
-          <item.icon className="h-5 w-5 flex-shrink-0" />
-          {!isCollapsed && <span className="ml-3">{item.title}</span>}
-        </NavLink>
-      </SidebarMenuButton>
-    )
-
-    if (isCollapsed) {
-      return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {button}
-          </TooltipTrigger>
-          <TooltipContent side="right" className="ml-2">
-            <p>{item.title}</p>
-          </TooltipContent>
-        </Tooltip>
-      )
-    }
-
-    return button
   }
 
   return (
@@ -124,10 +95,36 @@ export function AppSidebar() {
               </SidebarGroupLabel>
             )}
             <SidebarGroupContent>
-              <SidebarMenu className={`space-y-1 ${isCollapsed ? "flex flex-col items-center" : ""}`}>
+              <SidebarMenu className="space-y-1">
                 {navigationItems.map((item) => (
-                  <SidebarMenuItem key={item.title} className={isCollapsed ? "w-full flex justify-center" : ""}>
-                    <MenuButton item={item} />
+                  <SidebarMenuItem key={item.title}>
+                    {isCollapsed ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton asChild>
+                            <NavLink
+                              to={item.url}
+                              className={`${getNavClassNames(item.url)} w-12 h-12 flex items-center justify-center mx-auto`}
+                            >
+                              <item.icon className="h-5 w-5" />
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="ml-2">
+                          <p>{item.title}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to={item.url}
+                          className={`${getNavClassNames(item.url)} flex items-center px-3 py-2`}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          <span className="ml-3">{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    )}
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
