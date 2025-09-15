@@ -94,6 +94,7 @@ export default function ProductList({ products, selectedProduct, onSelectProduct
           {products.map((product) => (
             <div
               key={product.id}
+              data-product-id={product.id}
               className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                 selectedProduct?.id === product.id
                   ? "bg-primary/10 border-primary"

@@ -98,11 +98,36 @@ export default function Recipes() {
     setSelectedProduct(product)
   }
 
-  const handleProductsChange = () => {
-    fetchProducts()
+  const handleProductsChange = (newProductId?: number) => {
+    fetchProducts().then(() => {
+      if (newProductId) {
+        // Find and select the newly created product
+        supabase
+          .from("recipe")
+          .select("id, description, efficiency")
+          .eq("id", newProductId)
+          .single()
+          .then(({ data, error }) => {
+            if (!error && data) {
+              setSelectedProduct(data)
+              // Scroll to the product in the list
+              setTimeout(() => {
+                const productElement = document.querySelector(`[data-product-id="${newProductId}"]`)
+                if (productElement) {
+                  productElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                  })
+                }
+              }, 100)
+            }
+          })
+      }
+    })
+    
     // If current selected product was deleted, clear selection
     // If it still exists, update it with latest data (including efficiency changes)
-    if (selectedProduct) {
+    if (selectedProduct && !newProductId) {
       fetchProducts().then(() => {
         supabase
           .from("recipe")
@@ -198,7 +223,7 @@ export default function Recipes() {
         <ProductForm
           isOpen={isAddingProduct}
           onOpenChange={setIsAddingProduct}
-          onSuccess={fetchProducts}
+          onSuccess={handleProductsChange}
         />
 
         <ProductItemForm

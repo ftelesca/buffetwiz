@@ -12,7 +12,7 @@ import type { Product } from "@/types/recipe"
 interface ProductFormProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  onSuccess: () => void
+  onSuccess: (newProductId?: number) => void
 }
 
 export default function ProductForm({ isOpen, onOpenChange, onSuccess }: ProductFormProps) {
@@ -36,7 +36,7 @@ export default function ProductForm({ isOpen, onOpenChange, onSuccess }: Product
       toast({ title: "Produto criado com sucesso" })
       setNewProduct({ description: "", efficiency: "1.00" })
       onOpenChange(false)
-      onSuccess()
+      onSuccess(data?.[0]?.id)
     }
   }
 
