@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom"
-import { useEffect, useRef } from "react"
+import { useCallback, useLayoutEffect, useRef } from "react"
 import { 
   Calendar, 
   ChefHat, 
@@ -41,31 +41,52 @@ export function AppSidebar() {
   const currentPath = location.pathname
   const isCollapsed = state === "collapsed"
 
-  // Keep main header height in sync with this logo block
+  // Ref for the logo area to measure its height
   const logoAreaRef = useRef<HTMLDivElement | null>(null)
-  useEffect(() => {
+
+
+  useLayoutEffect(() => {
     const root = document.documentElement
-    const update = () => {
+    let raf1 = 0
+    let raf2 = 0
+
+    const measure = () => {
       if (logoAreaRef.current && state !== "collapsed") {
-        const h = logoAreaRef.current.getBoundingClientRect().height
-        root.style.setProperty('--sidebar-logo-height', `${Math.ceil(h)}px`)
+        const h = Math.ceil(logoAreaRef.current.getBoundingClientRect().height)
+        root.style.setProperty('--sidebar-logo-height', `${h}px`)
       }
     }
 
+    const schedule = () => {
+      cancelAnimationFrame(raf1)
+      cancelAnimationFrame(raf2)
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(measure)
+      })
+    }
+
     if (state === "collapsed") {
-      // Fallback height when sidebar is collapsed
       root.style.setProperty('--sidebar-logo-height', '4rem')
       return
     }
 
-    update()
-    const ro = new ResizeObserver(update)
-    if (logoAreaRef.current) ro.observe(logoAreaRef.current)
-    window.addEventListener('resize', update)
+    schedule()
+
+    const ro = new ResizeObserver(schedule)
+    const el = logoAreaRef.current
+    if (el) ro.observe(el)
+
+    const mo = new MutationObserver(schedule)
+    if (el) mo.observe(el, { childList: true, subtree: true, characterData: true })
+
+    window.addEventListener('resize', schedule)
 
     return () => {
       ro.disconnect()
-      window.removeEventListener('resize', update)
+      mo.disconnect()
+      window.removeEventListener('resize', schedule)
+      cancelAnimationFrame(raf1)
+      cancelAnimationFrame(raf2)
     }
   }, [state])
 
