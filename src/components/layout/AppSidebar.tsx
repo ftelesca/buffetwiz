@@ -51,10 +51,10 @@ export function AppSidebar() {
     let raf2 = 0
 
     const measure = () => {
-      if (logoAreaRef.current && state !== "collapsed") {
-        const h = Math.ceil(logoAreaRef.current.getBoundingClientRect().height)
-        root.style.setProperty('--sidebar-logo-height', `${h}px`)
-      }
+      const el = logoAreaRef.current
+      const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0
+      const value = h > 0 ? `${h}px` : '4rem'
+      root.style.setProperty('--sidebar-logo-height', value)
     }
 
     const schedule = () => {
@@ -63,11 +63,6 @@ export function AppSidebar() {
       raf1 = requestAnimationFrame(() => {
         raf2 = requestAnimationFrame(measure)
       })
-    }
-
-    if (state === "collapsed") {
-      root.style.setProperty('--sidebar-logo-height', '4rem')
-      return
     }
 
     schedule()
