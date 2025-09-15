@@ -27,7 +27,7 @@ export function SaveCancelButtons({
   // Handle Enter key for save action
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+      if (event.key === "Enter") {
         event.preventDefault()
         if (!disabled && !isLoading) {
           onSave()

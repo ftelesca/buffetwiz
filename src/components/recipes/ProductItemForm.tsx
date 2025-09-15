@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { useQueryClient } from "@tanstack/react-query"
 import type { Product, Item, ProductItem } from "@/types/recipe"
 
 interface ProductItemFormProps {
@@ -29,6 +30,9 @@ export default function ProductItemForm({
 }: ProductItemFormProps) {
   const [newProductItem, setNewProductItem] = useState({ item: "", qty: "" })
   const { toast } = useToast()
+  const queryClient = useQueryClient()
+  const selectTriggerRef = useRef<HTMLButtonElement>(null)
+  const qtyInputRef = useRef<HTMLInputElement>(null)
 
   // Initialize form when editing
   useEffect(() => {
@@ -41,6 +45,25 @@ export default function ProductItemForm({
       setNewProductItem({ item: "", qty: "" })
     }
   }, [editingProductItem, isOpen])
+
+  // Focus management
+  useEffect(() => {
+    if (isOpen && selectTriggerRef.current) {
+      // Focus on item field when dialog opens
+      setTimeout(() => {
+        selectTriggerRef.current?.focus()
+      }, 100)
+    }
+  }, [isOpen])
+
+  // Auto focus on quantity when item is selected
+  const handleItemChange = (value: string) => {
+    setNewProductItem({ ...newProductItem, item: value })
+    // Focus on quantity field after item selection
+    setTimeout(() => {
+      qtyInputRef.current?.focus()
+    }, 100)
+  }
 
   const saveProductItem = async () => {
     if (!selectedProduct || !newProductItem.item || !newProductItem.qty) return
@@ -64,6 +87,9 @@ export default function ProductItemForm({
         toast({ title: "Insumo atualizado com sucesso" })
         setNewProductItem({ item: "", qty: "" })
         onOpenChange(false)
+        // Invalidate queries to refresh costs
+        queryClient.invalidateQueries({ queryKey: ['productBaseCost'] })
+        queryClient.invalidateQueries({ queryKey: ['productUnitCost'] })
         onSuccess()
       }
     } else {
@@ -94,6 +120,9 @@ export default function ProductItemForm({
         toast({ title: "Sucesso", description: "Insumo adicionado com sucesso" })
         setNewProductItem({ item: "", qty: "" })
         onOpenChange(false)
+        // Invalidate queries to refresh costs
+        queryClient.invalidateQueries({ queryKey: ['productBaseCost'] })
+        queryClient.invalidateQueries({ queryKey: ['productUnitCost'] })
         onSuccess()
       }
     }
@@ -103,6 +132,9 @@ export default function ProductItemForm({
     setNewProductItem({ item: "", qty: "" })
     onOpenChange(false)
   }
+
+  // Validation for Save button
+  const isFormValid = newProductItem.item && newProductItem.qty && parseFloat(newProductItem.qty) > 0
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -115,9 +147,9 @@ export default function ProductItemForm({
             <Label htmlFor="item-select">Item</Label>
             <Select 
               value={newProductItem.item} 
-              onValueChange={(value) => setNewProductItem({ ...newProductItem, item: value })}
+              onValueChange={handleItemChange}
             >
-              <SelectTrigger>
+              <SelectTrigger ref={selectTriggerRef}>
                 <SelectValue placeholder="Selecione um insumo" />
               </SelectTrigger>
               <SelectContent>
@@ -132,6 +164,7 @@ export default function ProductItemForm({
           <div>
             <Label htmlFor="qty-input">Quantidade</Label>
             <Input
+              ref={qtyInputRef}
               id="qty-input"
               type="number"
               step="0.001"
@@ -143,6 +176,7 @@ export default function ProductItemForm({
           <SaveCancelButtons
             onSave={saveProductItem}
             onCancel={handleClose}
+            disabled={!isFormValid}
           />
         </div>
       </DialogContent>
