@@ -210,6 +210,12 @@ const Sidebar = React.forwardRef<
           clone.style.maxWidth = "none"
           clone.style.minWidth = "0"
           clone.style.display = "block"
+
+          // If measuring the brand block, ignore the tagline to avoid inflating width
+          if ((clone as HTMLElement).getAttribute("data-sidebar") === "brand") {
+            const taglineEls = clone.querySelectorAll("p")
+            taglineEls.forEach((n) => n.parentElement?.removeChild(n))
+          }
           
           document.body.appendChild(clone)
           const width = clone.getBoundingClientRect().width
@@ -218,9 +224,9 @@ const Sidebar = React.forwardRef<
           maxWidth = Math.max(maxWidth, width)
         })
 
-        // Add padding for the sidebar (24px padding total)
-        const finalWidth = Math.max(maxWidth + 24, 240) // minimum 240px
-        setExpandedWidth(Math.ceil(finalWidth))
+        // Add padding for the sidebar (24px padding total) and set a reasonable minimum
+        const finalWidth = Math.max(Math.ceil(maxWidth + 24), 208) // minimum ~13rem
+        setExpandedWidth(finalWidth)
       }
 
       measureIntrinsicWidth()
