@@ -80,13 +80,13 @@ export function AppSidebar() {
                 </TooltipContent>
               </Tooltip>
             ) : (
-              <div className="flex items-center gap-3 transition-all duration-300 w-full">
-                <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
-                <div className="overflow-hidden">
-                  <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text transition-all duration-300">
+              <div className="flex items-center gap-3 transition-all duration-300 min-w-0" data-sidebar="brand">
+                <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text transition-all duration-300 truncate">
                     BuffetWiz
                   </h1>
-                  <p className="text-xs text-muted-foreground transition-all duration-300">
+                  <p className="text-xs text-muted-foreground transition-all duration-300 truncate">
                     Gestão de Eventos Descomplicada
                   </p>
                 </div>
@@ -98,7 +98,7 @@ export function AppSidebar() {
         <SidebarContent className={`transition-all duration-300 ${isCollapsed ? "px-0 py-2" : "p-3"}`}>
           <SidebarGroup>
             {!isCollapsed && (
-              <SidebarGroupLabel className="transition-all duration-300">
+              <SidebarGroupLabel className="transition-all duration-300" data-sidebar="group-label">
                 Navegação
               </SidebarGroupLabel>
             )}
@@ -129,9 +129,10 @@ export function AppSidebar() {
                           to={item.url}
                           className={`${getNavClassNames(item.url)} flex items-center px-3 py-2`}
                           onClick={handleNavigate}
+                          data-sidebar="menu-button"
                         >
-                          <item.icon className="h-5 w-5" />
-                          <span className="ml-3">{item.title}</span>
+                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <span className="ml-3 truncate">{item.title}</span>
                         </NavLink>
                       </SidebarMenuButton>
                     )}

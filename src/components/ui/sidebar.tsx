@@ -193,34 +193,43 @@ const Sidebar = React.forwardRef<
       const el = contentRef.current
       if (!el) return
 
-      const measure = () => {
-        if (!contentRef.current) return
-        const original = contentRef.current
-        const clone = original.cloneNode(true) as HTMLElement
-        clone.style.position = "absolute"
-        clone.style.left = "-10000px"
-        clone.style.top = "0"
-        clone.style.visibility = "hidden"
-        clone.style.pointerEvents = "none"
-        clone.style.width = "fit-content"
-        clone.style.height = "auto"
-        // Avoid flex stretching inside the clone
-        clone.style.display = "inline-block"
-        document.body.appendChild(clone)
-        const measured = Math.ceil(clone.getBoundingClientRect().width)
-        document.body.removeChild(clone)
-        if (measured && !Number.isNaN(measured)) {
-          setExpandedWidth(measured)
-        }
+      const measureIntrinsicWidth = () => {
+        // Find all elements that could determine sidebar width
+        const measurableElements = el.querySelectorAll('[data-sidebar="brand"], [data-sidebar="menu-button"], [data-sidebar="group-label"]')
+        let maxWidth = 0
+
+        measurableElements.forEach((element) => {
+          // Create off-screen clone to measure intrinsic width
+          const clone = element.cloneNode(true) as HTMLElement
+          clone.style.position = "absolute"
+          clone.style.left = "-10000px"
+          clone.style.top = "0"
+          clone.style.visibility = "hidden"
+          clone.style.pointerEvents = "none"
+          clone.style.width = "max-content"
+          clone.style.maxWidth = "none"
+          clone.style.minWidth = "0"
+          clone.style.display = "block"
+          
+          document.body.appendChild(clone)
+          const width = clone.getBoundingClientRect().width
+          document.body.removeChild(clone)
+          
+          maxWidth = Math.max(maxWidth, width)
+        })
+
+        // Add padding for the sidebar (24px padding total)
+        const finalWidth = Math.max(maxWidth + 24, 240) // minimum 240px
+        setExpandedWidth(Math.ceil(finalWidth))
       }
 
-      measure()
+      measureIntrinsicWidth()
 
       const RO = (window as any).ResizeObserver
-      const ro: ResizeObserver | null = RO ? new RO(() => measure()) : null
+      const ro: ResizeObserver | null = RO ? new RO(() => measureIntrinsicWidth()) : null
       if (ro && el) ro.observe(el)
 
-      const onResize = () => measure()
+      const onResize = () => measureIntrinsicWidth()
       window.addEventListener("resize", onResize)
 
       return () => {
