@@ -234,10 +234,7 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
 
   const processedContent = buildListsAndTablesHTML(cleanedContent);
 
-  // Wrap list items in proper ul/ol tags
-  processedContent = processedContent
-    .replace(/(<li class="list-item">.*?<\/li>)/gs, '<ul class="elegant-list">$1</ul>')
-    .replace(/(<li class="numbered-item">.*?<\/li>)/gs, '<ol class="elegant-numbered-list">$1</ol>');
+  // Content already processed correctly above - no additional wrapping needed
 
   // No event details section in export - only lists
 
