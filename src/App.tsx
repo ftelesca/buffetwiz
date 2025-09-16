@@ -36,6 +36,9 @@ const App = () => {
       const anchor = (target && (target as any).closest) ? (target.closest('a') as HTMLAnchorElement | null) : null;
       if (!anchor) return;
 
+      // Ignore programmatic download links
+      if (anchor.hasAttribute('data-no-router')) return;
+
       const href = anchor.getAttribute('href') || '';
       // Case 1: explicit export: links
       if (href.startsWith('export:')) {
@@ -43,6 +46,13 @@ const App = () => {
         e.stopPropagation();
         const payload = href.replace(/^export:/, '');
         handleExportClick(payload);
+        return;
+      }
+
+      // Case 1b: prevent navigation on custom exportpdf scheme (handled elsewhere)
+      if (href.startsWith('exportpdf:')) {
+        e.preventDefault();
+        e.stopPropagation();
         return;
       }
 

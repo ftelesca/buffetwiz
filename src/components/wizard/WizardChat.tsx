@@ -460,7 +460,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
               </div>
               {currentChatId && messages.length > 0 && (
                 <div className="mt-2 flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={exportLastResponseToPDFAndDOCX} disabled={isLoading}>
+                  <Button variant="ghost" size="sm" type="button" onClick={exportLastResponseToPDFAndDOCX} disabled={isLoading}>
                     <Download className="h-3 w-3 mr-1" />
                     Exportar última resposta (PDF + DOCX)
                   </Button>
