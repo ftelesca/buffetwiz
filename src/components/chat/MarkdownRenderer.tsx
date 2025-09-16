@@ -161,7 +161,7 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
   if (includeLogo) {
     logoSection = `
     <div class="logo-section">
-      <img src="/logo.png" alt="Logo" class="company-logo" />
+      <img src="/public/logo.png" alt="BuffetWiz Logo" class="company-logo" />
     </div>`;
   }
 
