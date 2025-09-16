@@ -64,7 +64,7 @@ export const EventMenu = ({
   const [selectedProductForItems, setSelectedProductForItems] = useState<{ product: Product; qty: number; unit_cost: number } | null>(null);
   const [selectedProductForEdit, setSelectedProductForEdit] = useState<EventMenuProduct | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<string>("");
-  const [selectedQty, setSelectedQty] = useState<string>("1");
+  const [selectedQty, setSelectedQty] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -199,7 +199,7 @@ export const EventMenu = ({
       });
       setIsAddDialogOpen(false);
       setSelectedProductId("");
-      setSelectedQty("1");
+      setSelectedQty("");
     },
     onError: (error: any) => {
       toast({
@@ -390,7 +390,7 @@ export const EventMenu = ({
                   min="0.001"
                   value={selectedQty}
                   onChange={(e) => setSelectedQty(e.target.value)}
-                  placeholder="1"
+                  placeholder="Digite a quantidade..."
                 />
               </div>
               <div className="pt-4">
@@ -398,7 +398,7 @@ export const EventMenu = ({
                   onSave={handleAddProduct}
                   onCancel={() => setIsAddDialogOpen(false)}
                   isLoading={addProductMutation.isPending}
-                  disabled={!selectedProductId}
+                  disabled={!selectedProductId || !selectedQty}
                   saveLabel={addProductMutation.isPending ? "Salvando..." : "Salvar"}
                 />
               </div>
