@@ -106,10 +106,23 @@ async function exportToFile(payload: string) {
 }
 
 // Helper to export current markdown content to PDF
-async function exportMarkdownToPDF(markdown: string, filename: string) {
+async function exportMarkdownToPDF(content: string, filename: string) {
+  console.log('Exportando PDF com conteúdo:', content);
+  
   const currentDate = new Date().toLocaleDateString('pt-BR');
   const currentTime = new Date().toLocaleTimeString('pt-BR');
   const title = filename.replace(/\.pdf$/i, '');
+
+  // Process the markdown content to HTML (simple conversion)
+  const processedContent = content
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^• (.*$)/gim, '<li>$1</li>')
+    .replace(/\n/g, '<br>')
+    .replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
 
   const html = `
 <!DOCTYPE html>
@@ -118,21 +131,65 @@ async function exportMarkdownToPDF(markdown: string, filename: string) {
   <meta charset="UTF-8" />
   <title>${title}</title>
   <style>
-    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; line-height: 1.6; color: #111827; max-width: 800px; margin: 40px auto; padding: 24px; }
-    .header { text-align: center; margin-bottom: 24px; padding: 16px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border-radius: 8px; }
-    .meta { margin-bottom: 16px; font-size: 12px; color: #374151; }
-    .content { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; }
-    pre { background: #0f172a; color: #e5e7eb; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      line-height: 1.6; 
+      color: #111827; 
+      max-width: 800px; 
+      margin: 40px auto; 
+      padding: 24px; 
+      background: white;
+    }
+    .header { 
+      text-align: center; 
+      margin-bottom: 24px; 
+      padding: 16px; 
+      background: linear-gradient(135deg, #4f46e5, #7c3aed); 
+      color: white; 
+      border-radius: 8px; 
+    }
+    .meta { 
+      margin-bottom: 16px; 
+      font-size: 14px; 
+      color: #6b7280; 
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 6px;
+    }
+    .content { 
+      background: white; 
+      padding: 24px; 
+      border-radius: 12px; 
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06); 
+      border: 1px solid #e5e7eb; 
+      font-size: 16px;
+      line-height: 1.7;
+    }
+    ul { margin: 12px 0; padding-left: 20px; }
+    li { margin: 6px 0; }
+    h1, h2, h3 { color: #1f2937; margin: 16px 0 8px 0; }
+    strong { font-weight: 600; color: #374151; }
+    em { font-style: italic; color: #6b7280; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1 style="margin:0; font-size: 20px; font-weight: 700;">BuffetWiz • Resposta da IA</h1>
+    <h1 style="margin:0; font-size: 24px; font-weight: 700;">🧙‍♂️ BuffetWiz</h1>
+    <p style="margin: 8px 0 0 0; font-size: 16px;">Resposta da Inteligência Artificial</p>
   </div>
-  <div class="meta">Gerado em ${currentDate} às ${currentTime}</div>
-  <div class="content">${markdown}</div>
+  <div class="meta">
+    <strong>Gerado em:</strong> ${currentDate} às ${currentTime}
+  </div>
+  <div class="content">
+    ${processedContent}
+  </div>
+  <div style="margin-top: 24px; text-align: center; font-size: 12px; color: #9ca3af;">
+    BuffetWiz - Gestão de Eventos Descomplicada
+  </div>
 </body>
 </html>`;
+
+  console.log('HTML gerado:', html);
 
   const element = document.createElement('div');
   element.innerHTML = html;
@@ -140,9 +197,11 @@ async function exportMarkdownToPDF(markdown: string, filename: string) {
   element.style.left = '-9999px';
   element.style.top = '-9999px';
   document.body.appendChild(element);
+  
   try {
     const html2pdf = (window as any).html2pdf;
     if (html2pdf) {
+      console.log('Usando html2pdf para gerar PDF');
       await html2pdf()
         .set({
           margin: 0.5,
@@ -153,7 +212,9 @@ async function exportMarkdownToPDF(markdown: string, filename: string) {
         })
         .from(element)
         .save();
+      console.log('PDF gerado com sucesso');
     } else {
+      console.log('html2pdf não disponível, abrindo janela de impressão');
       const printWindow = window.open('', '_blank');
       if (printWindow) {
         printWindow.document.write(html);
@@ -164,6 +225,9 @@ async function exportMarkdownToPDF(markdown: string, filename: string) {
         throw new Error('Popup bloqueado pelo navegador');
       }
     }
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error);
+    throw error;
   } finally {
     document.body.removeChild(element);
   }
