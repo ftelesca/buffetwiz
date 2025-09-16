@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { handleExportClick } from "@/lib/export-handler";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
+import JSZip from "jszip";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
@@ -105,9 +107,9 @@ async function exportToFile(payload: string) {
   }
 }
 
-// Helper to export current markdown content to PDF
-async function exportMarkdownToPDF(content: string, filename: string) {
-  console.log('Exportando PDF com conteúdo:', content);
+// Helper to export current markdown content to PDF and DOCX
+async function exportMarkdownToPDFAndDOCX(content: string, filename: string) {
+  console.log('Exportando PDF + DOCX com conteúdo:', content);
   
   const currentDate = new Date().toLocaleDateString('pt-BR');
   const currentTime = new Date().toLocaleTimeString('pt-BR');
@@ -124,6 +126,7 @@ async function exportMarkdownToPDF(content: string, filename: string) {
     .replace(/\n/g, '<br>')
     .replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
 
+  // HTML for PDF
   const html = `
 <!DOCTYPE html>
 <html>
@@ -191,37 +194,183 @@ async function exportMarkdownToPDF(content: string, filename: string) {
 
   console.log('HTML gerado:', html);
 
+  // Create DOCX content
+  const docxContent = await createDOCXContent(content, currentDate, currentTime);
+
   try {
+    const zip = new JSZip();
+    
+    // Generate PDF first
     const html2pdf = (window as any).html2pdf;
     if (html2pdf) {
-      console.log('Usando html2pdf para gerar PDF');
-      await html2pdf()
+      console.log('Gerando PDF...');
+      const pdfBlob = await html2pdf()
         .set({
           margin: 0.5,
-          filename: filename.endsWith('.pdf') ? filename : `${filename}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
         })
         .from(html)
-        .save();
-      console.log('PDF gerado com sucesso');
-    } else {
-      console.log('html2pdf não disponível, abrindo janela de impressão');
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(html);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => printWindow.print(), 500);
-      } else {
-        throw new Error('Popup bloqueado pelo navegador');
-      }
+        .outputPdf('blob');
+      
+      zip.file(`${title}.pdf`, pdfBlob);
     }
+
+    // Generate DOCX
+    console.log('Gerando DOCX...');
+    const docxBlob = await Packer.toBlob(docxContent);
+    zip.file(`${title}.docx`, docxBlob);
+
+    // Create and download ZIP file
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${title}_Documentos.zip`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    console.log('PDF + DOCX gerados com sucesso');
+    
   } catch (error) {
-    console.error('Erro ao gerar PDF:', error);
+    console.error('Erro ao gerar documentos:', error);
     throw error;
   }
+}
+
+// Helper to create DOCX content
+async function createDOCXContent(content: string, currentDate: string, currentTime: string) {
+  const children = [];
+
+  // Header
+  children.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: "🧙‍♂️ BuffetWiz",
+          bold: true,
+          size: 32,
+        }),
+      ],
+      heading: HeadingLevel.TITLE,
+      spacing: { after: 200 },
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: "Resposta da Inteligência Artificial",
+          size: 24,
+        }),
+      ],
+      spacing: { after: 400 },
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: `Gerado em: ${currentDate} às ${currentTime}`,
+          size: 20,
+          italics: true,
+        }),
+      ],
+      spacing: { after: 400 },
+    })
+  );
+
+  // Process content line by line
+  const lines = content.split('\n');
+  
+  for (const line of lines) {
+    if (line.trim() === '') {
+      children.push(new Paragraph({ text: "" }));
+      continue;
+    }
+
+    if (line.startsWith('# ')) {
+      children.push(
+        new Paragraph({
+          children: [new TextRun({ text: line.substring(2), bold: true, size: 28 })],
+          heading: HeadingLevel.HEADING_1,
+          spacing: { before: 200, after: 200 },
+        })
+      );
+    } else if (line.startsWith('## ')) {
+      children.push(
+        new Paragraph({
+          children: [new TextRun({ text: line.substring(3), bold: true, size: 24 })],
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 200, after: 200 },
+        })
+      );
+    } else if (line.startsWith('### ')) {
+      children.push(
+        new Paragraph({
+          children: [new TextRun({ text: line.substring(4), bold: true, size: 20 })],
+          heading: HeadingLevel.HEADING_3,
+          spacing: { before: 200, after: 200 },
+        })
+      );
+    } else if (line.startsWith('• ') || line.startsWith('- ')) {
+      children.push(
+        new Paragraph({
+          children: [new TextRun({ text: `• ${line.substring(2)}` })],
+          spacing: { before: 100, after: 100 },
+        })
+      );
+    } else {
+      // Process bold and italic text
+      const processedLine = line
+        .replace(/\*\*(.*?)\*\*/g, (_, text) => text) // We'll handle bold separately
+        .replace(/\*(.*?)\*/g, (_, text) => text); // We'll handle italic separately
+
+      const textRuns = [];
+      let currentIndex = 0;
+      
+      // Simple processing for bold text
+      const boldMatches = [...line.matchAll(/\*\*(.*?)\*\*/g)];
+      const italicMatches = [...line.matchAll(/(?<!\*)\*([^*]+?)\*(?!\*)/g)];
+      
+      if (boldMatches.length === 0 && italicMatches.length === 0) {
+        textRuns.push(new TextRun({ text: line }));
+      } else {
+        // For simplicity, just add the processed text
+        textRuns.push(new TextRun({ text: processedLine }));
+      }
+
+      children.push(
+        new Paragraph({
+          children: textRuns,
+          spacing: { after: 100 },
+        })
+      );
+    }
+  }
+
+  // Footer
+  children.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: "BuffetWiz - Gestão de Eventos Descomplicada",
+          size: 16,
+          italics: true,
+        }),
+      ],
+      spacing: { before: 400 },
+    })
+  );
+
+  return new Document({
+    sections: [
+      {
+        properties: {},
+        children,
+      },
+    ],
+  });
 }
 
 // Process export links: robustly convert raw occurrences like "export:{...}" or "export:%7B...%7D" into markdown links, skipping code blocks
@@ -629,7 +778,7 @@ export function MarkdownRenderer({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    exportMarkdownToPDF(content, file);
+                    exportMarkdownToPDFAndDOCX(content, file);
                   }}
                   className={cn(
                     "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground cursor-pointer", 
@@ -674,7 +823,7 @@ export function MarkdownRenderer({
                     const file = match[1].trim();
                     const ext = file.split('.').pop()?.toLowerCase();
                     if (ext === 'pdf') {
-                      exportMarkdownToPDF(content, file);
+                      exportMarkdownToPDFAndDOCX(content, file);
                     } else {
                       const rows = extractTableDataFromMarkdown(content);
                       if (rows && rows.length) {
@@ -717,7 +866,7 @@ export function MarkdownRenderer({
                   const file = match[1].trim();
                   const ext = file.split('.').pop()?.toLowerCase();
                   if (ext === 'pdf') {
-                    exportMarkdownToPDF(content, file);
+                    exportMarkdownToPDFAndDOCX(content, file);
                   } else {
                     const rows = extractTableDataFromMarkdown(content);
                     if (rows && rows.length) {

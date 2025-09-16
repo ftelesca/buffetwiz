@@ -165,7 +165,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     }
   };
 
-  const exportLastResponseToPDF = async () => {
+  const exportLastResponseToPDFAndDOCX = async () => {
     try {
       if (messages.length === 0) {
         toast({ title: "Nenhuma resposta", description: "Não há mensagens para exportar", variant: "destructive" });
@@ -545,9 +545,9 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
               </div>
               {currentChatId && messages.length > 0 && (
                 <div className="mt-2 flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={exportLastResponseToPDF} disabled={isLoading}>
+                  <Button variant="ghost" size="sm" onClick={exportLastResponseToPDFAndDOCX} disabled={isLoading}>
                     <Download className="h-3 w-3 mr-1" />
-                    Exportar última resposta para PDF
+                    Exportar última resposta (PDF + DOCX)
                   </Button>
                 </div>
               )}
