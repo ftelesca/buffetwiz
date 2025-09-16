@@ -115,14 +115,61 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
   const currentTime = new Date().toLocaleTimeString('pt-BR');
   const title = filename.replace(/\.pdf$/i, '');
 
-  // Clean content - remove empty lines and extra comments
-  const cleanedContent = content
-    .split('\n')
-    .filter(line => line.trim() !== '')
-    .filter(line => !line.includes('Como posso ajudar'))
-    .filter(line => !line.includes('mais alguma'))
-    .filter(line => !line.startsWith('É isso'))
-    .join('\n');
+  // Extract only lists from content - remove all text that is not part of lists
+  const extractListsOnly = (text: string): string => {
+    const lines = text.split('\n');
+    const listLines: string[] = [];
+    let inList = false;
+    let currentListType = '';
+    
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      // Check if line is a list item
+      if (trimmedLine.match(/^[-•*]\s+/) || trimmedLine.match(/^\d+\.\s+/)) {
+        listLines.push(line);
+        inList = true;
+        currentListType = trimmedLine.match(/^[-•*]\s+/) ? 'ul' : 'ol';
+      }
+      // Check if line is a table row
+      else if (trimmedLine.includes('|') && trimmedLine.split('|').length > 2) {
+        listLines.push(line);
+        inList = true;
+        currentListType = 'table';
+      }
+      // Check if line is continuation of a table (separator line)
+      else if (currentListType === 'table' && trimmedLine.match(/^[\|\-\s:]+$/)) {
+        listLines.push(line);
+      }
+      // Check if line is a heading for a list/table section
+      else if (trimmedLine.match(/^#{1,6}\s+/) && inList === false) {
+        // Look ahead to see if next lines contain lists
+        const nextLines = lines.slice(lines.indexOf(line) + 1, lines.indexOf(line) + 5);
+        const hasListAhead = nextLines.some(nextLine => 
+          nextLine.trim().match(/^[-•*]\s+/) || 
+          nextLine.trim().match(/^\d+\.\s+/) ||
+          (nextLine.trim().includes('|') && nextLine.trim().split('|').length > 2)
+        );
+        
+        if (hasListAhead) {
+          listLines.push(line);
+        }
+      }
+      // Reset list tracking if we hit a non-list line
+      else if (trimmedLine !== '' && !trimmedLine.match(/^[\|\-\s:]+$/)) {
+        inList = false;
+        currentListType = '';
+      }
+      // Keep empty lines that are between list items
+      else if (trimmedLine === '' && inList) {
+        listLines.push(line);
+      }
+    }
+    
+    return listLines.join('\n').trim();
+  };
+
+  const cleanedContent = extractListsOnly(content);
 
   // Process markdown to HTML with elegant formatting
   let processedContent = cleanedContent
@@ -141,20 +188,7 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
     .replace(/(<li class="list-item">.*?<\/li>)/gs, '<ul class="elegant-list">$1</ul>')
     .replace(/(<li class="numbered-item">.*?<\/li>)/gs, '<ol class="elegant-numbered-list">$1</ol>');
 
-  // Event details section
-  let eventSection = '';
-  if (eventDetails) {
-    eventSection = `
-    <div class="event-details">
-      <h3 class="section-title">📅 Detalhes do Evento</h3>
-      <div class="event-info">
-        <p><strong>Título:</strong> ${eventDetails.title || 'Não informado'}</p>
-        <p><strong>Data:</strong> ${eventDetails.date || 'Não informada'}</p>
-        <p><strong>Local:</strong> ${eventDetails.location || 'Não informado'}</p>
-        <p><strong>Convidados:</strong> ${eventDetails.numguests || 'Não informado'}</p>
-      </div>
-    </div>`;
-  }
+  // No event details section in export - only lists
 
   // Logo section
   let logoSection = '';
@@ -393,8 +427,6 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
     <strong>📊 Relatório Gerado:</strong> ${currentDate} às ${currentTime}
   </div>
   
-  ${eventSection}
-  
   <div class="content">
     ${processedContent}
   </div>
@@ -468,7 +500,7 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
 async function createEnhancedDOCXContent(content: string, currentDate: string, currentTime: string, eventDetails?: any) {
   const children = [];
 
-  // Header
+  // Header - Only BuffetWiz title
   children.push(
     new Paragraph({
       children: [
@@ -480,91 +512,14 @@ async function createEnhancedDOCXContent(content: string, currentDate: string, c
         }),
       ],
       heading: HeadingLevel.TITLE,
-      spacing: { after: 200 },
-      alignment: "center",
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: "Relatório de Análise",
-          size: 18,
-          color: "6B7280",
-        }),
-      ],
       spacing: { after: 300 },
       alignment: "center",
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `📊 Relatório Gerado: ${currentDate} às ${currentTime}`,
-          size: 18,
-          italics: true,
-          color: "374151",
-        }),
-      ],
-      spacing: { after: 400 },
-      alignment: "center",
     })
   );
 
-  // Event details if provided
-  if (eventDetails) {
-    children.push(
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: "📅 Detalhes do Evento",
-            bold: true,
-            size: 24,
-            color: "DC2626",
-          }),
-        ],
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 400, after: 200 },
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({ text: `Título: ${eventDetails.title || 'Não informado'}`, size: 16 }),
-        ],
-        spacing: { after: 100 },
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({ text: `Data: ${eventDetails.date || 'Não informada'}`, size: 16 }),
-        ],
-        spacing: { after: 100 },
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({ text: `Local: ${eventDetails.location || 'Não informado'}`, size: 16 }),
-        ],
-        spacing: { after: 100 },
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({ text: `Convidados: ${eventDetails.numguests || 'Não informado'}`, size: 16 }),
-        ],
-        spacing: { after: 400 },
-      })
-    );
-  }
+  // Skip event details - only include lists in export
 
-  // Content title
-  children.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: "🤖 Análise da IA",
-          bold: true,
-          size: 24,
-          color: "4F46E5",
-        }),
-      ],
-      heading: HeadingLevel.HEADING_1,
-      spacing: { before: 400, after: 300 },
-    })
-  );
+  // Content - only lists, no titles
 
   // Clean content lines
   const lines = content.split('\n').filter(line => line.trim() !== '');
@@ -660,13 +615,13 @@ async function createEnhancedDOCXContent(content: string, currentDate: string, c
     }
   }
 
-  // Footer
+  // Footer with generation date
   children.push(
     new Paragraph({
       children: [
         new TextRun({
-          text: "BuffetWiz - Gestão de Eventos Descomplicada",
-          size: 16,
+          text: `Gerado em: ${currentDate} às ${currentTime}`,
+          size: 14,
           italics: true,
           color: "6B7280",
         }),
