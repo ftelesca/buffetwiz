@@ -107,26 +107,65 @@ async function exportToFile(payload: string) {
   }
 }
 
-// Helper to export current markdown content to PDF and DOCX
-async function exportMarkdownToPDFAndDOCX(content: string, filename: string) {
-  console.log('Exportando PDF + DOCX com conteúdo:', content);
+// Helper to export last AI response with elegant markdown formatting
+async function exportLastResponseToPDFAndDOCX(content: string, filename: string, eventDetails?: any, includeLogo?: boolean) {
+  console.log('Exportando última resposta em PDF + DOCX:', { content, eventDetails, includeLogo });
   
   const currentDate = new Date().toLocaleDateString('pt-BR');
   const currentTime = new Date().toLocaleTimeString('pt-BR');
   const title = filename.replace(/\.pdf$/i, '');
 
-  // Process the markdown content to HTML (simple conversion)
-  const processedContent = content
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-    .replace(/^• (.*$)/gim, '<li>$1</li>')
-    .replace(/\n/g, '<br>')
-    .replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
+  // Clean content - remove empty lines and extra comments
+  const cleanedContent = content
+    .split('\n')
+    .filter(line => line.trim() !== '')
+    .filter(line => !line.includes('Como posso ajudar'))
+    .filter(line => !line.includes('mais alguma'))
+    .filter(line => !line.startsWith('É isso'))
+    .join('\n');
 
-  // HTML for PDF
+  // Process markdown to HTML with elegant formatting
+  let processedContent = cleanedContent
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="highlight">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em class="emphasis">$1</em>')
+    .replace(/^# (.*$)/gim, '<h1 class="main-title">$1</h1>')
+    .replace(/^## (.*$)/gim, '<h2 class="section-title">$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3 class="subsection-title">$1</h3>')
+    .replace(/^- (.*$)/gim, '<li class="list-item">$1</li>')
+    .replace(/^• (.*$)/gim, '<li class="list-item">$1</li>')
+    .replace(/^\d+\. (.*$)/gim, '<li class="numbered-item">$1</li>')
+    .replace(/\n/g, '<br>');
+
+  // Wrap list items in proper ul/ol tags
+  processedContent = processedContent
+    .replace(/(<li class="list-item">.*?<\/li>)/gs, '<ul class="elegant-list">$1</ul>')
+    .replace(/(<li class="numbered-item">.*?<\/li>)/gs, '<ol class="elegant-numbered-list">$1</ol>');
+
+  // Event details section
+  let eventSection = '';
+  if (eventDetails) {
+    eventSection = `
+    <div class="event-details">
+      <h3 class="section-title">📅 Detalhes do Evento</h3>
+      <div class="event-info">
+        <p><strong>Título:</strong> ${eventDetails.title || 'Não informado'}</p>
+        <p><strong>Data:</strong> ${eventDetails.date || 'Não informada'}</p>
+        <p><strong>Local:</strong> ${eventDetails.location || 'Não informado'}</p>
+        <p><strong>Convidados:</strong> ${eventDetails.numguests || 'Não informado'}</p>
+      </div>
+    </div>`;
+  }
+
+  // Logo section
+  let logoSection = '';
+  if (includeLogo) {
+    logoSection = `
+    <div class="logo-section">
+      <img src="/logo.png" alt="Logo" class="company-logo" />
+    </div>`;
+  }
+
+  // Elegant HTML template
   const html = `
 <!DOCTYPE html>
 <html>
@@ -134,82 +173,231 @@ async function exportMarkdownToPDFAndDOCX(content: string, filename: string) {
   <meta charset="UTF-8" />
   <title>${title}</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      line-height: 1.6; 
-      color: #111827; 
-      max-width: 800px; 
-      margin: 40px auto; 
-      padding: 24px; 
-      background: white;
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      line-height: 1.7; 
+      color: #1a202c; 
+      max-width: 850px; 
+      margin: 0 auto; 
+      padding: 40px 30px; 
+      background: #ffffff;
     }
+    
     .header { 
       text-align: center; 
-      margin-bottom: 24px; 
-      padding: 16px; 
-      background: linear-gradient(135deg, #4f46e5, #7c3aed); 
+      margin-bottom: 40px; 
+      padding: 30px; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
       color: white; 
-      border-radius: 8px; 
+      border-radius: 16px; 
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
     }
-    .meta { 
-      margin-bottom: 16px; 
-      font-size: 14px; 
-      color: #6b7280; 
-      padding: 12px;
-      background: #f9fafb;
-      border-radius: 6px;
+    
+    .header h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
     }
+    
+    .header p {
+      margin: 12px 0 0 0;
+      font-size: 18px;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+    
+    .logo-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .company-logo {
+      max-width: 120px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .meta-info { 
+      margin-bottom: 30px; 
+      padding: 20px; 
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
+      border-radius: 12px; 
+      border-left: 4px solid #667eea;
+      font-size: 15px;
+      color: #4a5568;
+    }
+    
+    .event-details {
+      margin-bottom: 30px;
+      padding: 25px;
+      background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+      border-radius: 12px;
+      border-left: 4px solid #f56565;
+    }
+    
+    .event-info p {
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+    
     .content { 
       background: white; 
-      padding: 24px; 
-      border-radius: 12px; 
-      box-shadow: 0 2px 10px rgba(0,0,0,0.06); 
-      border: 1px solid #e5e7eb; 
+      padding: 35px; 
+      border-radius: 16px; 
+      box-shadow: 0 4px 25px rgba(0,0,0,0.08); 
+      border: 2px solid #e2e8f0; 
       font-size: 16px;
-      line-height: 1.7;
+      line-height: 1.8;
     }
-    ul { margin: 12px 0; padding-left: 20px; }
-    li { margin: 6px 0; }
-    h1, h2, h3 { color: #1f2937; margin: 16px 0 8px 0; }
-    strong { font-weight: 600; color: #374151; }
-    em { font-style: italic; color: #6b7280; }
+    
+    .main-title {
+      color: #667eea;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 20px 0;
+      letter-spacing: -0.5px;
+    }
+    
+    .section-title {
+      color: #4a5568;
+      font-size: 22px;
+      font-weight: 600;
+      margin: 25px 0 15px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .subsection-title {
+      color: #718096;
+      font-size: 18px;
+      font-weight: 600;
+      margin: 20px 0 12px 0;
+    }
+    
+    .elegant-list, .elegant-numbered-list { 
+      margin: 16px 0; 
+      padding-left: 0; 
+      list-style: none;
+    }
+    
+    .list-item, .numbered-item { 
+      margin: 10px 0; 
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      border-radius: 8px;
+      border-left: 3px solid #667eea;
+      position: relative;
+    }
+    
+    .list-item:before {
+      content: "▸";
+      color: #667eea;
+      font-weight: bold;
+      position: absolute;
+      left: 8px;
+    }
+    
+    .highlight { 
+      font-weight: 600; 
+      color: #667eea; 
+      background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    
+    .emphasis { 
+      font-style: italic; 
+      color: #718096; 
+      background: #f7fafc;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    
+    .footer {
+      margin-top: 50px;
+      padding: 25px;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .footer .brand {
+      font-weight: 700;
+      font-size: 20px;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    
+    .footer .tagline {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+    
+    @media print {
+      body { margin: 0; padding: 20px; }
+      .header, .footer { box-shadow: none; }
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1 style="margin:0; font-size: 24px; font-weight: 700;">🧙‍♂️ BuffetWiz</h1>
-    <p style="margin: 8px 0 0 0; font-size: 16px;">Resposta da Inteligência Artificial</p>
+    <h1>🧙‍♂️ BuffetWiz</h1>
+    <p>Análise Inteligente de Eventos</p>
   </div>
-  <div class="meta">
-    <strong>Gerado em:</strong> ${currentDate} às ${currentTime}
+  
+  ${logoSection}
+  
+  <div class="meta-info">
+    <strong>📊 Relatório Gerado:</strong> ${currentDate} às ${currentTime}
   </div>
+  
+  ${eventSection}
+  
   <div class="content">
     ${processedContent}
   </div>
-  <div style="margin-top: 24px; text-align: center; font-size: 12px; color: #9ca3af;">
-    BuffetWiz - Gestão de Eventos Descomplicada
+  
+  <div class="footer">
+    <div class="brand">BuffetWiz</div>
+    <div class="tagline">Gestão de Eventos Descomplicada</div>
   </div>
 </body>
 </html>`;
 
-  console.log('HTML gerado:', html);
-
-  // Create DOCX content
-  const docxContent = await createDOCXContent(content, currentDate, currentTime);
+  // Create enhanced DOCX content
+  const docxContent = await createEnhancedDOCXContent(cleanedContent, currentDate, currentTime, eventDetails);
 
   try {
     const zip = new JSZip();
     
-    // Generate PDF first
+    // Generate PDF
     const html2pdf = (window as any).html2pdf;
     if (html2pdf) {
-      console.log('Gerando PDF...');
+      console.log('Gerando PDF elegante...');
       const pdfBlob = await html2pdf()
         .set({
-          margin: 0.5,
+          margin: [0.5, 0.5, 0.5, 0.5],
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+          html2canvas: { 
+            scale: 2, 
+            useCORS: true,
+            letterRendering: true,
+            allowTaint: false
+          },
+          jsPDF: { 
+            unit: 'in', 
+            format: 'a4', 
+            orientation: 'portrait',
+            compress: true
+          },
         })
         .from(html)
         .outputPdf('blob');
@@ -218,7 +406,7 @@ async function exportMarkdownToPDFAndDOCX(content: string, filename: string) {
     }
 
     // Generate DOCX
-    console.log('Gerando DOCX...');
+    console.log('Gerando DOCX elegante...');
     const docxBlob = await Packer.toBlob(docxContent);
     zip.file(`${title}.docx`, docxBlob);
 
@@ -227,23 +415,23 @@ async function exportMarkdownToPDFAndDOCX(content: string, filename: string) {
     const url = URL.createObjectURL(zipBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${title}_Documentos.zip`;
+    link.download = `BuffetWiz_Analise_${currentDate.replace(/\//g, '-')}.zip`;
     link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    console.log('PDF + DOCX gerados com sucesso');
+    console.log('Documentos elegantes gerados com sucesso');
     
   } catch (error) {
-    console.error('Erro ao gerar documentos:', error);
+    console.error('Erro ao gerar documentos elegantes:', error);
     throw error;
   }
 }
 
-// Helper to create DOCX content
-async function createDOCXContent(content: string, currentDate: string, currentTime: string) {
+// Enhanced DOCX content creation
+async function createEnhancedDOCXContent(content: string, currentDate: string, currentTime: string, eventDetails?: any) {
   const children = [];
 
   // Header
@@ -253,97 +441,186 @@ async function createDOCXContent(content: string, currentDate: string, currentTi
         new TextRun({
           text: "🧙‍♂️ BuffetWiz",
           bold: true,
-          size: 32,
+          size: 36,
+          color: "4F46E5",
         }),
       ],
       heading: HeadingLevel.TITLE,
-      spacing: { after: 200 },
+      spacing: { after: 300 },
+      alignment: "center",
     }),
     new Paragraph({
       children: [
         new TextRun({
-          text: "Resposta da Inteligência Artificial",
+          text: "Análise Inteligente de Eventos",
           size: 24,
+          color: "6B7280",
         }),
       ],
-      spacing: { after: 400 },
+      spacing: { after: 500 },
+      alignment: "center",
     }),
     new Paragraph({
       children: [
         new TextRun({
-          text: `Gerado em: ${currentDate} às ${currentTime}`,
-          size: 20,
+          text: `📊 Relatório Gerado: ${currentDate} às ${currentTime}`,
+          size: 18,
           italics: true,
+          color: "374151",
         }),
       ],
       spacing: { after: 400 },
+      alignment: "center",
     })
   );
 
-  // Process content line by line
-  const lines = content.split('\n');
+  // Event details if provided
+  if (eventDetails) {
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "📅 Detalhes do Evento",
+            bold: true,
+            size: 24,
+            color: "DC2626",
+          }),
+        ],
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 400, after: 200 },
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({ text: `Título: ${eventDetails.title || 'Não informado'}`, size: 16 }),
+        ],
+        spacing: { after: 100 },
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({ text: `Data: ${eventDetails.date || 'Não informada'}`, size: 16 }),
+        ],
+        spacing: { after: 100 },
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({ text: `Local: ${eventDetails.location || 'Não informado'}`, size: 16 }),
+        ],
+        spacing: { after: 100 },
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({ text: `Convidados: ${eventDetails.numguests || 'Não informado'}`, size: 16 }),
+        ],
+        spacing: { after: 400 },
+      })
+    );
+  }
+
+  // Content title
+  children.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: "🤖 Análise da IA",
+          bold: true,
+          size: 24,
+          color: "4F46E5",
+        }),
+      ],
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 400, after: 300 },
+    })
+  );
+
+  // Clean content lines
+  const lines = content.split('\n').filter(line => line.trim() !== '');
   
   for (const line of lines) {
-    if (line.trim() === '') {
-      children.push(new Paragraph({ text: "" }));
-      continue;
-    }
-
     if (line.startsWith('# ')) {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: line.substring(2), bold: true, size: 28 })],
+          children: [new TextRun({ text: line.substring(2), bold: true, size: 28, color: "4F46E5" })],
           heading: HeadingLevel.HEADING_1,
-          spacing: { before: 200, after: 200 },
+          spacing: { before: 300, after: 200 },
         })
       );
     } else if (line.startsWith('## ')) {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: line.substring(3), bold: true, size: 24 })],
+          children: [new TextRun({ text: line.substring(3), bold: true, size: 22, color: "6B7280" })],
           heading: HeadingLevel.HEADING_2,
-          spacing: { before: 200, after: 200 },
+          spacing: { before: 250, after: 150 },
         })
       );
     } else if (line.startsWith('### ')) {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: line.substring(4), bold: true, size: 20 })],
+          children: [new TextRun({ text: line.substring(4), bold: true, size: 18, color: "9CA3AF" })],
           heading: HeadingLevel.HEADING_3,
-          spacing: { before: 200, after: 200 },
+          spacing: { before: 200, after: 120 },
         })
       );
     } else if (line.startsWith('• ') || line.startsWith('- ')) {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: `• ${line.substring(2)}` })],
-          spacing: { before: 100, after: 100 },
+          children: [new TextRun({ text: `▸ ${line.substring(2)}`, size: 16 })],
+          spacing: { before: 80, after: 80 },
+          indent: { left: 400 },
+        })
+      );
+    } else if (/^\d+\./.test(line)) {
+      children.push(
+        new Paragraph({
+          children: [new TextRun({ text: line, size: 16 })],
+          spacing: { before: 80, after: 80 },
+          indent: { left: 400 },
         })
       );
     } else {
-      // Process bold and italic text
-      const processedLine = line
-        .replace(/\*\*(.*?)\*\*/g, (_, text) => text) // We'll handle bold separately
-        .replace(/\*(.*?)\*/g, (_, text) => text); // We'll handle italic separately
-
+      // Process markdown formatting in regular text
       const textRuns = [];
-      let currentIndex = 0;
+      let remaining = line;
       
-      // Simple processing for bold text
-      const boldMatches = [...line.matchAll(/\*\*(.*?)\*\*/g)];
-      const italicMatches = [...line.matchAll(/(?<!\*)\*([^*]+?)\*(?!\*)/g)];
+      // Process bold text **text**
+      const boldRegex = /\*\*(.*?)\*\*/g;
+      let lastIndex = 0;
+      let match;
       
-      if (boldMatches.length === 0 && italicMatches.length === 0) {
-        textRuns.push(new TextRun({ text: line }));
-      } else {
-        // For simplicity, just add the processed text
-        textRuns.push(new TextRun({ text: processedLine }));
+      while ((match = boldRegex.exec(line)) !== null) {
+        // Add text before the bold
+        if (match.index > lastIndex) {
+          textRuns.push(new TextRun({ 
+            text: line.substring(lastIndex, match.index),
+            size: 16
+          }));
+        }
+        // Add bold text
+        textRuns.push(new TextRun({ 
+          text: match[1],
+          bold: true,
+          size: 16,
+          color: "4F46E5"
+        }));
+        lastIndex = match.index + match[0].length;
+      }
+      
+      // Add remaining text
+      if (lastIndex < line.length) {
+        textRuns.push(new TextRun({ 
+          text: line.substring(lastIndex),
+          size: 16
+        }));
+      }
+      
+      // If no bold text found, just add the whole line
+      if (textRuns.length === 0) {
+        textRuns.push(new TextRun({ text: line, size: 16 }));
       }
 
       children.push(
         new Paragraph({
           children: textRuns,
-          spacing: { after: 100 },
+          spacing: { after: 120 },
         })
       );
     }
@@ -357,9 +634,11 @@ async function createDOCXContent(content: string, currentDate: string, currentTi
           text: "BuffetWiz - Gestão de Eventos Descomplicada",
           size: 16,
           italics: true,
+          color: "6B7280",
         }),
       ],
-      spacing: { before: 400 },
+      spacing: { before: 600 },
+      alignment: "center",
     })
   );
 
@@ -778,7 +1057,7 @@ export function MarkdownRenderer({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    exportMarkdownToPDFAndDOCX(content, file);
+                     exportLastResponseToPDFAndDOCX(content, file);
                   }}
                   className={cn(
                     "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground cursor-pointer", 
@@ -823,7 +1102,7 @@ export function MarkdownRenderer({
                     const file = match[1].trim();
                     const ext = file.split('.').pop()?.toLowerCase();
                     if (ext === 'pdf') {
-                      exportMarkdownToPDFAndDOCX(content, file);
+                      exportLastResponseToPDFAndDOCX(content, file);
                     } else {
                       const rows = extractTableDataFromMarkdown(content);
                       if (rows && rows.length) {
@@ -866,7 +1145,7 @@ export function MarkdownRenderer({
                   const file = match[1].trim();
                   const ext = file.split('.').pop()?.toLowerCase();
                   if (ext === 'pdf') {
-                    exportMarkdownToPDFAndDOCX(content, file);
+                    exportLastResponseToPDFAndDOCX(content, file);
                   } else {
                     const rows = extractTableDataFromMarkdown(content);
                     if (rows && rows.length) {
@@ -914,3 +1193,5 @@ export function MarkdownRenderer({
     </div>
   );
 }
+
+export { exportLastResponseToPDFAndDOCX };

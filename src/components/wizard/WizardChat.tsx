@@ -182,152 +182,67 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
       setIsLoading(true);
 
-      // Cria HTML simples para a última resposta
-      const currentDate = new Date().toLocaleDateString('pt-BR');
-      const currentTime = new Date().toLocaleTimeString('pt-BR');
+      // Check for event details in chat context
+      const eventDetails = extractEventDetailsFromMessages(messages);
       
-      const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>BuffetWiz - Resposta da IA</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 20px;
-            background: white;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 10px;
-        }
-        
-        .header h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-        }
-        
-        .meta-info {
-            margin-bottom: 30px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            font-size: 14px;
-        }
-        
-        .content {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border: 2px solid #e9ecef;
-        }
-        
-        .content h3 {
-            color: #667eea;
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-        
-        .response-content {
-            font-size: 15px;
-            line-height: 1.7;
-            white-space: pre-wrap;
-        }
-        
-        .footer {
-            margin-top: 40px;
-            padding: 20px;
-            text-align: center;
-            background: #667eea;
-            color: white;
-            border-radius: 10px;
-            font-size: 14px;
-        }
-        
-        @media print {
-            body { margin: 0; }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>🧙‍♂️ BuffetWiz</h1>
-        <div>Resposta da Inteligência Artificial</div>
-    </div>
-    
-    <div class="meta-info">
-        <strong>Data de Geração:</strong> ${currentDate} às ${currentTime}<br>
-        <strong>Resposta de:</strong> ${new Date(lastAssistantMessage.created_at).toLocaleDateString('pt-BR')} às ${new Date(lastAssistantMessage.created_at).toLocaleTimeString('pt-BR')}
-    </div>
-    
-    <div class="content">
-        <h3>🤖 Análise da IA</h3>
-        <div class="response-content">${lastAssistantMessage.content}</div>
-    </div>
-    
-    <div class="footer">
-        <div style="font-weight: 700; font-size: 18px; margin-bottom: 5px;">BuffetWiz</div>
-        <div>Gestão de Eventos Descomplicada</div>
-    </div>
-</body>
-</html>`;
-      try {
-        // Tenta usar html2pdf.js diretamente com HTML string
-        const html2pdf = (window as any).html2pdf;
-        const filename = `BuffetWiz_Resposta_${currentDate.replace(/\//g, '-')}.pdf`;
-        if (html2pdf) {
-          await html2pdf()
-            .set({
-              margin: 0.5,
-              filename,
-              image: { type: "jpeg", quality: 0.98 },
-              html2canvas: { scale: 2, useCORS: true },
-              jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-            })
-            .from(html)
-            .save();
-          toast({ title: "PDF exportado", description: "Resposta salva em PDF com sucesso" });
-        } else {
-          // Fallback: abre uma nova janela com o conteúdo para impressão
-          const printWindow = window.open("", "_blank");
-          if (printWindow) {
-            printWindow.document.write(html);
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => {
-              printWindow.print();
-            }, 1000);
-            toast({ title: "Janela de impressão aberta", description: "Use Ctrl+P para salvar como PDF" });
-          } else {
-            throw new Error("Popup bloqueado pelo navegador");
-          }
-        }
-      } catch (err) {
-        throw err;
-      }
+      // Use the elegant export function from MarkdownRenderer
+      const { exportLastResponseToPDFAndDOCX: exportFunction } = await import("@/components/chat/MarkdownRenderer");
+      const currentDate = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+      const filename = `BuffetWiz_Analise_${currentDate}`;
+      
+      await exportFunction(
+        lastAssistantMessage.content, 
+        filename,
+        eventDetails,
+        true // include logo
+      );
+      
+      toast({ 
+        title: "Documentos exportados", 
+        description: "PDF e DOCX gerados com sucesso!" 
+      });
+
     } catch (err) {
-      console.error("Erro no export PDF:", err);
+      console.error("Erro no export:", err);
       toast({ 
         title: "Erro no export", 
-        description: err instanceof Error ? err.message : "Falha ao gerar PDF", 
+        description: err instanceof Error ? err.message : "Falha ao gerar documentos", 
         variant: "destructive" 
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper to extract event details from chat messages
+  const extractEventDetailsFromMessages = (msgs: MessageRow[]) => {
+    let eventDetails = null;
+    
+    // Look for event-related information in the messages
+    for (const message of msgs) {
+      if (message.content.toLowerCase().includes('evento') || 
+          message.content.toLowerCase().includes('buffet') ||
+          message.content.toLowerCase().includes('festa')) {
+        
+        // Try to extract event details using regex patterns
+        const titleMatch = message.content.match(/(?:evento|festa|celebração|buffet)[\s:]*(.+?)(?:\n|$)/i);
+        const dateMatch = message.content.match(/(?:data|quando|em)[\s:]*(\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2} de \w+ de \d{4})/i);
+        const locationMatch = message.content.match(/(?:local|onde|endereço)[\s:]*(.+?)(?:\n|$)/i);
+        const guestsMatch = message.content.match(/(?:convidados|pessoas|participantes)[\s:]*(\d+)/i);
+        
+        if (titleMatch || dateMatch || locationMatch || guestsMatch) {
+          eventDetails = {
+            title: titleMatch?.[1]?.trim() || 'Evento',
+            date: dateMatch?.[1]?.trim() || 'Não informada',
+            location: locationMatch?.[1]?.trim() || 'Não informado',
+            numguests: guestsMatch?.[1] || 'Não informado'
+          };
+          break;
+        }
+      }
+    }
+    
+    return eventDetails;
   };
 
   const emptyStateSuggestions = useMemo(
