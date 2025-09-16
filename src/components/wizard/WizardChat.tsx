@@ -171,27 +171,59 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       const { data, error } = await supabase.functions.invoke("wizard-export-pdf", { body: { chatId } });
       if (error) throw error;
 
-      // data.html + data.filename vindos da função Edge
+      // Verifica se os dados foram retornados corretamente
+      if (!data || !(data as any).html) {
+        throw new Error("Dados inválidos retornados pela função");
+      }
+
+      // Cria o elemento HTML
       const element = document.createElement("div");
       element.innerHTML = (data as any).html;
+      element.style.position = "absolute";
+      element.style.left = "-9999px";
+      element.style.top = "-9999px";
+      document.body.appendChild(element);
 
-      // Usa html2pdf por já estar no projeto (importada dinamicamente via CDN no back)
-      const html2pdfModule = await import("html2pdf.js");
-      await (html2pdfModule.default as any)()
-        .set({
-          margin: 0.5,
-          filename: (data as any).filename,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-        })
-        .from(element)
-        .save();
-
-      toast({ title: "PDF exportado", description: "Relatório baixado com sucesso" });
+      try {
+        // Tenta usar html2pdf.js
+        const html2pdf = (window as any).html2pdf;
+        if (html2pdf) {
+          await html2pdf()
+            .set({
+              margin: 0.5,
+              filename: (data as any).filename,
+              image: { type: "jpeg", quality: 0.98 },
+              html2canvas: { scale: 2, useCORS: true },
+              jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+            })
+            .from(element)
+            .save();
+        } else {
+          // Fallback: abre uma nova janela com o conteúdo para impressão
+          const printWindow = window.open("", "_blank");
+          if (printWindow) {
+            printWindow.document.write((data as any).html);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+              printWindow.print();
+            }, 1000);
+          } else {
+            throw new Error("Popup bloqueado");
+          }
+        }
+        toast({ title: "PDF exportado", description: "Relatório processado com sucesso" });
+      } finally {
+        // Remove o elemento temporário
+        document.body.removeChild(element);
+      }
     } catch (err) {
       console.error("Erro no export PDF:", err);
-      toast({ title: "Erro no export", description: "Falha ao gerar PDF", variant: "destructive" });
+      toast({ 
+        title: "Erro no export", 
+        description: err instanceof Error ? err.message : "Falha ao gerar PDF", 
+        variant: "destructive" 
+      });
     } finally {
       setIsLoading(false);
     }
