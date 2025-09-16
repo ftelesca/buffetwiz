@@ -105,6 +105,70 @@ async function exportToFile(payload: string) {
   }
 }
 
+// Helper to export current markdown content to PDF
+async function exportMarkdownToPDF(markdown: string, filename: string) {
+  const currentDate = new Date().toLocaleDateString('pt-BR');
+  const currentTime = new Date().toLocaleTimeString('pt-BR');
+  const title = filename.replace(/\.pdf$/i, '');
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>${title}</title>
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; line-height: 1.6; color: #111827; max-width: 800px; margin: 40px auto; padding: 24px; }
+    .header { text-align: center; margin-bottom: 24px; padding: 16px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border-radius: 8px; }
+    .meta { margin-bottom: 16px; font-size: 12px; color: #374151; }
+    .content { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; }
+    pre { background: #0f172a; color: #e5e7eb; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 style="margin:0; font-size: 20px; font-weight: 700;">BuffetWiz • Resposta da IA</h1>
+  </div>
+  <div class="meta">Gerado em ${currentDate} às ${currentTime}</div>
+  <div class="content">${markdown}</div>
+</body>
+</html>`;
+
+  const element = document.createElement('div');
+  element.innerHTML = html;
+  element.style.position = 'absolute';
+  element.style.left = '-9999px';
+  element.style.top = '-9999px';
+  document.body.appendChild(element);
+  try {
+    const html2pdf = (window as any).html2pdf;
+    if (html2pdf) {
+      await html2pdf()
+        .set({
+          margin: 0.5,
+          filename: filename.endsWith('.pdf') ? filename : `${filename}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+        })
+        .from(element)
+        .save();
+    } else {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => printWindow.print(), 500);
+      } else {
+        throw new Error('Popup bloqueado pelo navegador');
+      }
+    }
+  } finally {
+    document.body.removeChild(element);
+  }
+}
+
 // Process export links: robustly convert raw occurrences like "export:{...}" or "export:%7B...%7D" into markdown links, skipping code blocks
 function processExportLinks(md: string): string {
   if (!md) return '';
@@ -520,18 +584,23 @@ export function MarkdownRenderer({
               const onSmartDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
                 try {
                   const text = (e.currentTarget.textContent || '').toLowerCase();
-                  const match = text.match(/\bbaixar\s+([\w\-\s]+\.(xlsx|csv|json))\b/i);
+                  const match = text.match(/\bbaixar\s+([\w\-\s]+\.(xlsx|csv|json|pdf))\b/i);
                   if (match) {
                     e.preventDefault();
                     e.stopPropagation();
                     const file = match[1].trim();
-                    const rows = extractTableDataFromMarkdown(content);
-                    if (rows && rows.length) {
-                      const type = inferTypeFromFilename(file);
-                      const payload = JSON.stringify({ type, filename: file, data: rows });
-                      handleExportClickLocal(payload);
+                    const ext = file.split('.').pop()?.toLowerCase();
+                    if (ext === 'pdf') {
+                      exportMarkdownToPDF(content, file);
                     } else {
-                      handleExportClickLocal(`filename:"${file}"`);
+                      const rows = extractTableDataFromMarkdown(content);
+                      if (rows && rows.length) {
+                        const type = inferTypeFromFilename(file);
+                        const payload = JSON.stringify({ type, filename: file, data: rows });
+                        handleExportClickLocal(payload);
+                      } else {
+                        handleExportClickLocal(`filename:"${file}"`);
+                      }
                     }
                   }
                 } catch {}
@@ -554,6 +623,31 @@ export function MarkdownRenderer({
               );
             }
 
+            // Default links: still support smart download by text
+            const onSmartDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
+              try {
+                const text = (e.currentTarget.textContent || '').toLowerCase();
+                const match = text.match(/\bbaixar\s+([\w\-\s]+\.(xlsx|csv|json|pdf))\b/i);
+                if (match) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const file = match[1].trim();
+                  const ext = file.split('.').pop()?.toLowerCase();
+                  if (ext === 'pdf') {
+                    exportMarkdownToPDF(content, file);
+                  } else {
+                    const rows = extractTableDataFromMarkdown(content);
+                    if (rows && rows.length) {
+                      const type = inferTypeFromFilename(file);
+                      const payload = JSON.stringify({ type, filename: file, data: rows });
+                      handleExportClickLocal(payload);
+                    } else {
+                      handleExportClickLocal(`filename:"${file}"`);
+                    }
+                  }
+                }
+              } catch {}
+            };
             return (
               <a 
                 className={cn(
@@ -561,6 +655,7 @@ export function MarkdownRenderer({
                   className
                 )} 
                 href={href} 
+                onClick={onSmartDownload}
                 {...props}
               >
                 {children}
