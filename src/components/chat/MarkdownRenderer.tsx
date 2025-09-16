@@ -241,9 +241,16 @@ function processExportLinks(md: string): string {
 
     let processed = part;
     // keep existing markdown export links as-is
-    processed = processed.replace(/(\[[^\]]+\]\(export:[^)]+\))/g, '$1');
+    processed = processed.replace(/(\[[^\]]+\]\(export:[^)]*\))/g, '$1');
     processed = wrapPercentEncoded(processed);
     processed = wrapRawJson(processed);
+
+    // Convert bare bracketed download text like "[Download arquivo.pdf]" into an actionable exportpdf link
+    processed = processed.replace(/(?<!\!)\[(?:Download|Baixar)\s+([^\]]+\.pdf)\](?!\()/gi, (_m, file) => {
+      const safe = String(file).trim();
+      return `[📥 Baixar ${safe}](exportpdf:${encodeURIComponent(safe)})`;
+    });
+
     parts[p] = processed;
   }
 
@@ -559,6 +566,27 @@ export function MarkdownRenderer({
 
           // Enhanced links and export buttons
           a: ({ className, href, children, ...props }) => {
+            if (href && href.startsWith('exportpdf:')) {
+              const file = decodeURIComponent(href.replace(/^exportpdf:/, ''));
+              return (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    exportMarkdownToPDF(content, file);
+                  }}
+                  className={cn(
+                    "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground cursor-pointer", 
+                    className
+                  )}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {children}
+                </button>
+              );
+            }
+
             if (href && href.startsWith('export:')) {
               const payload = href.replace(/^export:/, '');
               return (
