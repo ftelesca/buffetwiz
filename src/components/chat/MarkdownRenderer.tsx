@@ -191,13 +191,6 @@ async function exportMarkdownToPDF(content: string, filename: string) {
 
   console.log('HTML gerado:', html);
 
-  const element = document.createElement('div');
-  element.innerHTML = html;
-  element.style.position = 'absolute';
-  element.style.left = '-9999px';
-  element.style.top = '-9999px';
-  document.body.appendChild(element);
-  
   try {
     const html2pdf = (window as any).html2pdf;
     if (html2pdf) {
@@ -210,7 +203,7 @@ async function exportMarkdownToPDF(content: string, filename: string) {
           html2canvas: { scale: 2, useCORS: true },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
         })
-        .from(element)
+        .from(html)
         .save();
       console.log('PDF gerado com sucesso');
     } else {
@@ -228,8 +221,6 @@ async function exportMarkdownToPDF(content: string, filename: string) {
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
     throw error;
-  } finally {
-    document.body.removeChild(element);
   }
 }
 

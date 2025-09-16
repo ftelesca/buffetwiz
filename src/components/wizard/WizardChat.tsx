@@ -284,29 +284,20 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     </div>
 </body>
 </html>`;
-
-      // Cria o elemento HTML
-      const element = document.createElement("div");
-      element.innerHTML = html;
-      element.style.position = "absolute";
-      element.style.left = "-9999px";
-      element.style.top = "-9999px";
-      document.body.appendChild(element);
-
       try {
-        // Tenta usar html2pdf.js
+        // Tenta usar html2pdf.js diretamente com HTML string
         const html2pdf = (window as any).html2pdf;
+        const filename = `BuffetWiz_Resposta_${currentDate.replace(/\//g, '-')}.pdf`;
         if (html2pdf) {
-          const filename = `BuffetWiz_Resposta_${currentDate.replace(/\//g, '-')}.pdf`;
           await html2pdf()
             .set({
               margin: 0.5,
-              filename: filename,
+              filename,
               image: { type: "jpeg", quality: 0.98 },
               html2canvas: { scale: 2, useCORS: true },
               jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
             })
-            .from(element)
+            .from(html)
             .save();
           toast({ title: "PDF exportado", description: "Resposta salva em PDF com sucesso" });
         } else {
@@ -324,9 +315,8 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             throw new Error("Popup bloqueado pelo navegador");
           }
         }
-      } finally {
-        // Remove o elemento temporário
-        document.body.removeChild(element);
+      } catch (err) {
+        throw err;
       }
     } catch (err) {
       console.error("Erro no export PDF:", err);
