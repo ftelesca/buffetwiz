@@ -364,7 +364,7 @@ export default function Insumos() {
                                   description: item.description,
                                   unit_purch: item.unit_purch,
                                   unit_use: item.unit_use,
-                                  cost: formatCurrencyInput(item.cost?.toString() || '0'),
+                                  cost: formatCurrencyWithCents(item.cost || 0),
                                   factor: item.factor,
                                   isproduct: item.isproduct
                                 })
