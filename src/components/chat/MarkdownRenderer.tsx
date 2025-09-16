@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { handleExportClick } from "@/lib/export-handler";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType } from "docx";
 import JSZip from "jszip";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
@@ -115,73 +115,124 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
   const currentTime = new Date().toLocaleTimeString('pt-BR');
   const title = filename.replace(/\.pdf$/i, '');
 
-  // Extract only lists from content - remove all text that is not part of lists
+  // Extract only lists and tables from content (strict)
   const extractListsOnly = (text: string): string => {
-    const lines = text.split('\n');
-    const listLines: string[] = [];
-    let inList = false;
-    let currentListType = '';
-    
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      
-      // Check if line is a list item
-      if (trimmedLine.match(/^[-•*]\s+/) || trimmedLine.match(/^\d+\.\s+/)) {
-        listLines.push(line);
-        inList = true;
-        currentListType = trimmedLine.match(/^[-•*]\s+/) ? 'ul' : 'ol';
+    const lines = text.split(/\r?\n/);
+    const out: string[] = [];
+    let inBlock = false;
+    let inTable = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const t = line.trim();
+
+      const isListItem = /^[-*•]\s+/.test(t) || /^\d+\.\s+/.test(t);
+      const isTableHeader = /^\s*\|/.test(line) && ((line.match(/\|/g)?.length || 0) >= 2) && (i + 1 < lines.length) && /\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?/.test(lines[i + 1]);
+      const isTableSep = inTable && /^[\|\-\s:]+$/.test(t);
+      const isTableRow = inTable && /^\s*\|/.test(line);
+
+      if (isListItem) {
+        out.push(line);
+        inBlock = true;
+        inTable = false;
+        continue;
       }
-      // Check if line is a table row
-      else if (trimmedLine.includes('|') && trimmedLine.split('|').length > 2) {
-        listLines.push(line);
-        inList = true;
-        currentListType = 'table';
+
+      if (isTableHeader) {
+        out.push(line);
+        out.push(lines[i + 1]);
+        i += 1;
+        inBlock = true;
+        inTable = true;
+        continue;
       }
-      // Check if line is continuation of a table (separator line)
-      else if (currentListType === 'table' && trimmedLine.match(/^[\|\-\s:]+$/)) {
-        listLines.push(line);
+
+      if (isTableSep || isTableRow) {
+        out.push(line);
+        inBlock = true;
+        continue;
       }
-      // Check if line is a heading for a list/table section
-      else if (trimmedLine.match(/^#{1,6}\s+/) && inList === false) {
-        // Look ahead to see if next lines contain lists
-        const nextLines = lines.slice(lines.indexOf(line) + 1, lines.indexOf(line) + 5);
-        const hasListAhead = nextLines.some(nextLine => 
-          nextLine.trim().match(/^[-•*]\s+/) || 
-          nextLine.trim().match(/^\d+\.\s+/) ||
-          (nextLine.trim().includes('|') && nextLine.trim().split('|').length > 2)
-        );
-        
-        if (hasListAhead) {
-          listLines.push(line);
-        }
+
+      if (t === '' && inBlock) {
+        out.push(line);
+        continue;
       }
-      // Reset list tracking if we hit a non-list line
-      else if (trimmedLine !== '' && !trimmedLine.match(/^[\|\-\s:]+$/)) {
-        inList = false;
-        currentListType = '';
-      }
-      // Keep empty lines that are between list items
-      else if (trimmedLine === '' && inList) {
-        listLines.push(line);
-      }
+
+      // End of a list/table block
+      inBlock = false;
+      inTable = false;
     }
-    
-    return listLines.join('\n').trim();
+
+    return out.join('\n').trim();
   };
 
   const cleanedContent = extractListsOnly(content);
 
-  // Process markdown to HTML with elegant formatting
-  let processedContent = cleanedContent
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="highlight">$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em class="emphasis">$1</em>')
-    .replace(/^# (.*$)/gim, '<h1 class="main-title">$1</h1>')
-    .replace(/^## (.*$)/gim, '<h2 class="section-title">$1</h2>')
-    .replace(/^### (.*$)/gim, '<h3 class="subsection-title">$1</h3>')
-    .replace(/^- (.*$)/gim, '<li class="list-item">$1</li>')
-    .replace(/^• (.*$)/gim, '<li class="list-item">$1</li>')
-    .replace(/^\d+\. (.*$)/gim, '<li class="numbered-item">$1</li>')
-    .replace(/\n/g, '<br>');
+  // Build HTML strictly from lists and tables only
+  function escapeHtml(str: string) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function buildListsAndTablesHTML(md: string): string {
+    const lines = md.split(/\r?\n/);
+    const out: string[] = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+      const t = line.trim();
+
+      // Table block (GFM)
+      if (/^\s*\|/.test(line) && ((line.match(/\|/g)?.length || 0) >= 2) && i + 1 < lines.length && /\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?/.test(lines[i + 1])) {
+        const headers = line.split('|').map(s => s.trim()).filter(Boolean);
+        const rows: string[][] = [];
+        let j = i + 2;
+        while (j < lines.length && /^\s*\|/.test(lines[j])) {
+          rows.push(lines[j].split('|').map(s => s.trim()).filter(Boolean));
+          j++;
+        }
+        const thead = '<thead><tr>' + headers.map(h => `<th scope="col">${escapeHtml(h)}</th>`).join('') + '</tr></thead>';
+        const tbody = '<tbody>' + rows.map(r => '<tr>' + headers.map((_, idx) => `<td>${escapeHtml(r[idx] ?? '')}</td>`).join('') + '</tr>').join('') + '</tbody>';
+        out.push(`<table>${thead}${tbody}</table>`);
+        i = j;
+        continue;
+      }
+
+      // Unordered list block
+      if (/^[-*•]\s+/.test(t)) {
+        const items: string[] = [];
+        while (i < lines.length && /^[-*•]\s+/.test(lines[i].trim())) {
+          items.push(lines[i].trim().replace(/^[-*•]\s+/, ''));
+          i++;
+        }
+        out.push('<ul class="elegant-list">' + items.map(it => `<li class="list-item">${escapeHtml(it)}</li>`).join('') + '</ul>');
+        continue;
+      }
+
+      // Ordered list block
+      if (/^\d+\.\s+/.test(t)) {
+        const items: string[] = [];
+        while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
+          items.push(lines[i].trim().replace(/^\d+\.\s+/, ''));
+          i++;
+        }
+        out.push('<ol class="elegant-numbered-list">' + items.map(it => `<li class="numbered-item">${escapeHtml(it)}</li>`).join('') + '</ol>');
+        continue;
+      }
+
+      // Skip any other content
+      i++;
+    }
+
+    return out.join('\n');
+  }
+
+  const processedContent = buildListsAndTablesHTML(cleanedContent);
 
   // Wrap list items in proper ul/ol tags
   processedContent = processedContent
