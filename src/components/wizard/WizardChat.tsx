@@ -165,20 +165,129 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     }
   };
 
-  const exportChatPDF = async (chatId: string) => {
+  const exportLastResponseToPDF = async () => {
     try {
-      setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke("wizard-export-pdf", { body: { chatId } });
-      if (error) throw error;
-
-      // Verifica se os dados foram retornados corretamente
-      if (!data || !(data as any).html) {
-        throw new Error("Dados inválidos retornados pela função");
+      if (messages.length === 0) {
+        toast({ title: "Nenhuma resposta", description: "Não há mensagens para exportar", variant: "destructive" });
+        return;
       }
+
+      // Pega a última mensagem do assistant
+      const lastAssistantMessage = messages.slice().reverse().find(msg => msg.role === "assistant");
+      
+      if (!lastAssistantMessage) {
+        toast({ title: "Nenhuma resposta da IA", description: "Não há resposta da IA para exportar", variant: "destructive" });
+        return;
+      }
+
+      setIsLoading(true);
+
+      // Cria HTML simples para a última resposta
+      const currentDate = new Date().toLocaleDateString('pt-BR');
+      const currentTime = new Date().toLocaleTimeString('pt-BR');
+      
+      const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>BuffetWiz - Resposta da IA</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: white;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .meta-info {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            font-size: 14px;
+        }
+        
+        .content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+        }
+        
+        .content h3 {
+            color: #667eea;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        .response-content {
+            font-size: 15px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding: 20px;
+            text-align: center;
+            background: #667eea;
+            color: white;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        @media print {
+            body { margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧙‍♂️ BuffetWiz</h1>
+        <div>Resposta da Inteligência Artificial</div>
+    </div>
+    
+    <div class="meta-info">
+        <strong>Data de Geração:</strong> ${currentDate} às ${currentTime}<br>
+        <strong>Resposta de:</strong> ${new Date(lastAssistantMessage.created_at).toLocaleDateString('pt-BR')} às ${new Date(lastAssistantMessage.created_at).toLocaleTimeString('pt-BR')}
+    </div>
+    
+    <div class="content">
+        <h3>🤖 Análise da IA</h3>
+        <div class="response-content">${lastAssistantMessage.content}</div>
+    </div>
+    
+    <div class="footer">
+        <div style="font-weight: 700; font-size: 18px; margin-bottom: 5px;">BuffetWiz</div>
+        <div>Gestão de Eventos Descomplicada</div>
+    </div>
+</body>
+</html>`;
 
       // Cria o elemento HTML
       const element = document.createElement("div");
-      element.innerHTML = (data as any).html;
+      element.innerHTML = html;
       element.style.position = "absolute";
       element.style.left = "-9999px";
       element.style.top = "-9999px";
@@ -188,31 +297,33 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         // Tenta usar html2pdf.js
         const html2pdf = (window as any).html2pdf;
         if (html2pdf) {
+          const filename = `BuffetWiz_Resposta_${currentDate.replace(/\//g, '-')}.pdf`;
           await html2pdf()
             .set({
               margin: 0.5,
-              filename: (data as any).filename,
+              filename: filename,
               image: { type: "jpeg", quality: 0.98 },
               html2canvas: { scale: 2, useCORS: true },
               jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
             })
             .from(element)
             .save();
+          toast({ title: "PDF exportado", description: "Resposta salva em PDF com sucesso" });
         } else {
           // Fallback: abre uma nova janela com o conteúdo para impressão
           const printWindow = window.open("", "_blank");
           if (printWindow) {
-            printWindow.document.write((data as any).html);
+            printWindow.document.write(html);
             printWindow.document.close();
             printWindow.focus();
             setTimeout(() => {
               printWindow.print();
             }, 1000);
+            toast({ title: "Janela de impressão aberta", description: "Use Ctrl+P para salvar como PDF" });
           } else {
-            throw new Error("Popup bloqueado");
+            throw new Error("Popup bloqueado pelo navegador");
           }
         }
-        toast({ title: "PDF exportado", description: "Relatório processado com sucesso" });
       } finally {
         // Remove o elemento temporário
         document.body.removeChild(element);
@@ -299,11 +410,11 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            exportChatPDF(chat.id);
+                            deleteChat(chat.id);
                           }}
-                          aria-label="Exportar PDF"
+                          aria-label="Deletar conversa"
                         >
-                          <Download className="h-3 w-3" />
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -442,11 +553,11 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                   )}
                 </Button>
               </div>
-              {currentChatId && (
+              {currentChatId && messages.length > 0 && (
                 <div className="mt-2 flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={() => exportChatPDF(currentChatId)} disabled={isLoading}>
+                  <Button variant="ghost" size="sm" onClick={exportLastResponseToPDF} disabled={isLoading}>
                     <Download className="h-3 w-3 mr-1" />
-                    Exportar PDF
+                    Exportar última resposta para PDF
                   </Button>
                 </div>
               )}

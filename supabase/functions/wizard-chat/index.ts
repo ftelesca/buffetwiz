@@ -293,7 +293,7 @@ PROCESSO OBRIGATÓRIO:
 - Mantenha a simplicidade: se foi lista simples, exporte lista simples
 - Use linguagem simples como "Segue o arquivo Excel com a lista dos produtos"
 
-FORMATOS SUPORTADOS: xlsx, csv, json
+FORMATOS SUPORTADOS: xlsx, csv, json, pdf
 O sistema exportará exatamente os dados conforme solicitado.
 `;
 
