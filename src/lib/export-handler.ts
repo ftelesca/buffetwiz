@@ -230,14 +230,11 @@ async function downloadFile(response: any, filename: string): Promise<void> {
     const blob = new Blob([new Uint8Array(byteNums)], { type: mime });
     const url = URL.createObjectURL(blob);
     
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = response.filename || filename;
-  link.style.display = 'none';
-  link.setAttribute('data-no-router', 'true');
-  link.target = '_self';
-  document.body.appendChild(link);
-  link.click();
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = response.filename || filename;
+    document.body.appendChild(link);
+    link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     

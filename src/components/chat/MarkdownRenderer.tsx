@@ -451,8 +451,6 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
     link.href = url;
     link.download = `BuffetWiz_Analise_${currentDate.replace(/\//g, '-')}.zip`;
     link.style.display = 'none';
-    link.setAttribute('data-no-router', 'true');
-    link.target = '_self';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
