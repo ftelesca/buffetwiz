@@ -161,7 +161,7 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
   if (includeLogo) {
     logoSection = `
     <div class="logo-section">
-      <img src="/public/logo.png" alt="BuffetWiz Logo" class="company-logo" />
+      <img src="/logo.png" alt="BuffetWiz Logo" class="company-logo" />
     </div>`;
   }
 
@@ -189,26 +189,23 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
     
     .header { 
       text-align: center; 
-      margin-bottom: 40px; 
-      padding: 30px; 
+      margin-bottom: 30px; 
+      padding: 20px; 
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
       color: white; 
-      border-radius: 16px; 
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+      border-radius: 12px;
     }
     
     .header h1 {
       margin: 0;
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
+      font-size: 24px;
+      font-weight: 600;
     }
     
     .header p {
-      margin: 12px 0 0 0;
-      font-size: 18px;
+      margin: 8px 0 0 0;
+      font-size: 14px;
       opacity: 0.9;
-      font-weight: 500;
     }
     
     .logo-section {
@@ -221,6 +218,45 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
       height: auto;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    table th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 16px;
+      border: none;
+    }
+    
+    table td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 15px;
+      vertical-align: top;
+    }
+    
+    table tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    
+    table tr:hover {
+      background: #edf2f7;
+    }
+    
+    table tr:last-child td {
+      border-bottom: none;
     }
     
     .meta-info { 
@@ -320,24 +356,22 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
     }
     
     .footer {
-      margin-top: 50px;
-      padding: 25px;
+      margin-top: 30px;
+      padding: 15px;
       text-align: center;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      border-radius: 16px;
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      border-radius: 8px;
     }
     
     .footer .brand {
-      font-weight: 700;
-      font-size: 20px;
-      margin-bottom: 8px;
-      letter-spacing: -0.3px;
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
     }
     
     .footer .tagline {
-      font-size: 16px;
+      font-size: 12px;
       opacity: 0.9;
     }
     
@@ -349,8 +383,8 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
 </head>
 <body>
   <div class="header">
-    <h1>🧙‍♂️ BuffetWiz</h1>
-    <p>Análise Inteligente de Eventos</p>
+    <h1>BuffetWiz</h1>
+    <p>Relatório de Análise</p>
   </div>
   
   ${logoSection}
@@ -439,25 +473,25 @@ async function createEnhancedDOCXContent(content: string, currentDate: string, c
     new Paragraph({
       children: [
         new TextRun({
-          text: "🧙‍♂️ BuffetWiz",
+          text: "BuffetWiz",
           bold: true,
-          size: 36,
+          size: 28,
           color: "4F46E5",
         }),
       ],
       heading: HeadingLevel.TITLE,
-      spacing: { after: 300 },
+      spacing: { after: 200 },
       alignment: "center",
     }),
     new Paragraph({
       children: [
         new TextRun({
-          text: "Análise Inteligente de Eventos",
-          size: 24,
+          text: "Relatório de Análise",
+          size: 18,
           color: "6B7280",
         }),
       ],
-      spacing: { after: 500 },
+      spacing: { after: 300 },
       alignment: "center",
     }),
     new Paragraph({
