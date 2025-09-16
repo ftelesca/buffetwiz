@@ -258,29 +258,43 @@ SEMPRE que apresentar dados em formato de tabela, inclua totalizações quando r
 | Pizza | 18,00 | 15 | 270,00 |
 | **TOTAL** | **-** | **25** | **525,00** |
 
+⚠️ REGRA CRÍTICA PARA EXPORTAÇÃO:
+Quando o usuário solicitar exportar uma tabela ou lista que você mostrou, exporte EXATAMENTE os mesmos campos que foram exibidos. Se você mostrou apenas nomes de produtos em uma lista simples, NÃO adicione custos ou outros campos na exportação. Mantenha a coerência entre o que foi exibido e o que será exportado.
+
 🔗 CAPACIDADE DE EXPORTAÇÃO:
 =============================
 IMPORTANTE: VOCÊ TEM CAPACIDADE TOTAL DE GERAR ARQUIVOS PARA DOWNLOAD!
 
-Quando o usuário solicitar exportações como:
-• "exportar tabela para excel"
-• "exportar produtos para csv" 
-• "baixar lista de eventos"
-• "gerar planilha dos insumos"
+⚠️ REGRA CRÍTICA DE EXPORTAÇÃO - APENAS CAMPOS VISÍVEIS:
+• NUNCA adicione campos extras que não estavam sendo exibidos ao usuário
+• EXPORTE APENAS os campos que estão sendo mostrados na conversa atual
+• Se o usuário viu uma lista simples com apenas descrições, exporte APENAS as descrições
+• Se o usuário viu uma tabela com 3 colunas, exporte APENAS essas 3 colunas
+• NÃO adicione custos, preços ou outros dados se não estavam sendo mostrados
 
-VOCÊ DEVE:
-1. Processar e preparar os dados solicitados
-2. Incluir na sua resposta um link especial no formato:
-   [🔗 Baixar arquivo_nome.formato](export:dados_codificados)
+📊 EXEMPLOS CORRETOS:
+• Usuário viu lista: "Lasanha, Pizza, Salada" → Exportar: apenas nomes dos produtos
+• Usuário viu tabela: "Produto | Quantidade" → Exportar: apenas produto e quantidade
+• Usuário viu: "Produto | Custo" → Exportar: produto e custo (pois estava visível)
+
+🚫 EXEMPLOS INCORRETOS:
+• Usuário viu apenas nomes → NÃO adicionar custos automaticamente
+• Usuário viu lista simples → NÃO adicionar colunas extras de IDs, datas, etc.
+
+PROCESSO OBRIGATÓRIO:
+1. REVISAR: Que campos/colunas estavam sendo exibidos na conversa?
+2. EXPORTAR: APENAS esses mesmos campos, na mesma estrutura
+3. FORMATAR: Manter a simplicidade da exibição original
 
 ⚠️ IMPORTANTE PARA EXPORTAÇÕES:
-- NÃO use funções calculate_recipe_unit_cost() nos dados de exportação
-- Os custos já serão calculados automaticamente pelo sistema
-- Apenas mencione que o arquivo conterá os custos calculados
-- Use uma linguagem simples como "Segue o arquivo Excel com a tabela dos produtos e seus custos unitários"
+- Use exatamente os mesmos campos que foram mostrados ao usuário
+- NÃO use funções calculate_recipe_unit_cost() nos dados de exportação  
+- NÃO adicione informações que não estavam na tela/contexto
+- Mantenha a simplicidade: se foi lista simples, exporte lista simples
+- Use linguagem simples como "Segue o arquivo Excel com a lista dos produtos"
 
 FORMATOS SUPORTADOS: xlsx, csv, json
-O sistema processará automaticamente os dados e calculará os custos em tempo real.
+O sistema exportará exatamente os dados conforme solicitado.
 `;
 
       // Call GPT-5 only if no valid cache
@@ -403,30 +417,37 @@ O sistema processará automaticamente os dados e calculará os custos em tempo r
           
           // Determine what data to export based on the request
           if (dataType.includes('produto') || dataType.includes('receita')) {
-            // Calculate unit costs for each recipe
-            const recipesWithCosts = [];
-            for (const recipe of context.recipes) {
-              try {
-                const { data: unitCost, error } = await supabase.rpc('calculate_recipe_unit_cost', { 
-                  recipe_id_param: recipe.id 
-                });
-                
-                recipesWithCosts.push({
-                  'Produto': recipe.description,
-                  'Custo Unitário (R$)': error ? 0 : (parseFloat(unitCost) || 0),
-                  'Rendimento': recipe.efficiency || 1,
-                  'Insumos': recipe.recipe_item?.length || 0
-                });
-              } catch (err) {
-                recipesWithCosts.push({
-                  'Produto': recipe.description,
-                  'Custo Unitário (R$)': 0,
-                  'Rendimento': recipe.efficiency || 1,
-                  'Insumos': recipe.recipe_item?.length || 0
-                });
+            // Export only basic product names unless costs were specifically mentioned in the conversation
+            const previousMessages = messagesPayload.slice(-5).map(m => m.content).join(' ');
+            const shouldIncludeCosts = /custo|preço|valor|R\$/i.test(previousMessages);
+            
+            if (shouldIncludeCosts) {
+              // Calculate unit costs for each recipe only if costs were being discussed
+              const recipesWithCosts = [];
+              for (const recipe of context.recipes) {
+                try {
+                  const { data: unitCost, error } = await supabase.rpc('calculate_recipe_unit_cost', { 
+                    recipe_id_param: recipe.id 
+                  });
+                  
+                  recipesWithCosts.push({
+                    'Produto': recipe.description,
+                    'Custo Unitário': error ? 0 : (parseFloat(unitCost) || 0)
+                  });
+                } catch (err) {
+                  recipesWithCosts.push({
+                    'Produto': recipe.description,
+                    'Custo Unitário': 0
+                  });
+                }
               }
+              exportData = recipesWithCosts;
+            } else {
+              // Export only product names if costs weren't being discussed
+              exportData = context.recipes.map(recipe => ({
+                'Produto': recipe.description
+              }));
             }
-            exportData = recipesWithCosts;
           } else if (dataType.includes('evento')) {
             exportData = context.events.map(event => ({
               'Evento': event.title,
@@ -437,11 +458,20 @@ O sistema processará automaticamente os dados e calculará os custos em tempo r
               'Preço (R$)': event.price || 0
             }));
           } else if (dataType.includes('insumo') || dataType.includes('item')) {
-            exportData = context.items.map(item => ({
-              'Insumo': item.description,
-              'Custo (R$)': item.cost || 0,
-              'Unidade': 'un'
-            }));
+            // Check if costs were being discussed in recent messages
+            const previousMessages = messagesPayload.slice(-5).map(m => m.content).join(' ');
+            const shouldIncludeCosts = /custo|preço|valor|R\$/i.test(previousMessages);
+            
+            if (shouldIncludeCosts) {
+              exportData = context.items.map(item => ({
+                'Insumo': item.description,
+                'Custo': item.cost || 0
+              }));
+            } else {
+              exportData = context.items.map(item => ({
+                'Insumo': item.description
+              }));
+            }
           } else if (dataType.includes('cliente')) {
             exportData = context.customers.map(customer => ({
               'Cliente': customer.name,
