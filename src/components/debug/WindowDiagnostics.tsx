@@ -13,6 +13,14 @@ interface WindowInfo {
   environment: string
 }
 
+interface CacheInfo {
+  serviceWorkerRegistered: boolean
+  localStorageKeys: string[]
+  sessionStorageKeys: string[]
+  resourceTimings: PerformanceResourceTiming[]
+  cacheControlHeaders: { [url: string]: string }
+}
+
 interface CSSVariables {
   [key: string]: string
 }
@@ -22,6 +30,7 @@ export function WindowDiagnostics() {
   const [windowInfo, setWindowInfo] = useState<WindowInfo | null>(null)
   const [cssVars, setCssVars] = useState<CSSVariables>({})
   const [fontStatus, setFontStatus] = useState<{ [key: string]: boolean }>({})
+  const [cacheInfo, setCacheInfo] = useState<CacheInfo | null>(null)
   const { theme } = useTheme()
 
   useEffect(() => {
@@ -81,9 +90,46 @@ export function WindowDiagnostics() {
       console.log('Font Status:', fontChecks)
     }
 
+    const analyzeCacheInfo = async () => {
+      try {
+        // Check service worker registration
+        const serviceWorkerRegistered = 'serviceWorker' in navigator && 
+          (await navigator.serviceWorker.getRegistrations()).length > 0
+
+        // Get storage keys
+        const localStorageKeys = Object.keys(localStorage)
+        const sessionStorageKeys = Object.keys(sessionStorage)
+
+        // Get resource timing data
+        const resourceTimings = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+
+        // Analyze cache headers from network requests
+        const cacheControlHeaders: { [url: string]: string } = {}
+        resourceTimings.forEach(timing => {
+          if (timing.name.includes('.css') || timing.name.includes('.js') || timing.name.includes('fonts')) {
+            cacheControlHeaders[timing.name] = `Transfer: ${timing.transferSize}, Duration: ${timing.duration.toFixed(2)}ms`
+          }
+        })
+
+        const info: CacheInfo = {
+          serviceWorkerRegistered,
+          localStorageKeys,
+          sessionStorageKeys,
+          resourceTimings: resourceTimings.slice(0, 10), // Limit to first 10
+          cacheControlHeaders
+        }
+
+        setCacheInfo(info)
+        console.log('Cache Info:', info)
+      } catch (error) {
+        console.error('Error analyzing cache info:', error)
+      }
+    }
+
     detectEnvironment()
     getCSSVariables()
     checkFonts()
+    analyzeCacheInfo()
 
     const handleResize = () => {
       setWindowInfo(prev => prev ? {
@@ -95,6 +141,24 @@ export function WindowDiagnostics() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [theme])
+
+  const forceRefreshResources = () => {
+    // Clear browser cache for this session
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => caches.delete(name))
+      })
+    }
+    
+    // Force reload stylesheets
+    const stylesheets = document.querySelectorAll('link[rel="stylesheet"]')
+    stylesheets.forEach(link => {
+      const href = (link as HTMLLinkElement).href
+      ;(link as HTMLLinkElement).href = href + (href.includes('?') ? '&' : '?') + 'cache_bust=' + Date.now()
+    })
+    
+    console.log('Forced refresh of cached resources')
+  }
 
   if (!isVisible) {
     return (
@@ -170,6 +234,70 @@ export function WindowDiagnostics() {
             </div>
           </CardContent>
         </Card>
+
+        {cacheInfo && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                Cache Analysis
+                <Button onClick={forceRefreshResources} variant="outline" size="sm">
+                  Force Refresh
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Environment</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Service Worker:</span>
+                      <Badge variant={cacheInfo.serviceWorkerRegistered ? "default" : "outline"}>
+                        {cacheInfo.serviceWorkerRegistered ? 'Active' : 'None'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>LocalStorage keys:</span>
+                      <span>{cacheInfo.localStorageKeys.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>SessionStorage keys:</span>
+                      <span>{cacheInfo.sessionStorageKeys.length}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-2">Resource Timing</h4>
+                  <div className="text-sm space-y-1 max-h-32 overflow-y-auto">
+                    {Object.entries(cacheInfo.cacheControlHeaders).map(([url, info]) => (
+                      <div key={url} className="border-b border-border/30 pb-1">
+                        <div className="font-mono text-xs truncate">{url.split('/').pop()}</div>
+                        <div className="text-muted-foreground text-xs">{info}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              {cacheInfo.localStorageKeys.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-2">Storage Contents</h4>
+                  <div className="text-sm space-y-1 max-h-32 overflow-y-auto">
+                    {cacheInfo.localStorageKeys.map(key => (
+                      <div key={key} className="flex justify-between border-b border-border/30 pb-1">
+                        <span className="font-mono text-xs">{key}</span>
+                        <span className="text-muted-foreground text-xs truncate max-w-32">
+                          {localStorage.getItem(key)?.slice(0, 20)}...
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
