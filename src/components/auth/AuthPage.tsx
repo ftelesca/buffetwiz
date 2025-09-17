@@ -39,8 +39,8 @@ export function AuthPage() {
               {currentTab === "forgot" && "Recuperar senha"}
             </CardTitle>
             <CardDescription>
-              {currentTab === "login" && "Acesse sua plataforma de gestão de eventos"}
-              {currentTab === "signup" && "Comece a gerenciar seus eventos hoje"}
+              {currentTab === "login" && "Acesse sua plataforma"}
+              {currentTab === "signup" && "Comece a organizar seus eventos hoje"}
               {currentTab === "forgot" && "Enviaremos um link para redefinir sua senha"}
             </CardDescription>
           </CardHeader>
