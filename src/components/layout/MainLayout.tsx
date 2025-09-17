@@ -16,7 +16,7 @@ function LayoutContent({ children }: MainLayoutProps) {
       {/* Header - Full Width */}
       <header className="sticky top-0 z-50 w-full border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80 h-20">
         <div className="flex h-full items-center justify-between pl-2 pr-8 pt-2 pb-2">
-          <div className="flex items-center gap-6 flex-1 max-w-md">
+          <div className="flex items-center gap-6">
             <Tooltip>
               <TooltipTrigger asChild>
                 <a href="https://looli.com.br" target="_blank" rel="noopener noreferrer">
@@ -27,7 +27,10 @@ function LayoutContent({ children }: MainLayoutProps) {
                 <p>Visite a Looli</p>
               </TooltipContent>
             </Tooltip>
-            <div>
+          </div>
+          
+          <div className="flex-1 flex justify-center">
+            <div className="text-center">
               <h1 className="text-2xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
                 BuffetWiz
               </h1>
@@ -36,6 +39,7 @@ function LayoutContent({ children }: MainLayoutProps) {
               </p>
             </div>
           </div>
+          
           <UserMenu />
         </div>
       </header>
