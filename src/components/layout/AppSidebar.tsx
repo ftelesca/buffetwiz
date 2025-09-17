@@ -13,19 +13,11 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: Home },
@@ -39,87 +31,75 @@ export function AppSidebar() {
   const { setOpenMobile, isMobile } = useSidebar()
   const location = useLocation()
   const currentPath = location.pathname
-  const [isHovered, setIsHovered] = React.useState(false)
+
+  // Keep icons perfectly stable: sidebar stays mini, overlay floats over main.
+  const [hovered, setHovered] = React.useState(false)
+  const closeTimer = React.useRef<number | null>(null)
 
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/"
     return currentPath.startsWith(path)
   }
 
+  const onEnter = () => {
+    if (closeTimer.current) {
+      window.clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+    setHovered(true)
+  }
+
+  const onLeave = () => {
+    // small delay to avoid blink when moving from rail to overlay
+    if (closeTimer.current) window.clearTimeout(closeTimer.current)
+    closeTimer.current = window.setTimeout(() => setHovered(false), 120)
+  }
+
+  React.useEffect(() => () => { if (closeTimer.current) window.clearTimeout(closeTimer.current) }, [])
+
   const handleNavigate = () => {
     if (isMobile) {
       setOpenMobile(false)
     }
-    // Close hover state after navigation
-    setIsHovered(false)
+    setHovered(false)
   }
 
-  const getNavClassNames = (path: string) => {
-    const baseClasses = "transition-all duration-300"
-    const activeClasses = !isHovered
-      ? "bg-primary text-primary-foreground rounded-lg"
-      : "bg-primary/10 text-primary font-medium ring-1 ring-primary/40 rounded-lg"
-    const inactiveClasses = "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-    
-    return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses}`
+  const collapsedBtnCls = (path: string) => {
+    const base = "group w-full h-10 px-2 flex items-center justify-center rounded-md transition-colors"
+    const active = "text-primary bg-primary/10 ring-1 ring-primary/40"
+    const inactive = "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+    return `${base} ${isActive(path) ? active : inactive}`
   }
 
-  // Always show collapsed, expand only on hover
-  const showExpanded = isHovered
-  
-  // Show tooltips only when not hovered
-  const showTooltips = !isHovered
+  const overlayBtnCls = (path: string) => {
+    const base = "w-full flex items-center px-3 py-2 rounded-md transition-colors"
+    const active = "bg-primary/10 text-primary ring-1 ring-primary/40"
+    const inactive = "text-foreground/80 hover:bg-accent/50"
+    return `${base} ${isActive(path) ? active : inactive}`
+  }
 
-    return (
-      <TooltipProvider>
-        <Sidebar
-          collapsible="icon"
-          className={`transition-all duration-300 ease-in-out border-r ${isHovered ? 'w-52' : 'w-14'}`}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-        {/* Navigation Content */}
-        <SidebarContent className="transition-all duration-300 px-2 py-3">
+  return (
+    <div className="relative" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+      {/* Mini rail - fixed width, icons centered with equal padding */}
+      <Sidebar collapsible="none" className="w-14 border-r">
+        <SidebarContent className="px-2 pt-4 pb-4">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
                 {navigationItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    {showTooltips ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <SidebarMenuButton asChild>
-                            <NavLink
-                              to={item.url}
-                              className={`${getNavClassNames(item.url)} flex items-center py-2 ${showExpanded ? 'px-2' : 'px-0 justify-center'}`}
-                              onClick={handleNavigate}
-                            >
-                              <span className={`${showExpanded ? 'w-10' : 'w-full'} flex justify-center`}>
-                                <item.icon className="h-5 w-5 flex-shrink-0" />
-                              </span>
-                              {showExpanded && <span className="ml-3 truncate">{item.title}</span>}
-                            </NavLink>
-                          </SidebarMenuButton>
-                        </TooltipTrigger>
-                        <TooltipContent side="right" className="ml-2">
-                          <p>{item.title}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <SidebarMenuButton asChild>
-                        <NavLink
-                          to={item.url}
-                          className={`${getNavClassNames(item.url)} flex items-center py-2 ${showExpanded ? 'px-2' : 'px-0 justify-center'}`}
-                          onClick={handleNavigate}
-                          data-sidebar="menu-button"
-                        >
-                          <span className={`${showExpanded ? 'w-10' : 'w-full'} flex justify-center`}>
-                            <item.icon className="h-5 w-5 flex-shrink-0" />
-                          </span>
-                          {showExpanded && <span className="ml-3 truncate">{item.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    )}
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={collapsedBtnCls(item.url)}
+                        onClick={handleNavigate}
+                        end={item.url === "/"}
+                      >
+                        <span className="h-10 w-10 flex items-center justify-center">
+                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                        </span>
+                      </NavLink>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -127,6 +107,30 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
       </Sidebar>
-    </TooltipProvider>
+
+      {/* Hover overlay - floats over main panel, auto width (widest caption + padding) */}
+      {hovered && !isMobile && (
+        <div className="absolute inset-y-0 left-14 z-50" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+          <div className="inline-block h-full">
+            <div className="h-full bg-popover text-popover-foreground border-r shadow-lg px-3 py-4 whitespace-nowrap">
+              <nav className="flex flex-col gap-1">
+                {navigationItems.map((item) => (
+                  <NavLink
+                    key={item.title}
+                    to={item.url}
+                    end={item.url === "/"}
+                    className={overlayBtnCls(item.url)}
+                    onClick={handleNavigate}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <span className="ml-3">{item.title}</span>
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
