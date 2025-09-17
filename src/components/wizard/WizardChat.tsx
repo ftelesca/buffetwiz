@@ -322,7 +322,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       <DialogContent className="max-w-4xl h-[80vh] p-0 flex flex-col">
         <div className="flex h-full min-h-0">
           {/* Sidebar de histórico */}
-          <div className={`${showHistory ? "w-80" : "w-0"} transition-all duration-300 border-r bg-muted/30 overflow-hidden flex flex-col`}>
+          <div className={`${showHistory ? "w-96" : "w-0"} transition-all duration-300 border-r bg-muted/30 overflow-hidden flex flex-col`}>
             <div className="p-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-sm">Histórico</h3>
@@ -377,7 +377,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                             })()}
                           </p>
                         </div>
-                        <div className="flex gap-1 flex-shrink-0">
+                        <div className="flex gap-0.5 flex-shrink-0">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -386,7 +386,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                               startEditingChat(chat.id, chat.title);
                             }}
                             aria-label="Renomear conversa"
-                            className="opacity-60 hover:opacity-100"
+                            className="opacity-60 hover:opacity-100 h-6 w-6 p-0"
                           >
                             <Edit className="h-3 w-3" />
                           </Button>
@@ -398,7 +398,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                               deleteChat(chat.id);
                             }}
                             aria-label="Deletar conversa"
-                            className="opacity-60 hover:opacity-100"
+                            className="opacity-60 hover:opacity-100 h-6 w-6 p-0"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
