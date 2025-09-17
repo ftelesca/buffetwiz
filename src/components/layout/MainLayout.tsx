@@ -16,47 +16,32 @@ function LayoutContent({ children }: MainLayoutProps) {
   const isCollapsed = state === "collapsed"
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
-      <AppSidebar />
-      
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col transition-all duration-300 ease-in-out">
-        {/* Desktop Header */}
-        <header className="hidden md:block sticky top-0 z-40 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80" style={{ height: 'var(--sidebar-logo-height, 4rem)' }}>
-          <div className="flex h-full items-center justify-between px-6">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger />
-              {isCollapsed && (
-                <div className="flex items-center gap-2">
-                  <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
-                  <div>
-                    <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
-                      BuffetWiz
-                    </h1>
-                  </div>
-                </div>
-              )}
-            </div>
-            <UserMenu />
-          </div>
-        </header>
-        
-        {/* Mobile Header */}
-        <header className="md:hidden sticky top-0 z-40 border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80" style={{ height: 'var(--sidebar-logo-height, 4rem)' }}>
-          <div className="flex h-full items-center px-6 gap-4 justify-between">
+    <div className="min-h-screen flex flex-col w-full bg-background">
+      {/* Header - Full Width */}
+      <header className="sticky top-0 z-50 w-full border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80 h-16">
+        <div className="flex h-full items-center justify-between px-6">
+          <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
               <div>
                 <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
                   BuffetWiz
                 </h1>
+                <p className="text-xs text-muted-foreground leading-tight hidden sm:block">
+                  Gestão de Eventos Descomplicada
+                </p>
               </div>
             </div>
-            <UserMenu />
           </div>
-        </header>
+          <UserMenu />
+        </div>
+      </header>
 
+      {/* Content Area with Sidebar */}
+      <div className="flex flex-1 w-full">
+        <AppSidebar />
+        
         {/* Main Content */}
         <div className="flex-1 p-8 overflow-hidden bg-gradient-to-br from-background via-background to-accent/5">
           {children}

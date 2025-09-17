@@ -113,38 +113,7 @@ export function AppSidebar() {
 
     return (
       <TooltipProvider>
-        <Sidebar collapsible="icon" className="transition-all duration-300 ease-in-out">
-          {/* Logo Area */}
-          <div 
-            ref={logoAreaRef}
-            className={`border-b border-border transition-all duration-300 ${isCollapsed ? "p-3" : "p-4"} flex items-center ${isCollapsed ? "justify-center" : "justify-start"}`}
-          >
-            {isCollapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center justify-center">
-                    <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded transition-all duration-300" />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="ml-2">
-                  <p>BuffetWiz</p>
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <div className="flex items-center gap-3 transition-all duration-300 min-w-0" data-sidebar="brand">
-                <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded flex-shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text transition-all duration-300 truncate">
-                    BuffetWiz
-                  </h1>
-                  <p className="text-xs text-muted-foreground transition-all duration-300 whitespace-normal leading-tight">
-                    Gestão de Eventos Descomplicada
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
+        <Sidebar collapsible="icon" className="transition-all duration-300 ease-in-out border-t-0">
         {/* Navigation Content */}
         <SidebarContent className={`transition-all duration-300 ${isCollapsed ? "px-0 py-2" : "p-3"}`}>
           <SidebarGroup>
