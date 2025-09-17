@@ -239,7 +239,7 @@ export default function Dashboard() {
                 Bem-vindo ao <span className="text-white">BuffetWiz</span>
               </h1>
               <p className="text-xl font-medium">
-                Gerencie seus eventos gastronômicos sem complicação
+                Produza seus eventos gastronômicos sem complicação
               </p>
             </div>
             <Button 
