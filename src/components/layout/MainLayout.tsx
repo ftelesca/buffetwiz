@@ -18,20 +18,28 @@ function LayoutContent({ children }: MainLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col w-full bg-background">
       {/* Header - Full Width */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80 h-16">
-        <div className="flex h-full items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <SidebarTrigger className={`${isCollapsed ? 'ml-0' : 'ml-2'} transition-all duration-300`} />
-            <div className="flex items-center gap-3">
-              <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
-              <div>
-                <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
-                  BuffetWiz
-                </h1>
-                <p className="text-xs text-muted-foreground leading-tight hidden sm:block">
-                  Gestão de Eventos Descomplicada
-                </p>
-              </div>
+      <header
+        className="sticky top-0 z-50 w-full border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80 h-16 relative"
+        style={{
+          paddingLeft: isCollapsed
+            ? 'calc(var(--sidebar-width-icon) + 1rem)'
+            : 'calc(var(--sidebar-width) + 1rem)'
+        }}
+      >
+        <SidebarTrigger
+          className="h-7 w-7 absolute top-1/2 -translate-y-1/2"
+          style={{ left: isCollapsed ? 'calc(var(--sidebar-width-icon)/2 - 14px)' : '22px' }}
+        />
+        <div className="flex h-full items-center justify-between pr-6">
+          <div className="flex items-center gap-3">
+            <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
+            <div>
+              <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
+                BuffetWiz
+              </h1>
+              <p className="text-xs text-muted-foreground leading-tight hidden sm:block">
+                Gestão de Eventos Descomplicada
+              </p>
             </div>
           </div>
           <UserMenu />
