@@ -23,15 +23,21 @@ serve(async (req) => {
     // Get authorization header
     const authorization = req.headers.get('authorization');
     if (!authorization) {
+      console.error('Missing authorization header');
       throw new Error('No authorization header');
     }
 
     // Get user from JWT
     const jwt = authorization.replace('Bearer ', '');
+    console.log('JWT received:', jwt.substring(0, 20) + '...');
+    
     const { data: user, error: userError } = await supabase.auth.getUser(jwt);
     
+    console.log('Auth response:', { user: user?.user?.id, error: userError?.message });
+    
     if (userError || !user.user) {
-      throw new Error('Invalid authorization');
+      console.error('Auth error:', userError);
+      throw new Error(`Invalid authorization: ${userError?.message || 'User not found'}`);
     }
 
     const userId = user.user.id;
