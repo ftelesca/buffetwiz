@@ -39,10 +39,9 @@ const navigationItems = [
 ]
 
 export function AppSidebar() {
-  const { state, setOpen, setOpenMobile, isMobile } = useSidebar()
+  const { setOpenMobile, isMobile } = useSidebar()
   const location = useLocation()
   const currentPath = location.pathname
-  const isCollapsed = state === "collapsed"
   const [isHovered, setIsHovered] = React.useState(false)
 
   const isActive = (path: string) => {
@@ -56,16 +55,11 @@ export function AppSidebar() {
     }
     // Close hover state after navigation
     setIsHovered(false)
-    // No desktop, se sidebar está recolhida, mantém recolhida
-    // Se não está recolhida, fecha a sidebar
-    if (!isMobile && !isCollapsed) {
-      setOpen(false)
-    }
   }
 
   const getNavClassNames = (path: string) => {
     const baseClasses = "transition-all duration-300"
-    const activeClasses = (isCollapsed && !isHovered)
+    const activeClasses = !isHovered
       ? "bg-primary text-primary-foreground rounded-lg" 
       : "bg-primary/10 text-primary border-r-2 border-primary font-medium"
     const inactiveClasses = "text-muted-foreground hover:text-foreground hover:bg-accent/50"
@@ -73,25 +67,24 @@ export function AppSidebar() {
     return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses}`
   }
 
-  // Determine if we should show expanded view (either permanently open or hovered when collapsed)
-  const showExpanded = !isCollapsed || (isCollapsed && isHovered)
+  // Always show collapsed, expand only on hover
+  const showExpanded = isHovered
   
-  // Determine if we should show tooltips (only when collapsed and not hovered)
-  const showTooltips = isCollapsed && !isHovered
+  // Show tooltips only when not hovered
+  const showTooltips = !isHovered
 
     return (
       <TooltipProvider>
         <Sidebar 
-          collapsible="icon" 
           className={`transition-all duration-300 ease-in-out border-t-0 top-16 ${
-            isCollapsed && isHovered ? 'fixed z-50 shadow-lg border-r' : ''
+            isHovered ? 'fixed z-50 shadow-lg border-r' : ''
           }`}
           style={{ 
             height: 'calc(100vh - 4rem)',
-            width: isCollapsed ? (isHovered ? SIDEBAR_WIDTH : SIDEBAR_WIDTH_ICON) : SIDEBAR_WIDTH
+            width: isHovered ? SIDEBAR_WIDTH : SIDEBAR_WIDTH_ICON
           }}
-          onMouseEnter={() => isCollapsed && setIsHovered(true)}
-          onMouseLeave={() => isCollapsed && setIsHovered(false)}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
         {/* Navigation Content */}
         <SidebarContent className={`transition-all duration-300 ${showExpanded ? "p-3" : "px-0 py-2"}`}>
