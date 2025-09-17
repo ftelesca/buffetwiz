@@ -15,7 +15,7 @@ function LayoutContent({ children }: MainLayoutProps) {
     <div className="min-h-screen flex flex-col w-full bg-background">
       {/* Header - Full Width */}
       <header className="sticky top-0 z-50 w-full border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80 h-16">
-        <div className="flex h-full items-center justify-between pl-4 pr-8 pt-2">
+        <div className="flex h-full items-center justify-between pl-2 pr-8 pt-2">
           <div className="flex items-center gap-6 flex-1 max-w-md">
             <img src="/logo.png" alt="BuffetWiz Logo" className="h-16 w-16 rounded-lg" />
             <div>
