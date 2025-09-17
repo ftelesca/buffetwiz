@@ -50,19 +50,15 @@ export function AppSidebar() {
 
   // Collapsed icon button (equal left/right padding, stable size)
   const collapsedBtnCls = (path: string) => {
-    const base = "group w-full h-10 px-2 flex items-center justify-center transition-colors"
-    if (hovered) {
-      // When expanded, remove individual icon styling
-      return `${base} text-muted-foreground`
-    }
-    const active = "text-primary bg-primary/10 ring-1 ring-primary/40 rounded-md"
-    const inactive = "text-muted-foreground hover:bg-accent/50 hover:text-foreground rounded-md"
+    const base = "group w-full h-10 px-2 flex items-center justify-center rounded-md transition-colors"
+    const active = "text-primary bg-primary/10 ring-1 ring-primary/40"
+    const inactive = "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
     return `${base} ${isActive(path) ? active : inactive}`
   }
 
   // Overlay link that covers both icon area (rail) and caption area
   const overlayBtnCls = (path: string) => {
-    const base = "h-10 flex items-center rounded-md pl-2 pr-3 transition-colors select-none gap-3"
+    const base = "h-10 flex items-center rounded-md pl-14 pr-3 transition-colors select-none"
     const active = "bg-primary/10 text-primary ring-1 ring-primary/40"
     const inactive = "text-foreground/80 hover:bg-accent/50"
     return `${base} ${isActive(path) ? active : inactive}`
@@ -82,7 +78,7 @@ export function AppSidebar() {
                   onClick={handleNavigate}
                   end={item.url === "/"}
                 >
-                  <span className={`h-10 w-10 flex items-center justify-center ${hovered ? "opacity-0" : ""}`}>
+                  <span className="h-10 w-10 flex items-center justify-center">
                     <item.icon className="h-5 w-5 flex-shrink-0" />
                   </span>
                 </NavLink>
@@ -96,7 +92,7 @@ export function AppSidebar() {
       {hovered && !isMobile && (
         <div className="absolute inset-y-0 left-0 z-50" onMouseEnter={onEnter} onMouseLeave={onLeave}>
           <div className="inline-block h-full">
-            <div className="h-full border-r px-2 pt-3 pb-4 whitespace-nowrap text-foreground bg-transparent">
+            <div className="h-full border-r pl-0 pr-2 pt-3 pb-4 whitespace-nowrap text-foreground bg-background">
               <nav className="flex flex-col gap-1">
                 {navigationItems.map((item) => (
                   <NavLink
@@ -106,9 +102,6 @@ export function AppSidebar() {
                     className={overlayBtnCls(item.url)}
                     onClick={handleNavigate}
                   >
-                    <span className="h-10 w-10 flex items-center justify-center">
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                    </span>
                     <span>{item.title}</span>
                   </NavLink>
                 ))}
