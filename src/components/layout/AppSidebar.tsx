@@ -87,7 +87,7 @@ export function AppSidebar() {
           onMouseLeave={() => setIsHovered(false)}
         >
         {/* Navigation Content */}
-        <SidebarContent className={`transition-all duration-300 ${showExpanded ? "p-3" : "px-0 py-2"}`}>
+        <SidebarContent className="transition-all duration-300 px-2 py-2">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
@@ -99,10 +99,13 @@ export function AppSidebar() {
                           <SidebarMenuButton asChild>
                             <NavLink
                               to={item.url}
-                              className={`${getNavClassNames(item.url)} flex items-center justify-center`}
+                              className={`${getNavClassNames(item.url)} flex items-center py-2`}
                               onClick={handleNavigate}
                             >
-                              <item.icon className="h-5 w-5" />
+                              <span className="w-12 flex justify-center">
+                                <item.icon className="h-5 w-5 flex-shrink-0" />
+                              </span>
+                              {showExpanded && <span className="ml-3 truncate">{item.title}</span>}
                             </NavLink>
                           </SidebarMenuButton>
                         </TooltipTrigger>
@@ -114,11 +117,13 @@ export function AppSidebar() {
                       <SidebarMenuButton asChild>
                         <NavLink
                           to={item.url}
-                          className={`${getNavClassNames(item.url)} flex items-center ${showExpanded ? 'px-3 py-2' : 'justify-center'}`}
+                          className={`${getNavClassNames(item.url)} flex items-center py-2`}
                           onClick={handleNavigate}
                           data-sidebar="menu-button"
                         >
-                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <span className="w-12 flex justify-center">
+                            <item.icon className="h-5 w-5 flex-shrink-0" />
+                          </span>
                           {showExpanded && <span className="ml-3 truncate">{item.title}</span>}
                         </NavLink>
                       </SidebarMenuButton>
