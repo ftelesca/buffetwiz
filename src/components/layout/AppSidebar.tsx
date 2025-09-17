@@ -59,7 +59,7 @@ export function AppSidebar() {
 
   // Overlay link that covers both icon area (rail) and caption area
   const overlayBtnCls = (path: string) => {
-    const base = "h-10 flex items-center rounded-md pl-2 pr-3 transition-colors select-none"
+    const base = "h-10 flex items-center rounded-md ml-2 pl-0 pr-3 transition-colors select-none gap-3"
     const active = "bg-primary/10 text-primary ring-1 ring-primary/40"
     const inactive = "text-foreground/80 hover:bg-accent/50"
     return `${base} ${isActive(path) ? active : inactive}`
