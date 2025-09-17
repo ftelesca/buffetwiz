@@ -84,6 +84,10 @@ export default function ProductItemForm({
         // Invalidate queries to refresh costs
         queryClient.invalidateQueries({ queryKey: ['productBaseCost'] })
         queryClient.invalidateQueries({ queryKey: ['productUnitCost'] })
+        // Invalidate event queries to refresh costs when recipe items change
+        queryClient.invalidateQueries({ queryKey: ["events"] })
+        queryClient.invalidateQueries({ queryKey: ["dashboard-events"] })
+        queryClient.invalidateQueries({ queryKey: ["event-menu"] })
         onSuccess()
       }
     } else {
@@ -117,6 +121,10 @@ export default function ProductItemForm({
         // Invalidate queries to refresh costs
         queryClient.invalidateQueries({ queryKey: ['productBaseCost'] })
         queryClient.invalidateQueries({ queryKey: ['productUnitCost'] })
+        // Invalidate event queries to refresh costs when recipe items change
+        queryClient.invalidateQueries({ queryKey: ["events"] })
+        queryClient.invalidateQueries({ queryKey: ["dashboard-events"] })
+        queryClient.invalidateQueries({ queryKey: ["event-menu"] })
         onSuccess()
       }
     }

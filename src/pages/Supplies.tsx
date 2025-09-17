@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { getSupabaseErrorMessage } from "@/lib/errorHandler"
 import { useAuth } from "@/contexts/AuthContext"
+import { useQueryClient } from "@tanstack/react-query"
 import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText, getDeletedMessage } from "@/lib/utils"
 import { SpreadsheetImport } from "@/components/supplies/SpreadsheetImport"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
@@ -49,6 +50,7 @@ interface ItemFormData {
 
 export default function Insumos() {
   const { user } = useAuth();
+  const queryClient = useQueryClient()
   const [items, setItems] = useState<Item[]>([])
   const [units, setUnits] = useState<Unit[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -176,6 +178,11 @@ export default function Insumos() {
       setEditingItem(null)
       setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1, isproduct: false })
       fetchItems()
+      
+      // Invalidate event queries to refresh costs when items change
+      queryClient.invalidateQueries({ queryKey: ["events"] })
+      queryClient.invalidateQueries({ queryKey: ["dashboard-events"] })
+      queryClient.invalidateQueries({ queryKey: ["event-menu"] })
     } catch (error) {
       console.error('Erro ao salvar insumo:', error)
       toast({
