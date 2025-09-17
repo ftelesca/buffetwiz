@@ -89,11 +89,6 @@ export function AppSidebar() {
         {/* Navigation Content */}
         <SidebarContent className={`transition-all duration-300 ${showExpanded ? "p-3" : "px-0 py-2"}`}>
           <SidebarGroup>
-            {showExpanded && (
-              <SidebarGroupLabel className="transition-all duration-300" data-sidebar="group-label">
-                Navegação
-              </SidebarGroupLabel>
-            )}
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
                 {navigationItems.map((item) => (
