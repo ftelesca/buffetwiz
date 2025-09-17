@@ -153,7 +153,7 @@ export function ChatSidebar({
               <p className="text-sm">Nenhuma conversa encontrada</p>
             </div>
           ) : (
-            <>
+            <div className="space-y-4">
               {Object.entries(groupedSessions).map(([period, periodSessions]) => {
                 if (periodSessions.length === 0) return null;
                 
@@ -165,91 +165,96 @@ export function ChatSidebar({
                 };
 
                 return (
-                  <ul className="space-y-2">
-                    {periodSessions.map((session) => (
-                      <li key={session.id} className="list-none">
-                        <button
-                          type="button"
-                          onClick={() => onSessionSelect(session)}
-                          className={cn(
-                            "w-full box-border text-left rounded-md border border-border/40 bg-card hover:bg-accent/50 transition-colors p-3 overflow-hidden",
-                            currentSession?.id === session.id && "bg-accent border-border/60"
-                          )}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm truncate mb-1">
-                                {session.title}
-                              </h4>
-                              {getLastMessage(session) && (
-                                <p className="text-xs text-muted-foreground truncate mb-2">
-                                  {getLastMessage(session)}
-                                </p>
-                              )}
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground flex items-center whitespace-nowrap">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  {formatTime(session.updatedAt)}
-                                </span>
-                                {getMessageCount(session) > 0 && (
-                                  <Badge variant="secondary" className="text-xs h-4">
-                                    {getMessageCount(session)}
-                                  </Badge>
+                  <div key={period} className="space-y-2">
+                    <h3 className="text-xs font-medium text-muted-foreground px-2 mb-2">
+                      {periodLabels[period as keyof typeof periodLabels]}
+                    </h3>
+                    <ul className="space-y-2">
+                      {periodSessions.map((session) => (
+                        <li key={session.id} className="list-none">
+                          <button
+                            type="button"
+                            onClick={() => onSessionSelect(session)}
+                            className={cn(
+                              "w-full box-border text-left rounded-md border border-border/40 bg-card hover:bg-accent/50 transition-colors p-3 overflow-hidden",
+                              currentSession?.id === session.id && "bg-accent border-border/60"
+                            )}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-sm truncate mb-1">
+                                  {session.title}
+                                </h4>
+                                {getLastMessage(session) && (
+                                  <p className="text-xs text-muted-foreground truncate mb-2">
+                                    {getLastMessage(session)}
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground flex items-center whitespace-nowrap">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    {formatTime(session.updatedAt)}
+                                  </span>
+                                  {getMessageCount(session) > 0 && (
+                                    <Badge variant="secondary" className="text-xs h-4">
+                                      {getMessageCount(session)}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                {onExportSession && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onExportSession(session.id);
+                                    }}
+                                    title="Exportar conversa"
+                                  >
+                                    <Download className="h-3 w-3" />
+                                  </Button>
+                                )}
+                                {onArchiveSession && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onArchiveSession(session.id);
+                                    }}
+                                    title="Arquivar conversa"
+                                  >
+                                    <Archive className="h-3 w-3" />
+                                  </Button>
+                                )}
+                                {onDeleteSession && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onDeleteSession(session.id);
+                                    }}
+                                    title="Excluir conversa"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              {onExportSession && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onExportSession(session.id);
-                                  }}
-                                  title="Exportar conversa"
-                                >
-                                  <Download className="h-3 w-3" />
-                                </Button>
-                              )}
-                              {onArchiveSession && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onArchiveSession(session.id);
-                                  }}
-                                  title="Arquivar conversa"
-                                >
-                                  <Archive className="h-3 w-3" />
-                                </Button>
-                              )}
-                              {onDeleteSession && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDeleteSession(session.id);
-                                  }}
-                                  title="Excluir conversa"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 );
               })}
-            </>
+            </div>
           )}
         </div>
       </div>
