@@ -76,6 +76,7 @@ export function AppSidebar() {
     return (
       <TooltipProvider>
         <Sidebar 
+          collapsible="icon"
           className={`transition-all duration-300 ease-in-out border-t-0 top-16 ${
             isHovered ? 'fixed z-50 shadow-lg border-r' : ''
           }`}
