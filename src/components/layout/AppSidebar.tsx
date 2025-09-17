@@ -71,7 +71,7 @@ export function AppSidebar() {
   return (
     <div className="relative" onMouseEnter={onEnter} onMouseLeave={onLeave}>
       {/* Mini rail - fixed width, icons centered with equal padding */}
-      <aside className="w-14 border-r">
+      <aside className={`w-14 ${hovered ? "" : "border-r"}`}>
         <nav className="pt-3 pb-4 px-2">
           <ul className="space-y-1">
             {navigationItems.map((item) => (
@@ -94,7 +94,7 @@ export function AppSidebar() {
 
       {/* Hover overlay - extends from rail with background and border */}
       {hovered && !isMobile && (
-        <div className="absolute inset-y-0 left-14 z-50" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+        <div className="absolute inset-y-0 left-0 right-0 z-50" onMouseEnter={onEnter} onMouseLeave={onLeave}>
           <div className="inline-block h-full">
             <div className="h-full bg-popover text-popover-foreground border-r shadow-lg px-2 pt-3 pb-4 whitespace-nowrap">
               <nav className="flex flex-col gap-1">
@@ -106,7 +106,9 @@ export function AppSidebar() {
                     className={overlayBtnCls(item.url)}
                     onClick={handleNavigate}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <span className="h-10 w-10 flex items-center justify-center">
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                    </span>
                     <span>{item.title}</span>
                   </NavLink>
                 ))}
