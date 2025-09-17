@@ -54,7 +54,7 @@ export default function ProductItems({
 
   // Calculate base cost using Supabase function
   const { data: productBaseCost } = useQuery({
-    queryKey: ["productBaseCost", selectedProduct?.id],
+    queryKey: ["productBaseCost", selectedProduct?.id, selectedProduct?.efficiency],
     queryFn: async () => {
       if (!selectedProduct?.id) return 0;
       
@@ -75,7 +75,7 @@ export default function ProductItems({
 
   // Calculate unit cost using Supabase function
   const { data: productUnitCost } = useQuery({
-    queryKey: ["productUnitCost", selectedProduct?.id],
+    queryKey: ["productUnitCost", selectedProduct?.id, selectedProduct?.efficiency],
     queryFn: async () => {
       if (!selectedProduct?.id) return 0;
       
