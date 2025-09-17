@@ -40,6 +40,11 @@ export default function ProductItemForm({
         item: editingProductItem.item.toString(), 
         qty: editingProductItem.qty.toString() 
       })
+      // Focus on quantity field when editing
+      setTimeout(() => {
+        qtyInputRef.current?.focus()
+        qtyInputRef.current?.select()
+      }, 100)
     } else {
       setNewProductItem({ item: "", qty: "" })
     }
