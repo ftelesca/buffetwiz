@@ -321,17 +321,6 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteChat(chat.id);
-                          }}
-                          aria-label="Deletar conversa"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
                       </div>
                     </div>
                   </Card>
