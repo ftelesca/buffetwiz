@@ -16,7 +16,7 @@ export function AppSidebar() {
   const location = useLocation()
   const currentPath = location.pathname
 
-  // Stable mini rail + hover overlay for captions only
+  // Stable mini rail + unified hover area (one clickable container for icon+caption)
   const [hovered, setHovered] = React.useState(false)
   const closeTimer = React.useRef<number | null>(null)
 
@@ -48,6 +48,7 @@ export function AppSidebar() {
     setHovered(false)
   }
 
+  // Collapsed icon button (equal left/right padding, stable size)
   const collapsedBtnCls = (path: string) => {
     const base = "group w-full h-10 px-2 flex items-center justify-center rounded-md transition-colors"
     const active = "text-primary bg-primary/10 ring-1 ring-primary/40"
@@ -55,8 +56,9 @@ export function AppSidebar() {
     return `${base} ${isActive(path) ? active : inactive}`
   }
 
-  const overlayTextCls = (path: string) => {
-    const base = "h-10 flex items-center rounded-md px-3 transition-colors"
+  // Overlay link that covers both icon area (rail) and caption area
+  const overlayBtnCls = (path: string) => {
+    const base = "h-10 flex items-center rounded-md pl-16 pr-3 transition-colors select-none"
     const active = "bg-primary/10 text-primary ring-1 ring-primary/40"
     const inactive = "text-foreground/80 hover:bg-accent/50"
     return `${base} ${isActive(path) ? active : inactive}`
@@ -64,7 +66,7 @@ export function AppSidebar() {
 
   return (
     <div className="relative" onMouseEnter={onEnter} onMouseLeave={onLeave}>
-      {/* Mini rail - fixed width, stable icons with equal padding */}
+      {/* Mini rail - fixed width, icons centered with equal padding */}
       <aside className="w-14 border-r">
         <nav className="pt-3 pb-4 px-2">
           <ul className="space-y-1">
@@ -72,7 +74,7 @@ export function AppSidebar() {
               <li key={item.title}>
                 <NavLink
                   to={item.url}
-                  className={collapsedBtnCls(item.url)}
+                  className={`${collapsedBtnCls(item.url)} ${hovered ? "pointer-events-none" : ""}`}
                   onClick={handleNavigate}
                   end={item.url === "/"}
                 >
@@ -86,20 +88,21 @@ export function AppSidebar() {
         </nav>
       </aside>
 
-      {/* Hover overlay - extends to the right to show captions ONLY (no duplicate icons) */}
+      {/* Hover overlay - single clickable container (no separate panel/bg/border) */}
       {hovered && !isMobile && (
-        <div className="absolute inset-y-0 left-14 z-50" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+        <div className="absolute inset-y-0 left-0 z-50" onMouseEnter={onEnter} onMouseLeave={onLeave}>
           <div className="inline-block h-full">
-            <div className="h-full bg-popover text-popover-foreground border-r shadow-lg px-3 py-4 whitespace-nowrap">
+            <div className="h-full px-0 pt-3 pb-4 whitespace-nowrap">
               <nav className="flex flex-col gap-1">
                 {navigationItems.map((item) => (
                   <NavLink
                     key={item.title}
                     to={item.url}
                     end={item.url === "/"}
-                    className={overlayTextCls(item.url)}
+                    className={overlayBtnCls(item.url)}
                     onClick={handleNavigate}
                   >
+                    {/* No duplicate icon here; this link overlays the rail, making icon+caption one hit target */}
                     <span>{item.title}</span>
                   </NavLink>
                 ))}
