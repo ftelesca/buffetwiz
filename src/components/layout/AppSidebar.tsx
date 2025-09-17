@@ -79,7 +79,7 @@ export function AppSidebar() {
           onMouseLeave={() => setIsHovered(false)}
         >
         {/* Navigation Content */}
-        <SidebarContent className="transition-all duration-300 px-2 py-2">
+        <SidebarContent className="transition-all duration-300 px-2 py-3">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
@@ -91,10 +91,10 @@ export function AppSidebar() {
                           <SidebarMenuButton asChild>
                             <NavLink
                               to={item.url}
-                              className={`${getNavClassNames(item.url)} flex items-center py-2 px-2`}
+                              className={`${getNavClassNames(item.url)} flex items-center py-2 ${showExpanded ? 'px-2' : 'px-0 justify-center'}`}
                               onClick={handleNavigate}
                             >
-                              <span className="w-10 flex justify-center">
+                              <span className={`${showExpanded ? 'w-10' : 'w-full'} flex justify-center`}>
                                 <item.icon className="h-5 w-5 flex-shrink-0" />
                               </span>
                               {showExpanded && <span className="ml-3 truncate">{item.title}</span>}
@@ -109,11 +109,11 @@ export function AppSidebar() {
                       <SidebarMenuButton asChild>
                         <NavLink
                           to={item.url}
-                          className={`${getNavClassNames(item.url)} flex items-center py-2 px-2`}
+                          className={`${getNavClassNames(item.url)} flex items-center py-2 ${showExpanded ? 'px-2' : 'px-0 justify-center'}`}
                           onClick={handleNavigate}
                           data-sidebar="menu-button"
                         >
-                          <span className="w-10 flex justify-center">
+                          <span className={`${showExpanded ? 'w-10' : 'w-full'} flex justify-center`}>
                             <item.icon className="h-5 w-5 flex-shrink-0" />
                           </span>
                           {showExpanded && <span className="ml-3 truncate">{item.title}</span>}
