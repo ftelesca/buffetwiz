@@ -481,7 +481,7 @@ async function exportLastResponseToPDFAndDOCX(content: string, filename: string,
   
   <div class="footer">
     <div class="brand">BuffetWiz</div>
-    <div class="tagline">Gestão de Eventos Descomplicada</div>
+    <div class="tagline">Descomplicando seu Buffet</div>
   </div>
 </body>
 </html>`;

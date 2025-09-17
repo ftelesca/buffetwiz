@@ -25,7 +25,7 @@ export function AuthPage() {
               BuffetWiz
             </h1>
             <p className="text-muted-foreground">
-              Gestão de Eventos Descomplicada
+              Descomplicando seu Buffet
             </p>
           </div>
         </div>

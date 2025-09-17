@@ -283,7 +283,7 @@ serve(async (req) => {
     
     <div class="footer">
         <div class="logo">BuffetWiz</div>
-        <div>Gestão de Eventos Descomplicada</div>
+        <div>Descomplicando seu Buffet</div>
         <div style="margin-top: 10px; opacity: 0.8;">
             Powered by AI • Gerado em ${currentDate}
         </div>

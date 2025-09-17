@@ -23,7 +23,7 @@ function LayoutContent({ children }: MainLayoutProps) {
                 BuffetWiz
               </h1>
               <p className="text-xs text-muted-foreground leading-tight hidden sm:block">
-                Gestão de Eventos Descomplicada
+                Descomplicando seu Buffet
               </p>
             </div>
           </div>
