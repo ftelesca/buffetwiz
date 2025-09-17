@@ -9,7 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-import { Bot, ChevronLeft, Clock, Download, History, MessageSquare, Send, Trash2, User } from "lucide-react";
+import { Bot, ChevronLeft, Clock, Download, Edit, History, MessageSquare, Send, Trash2, User } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // NOTE: Esta versão foi reescrita do zero para uma arquitetura mais simples e confiável,
 // mantendo: histórico, envio, renderização markdown com botões de download e exportação em PDF.
@@ -48,6 +49,8 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -162,6 +165,51 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     } catch (err) {
       console.error("Erro deletando chat:", err);
       toast({ title: "Erro", description: "Não foi possível deletar", variant: "destructive" });
+    }
+  };
+
+  const updateChatTitle = async (chatId: string, newTitle: string) => {
+    if (!newTitle.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from("wizard_chats")
+        .update({ title: newTitle.trim() })
+        .eq("id", chatId);
+      
+      if (error) throw error;
+      
+      setChats((prev) => prev.map((c) => 
+        c.id === chatId ? { ...c, title: newTitle.trim() } : c
+      ));
+      
+      setEditingChatId(null);
+      setEditValue("");
+      
+      toast({ title: "Título atualizado", description: "Nome da conversa alterado com sucesso" });
+    } catch (err) {
+      console.error("Erro atualizando título:", err);
+      toast({ title: "Erro", description: "Não foi possível atualizar o título", variant: "destructive" });
+    }
+  };
+
+  const startEditingChat = (chatId: string, currentTitle: string) => {
+    setEditingChatId(chatId);
+    setEditValue(currentTitle);
+  };
+
+  const cancelEditing = () => {
+    setEditingChatId(null);
+    setEditValue("");
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent, chatId: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      updateChatTitle(chatId, editValue);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelEditing();
     }
   };
 
@@ -285,46 +333,80 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             </div>
             <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-muted/40 min-h-0">
               <div className="p-2">
-                {chats.map((chat) => (
-                  <Card
-                    key={chat.id}
-                    className={`p-3 mb-2 cursor-pointer hover:bg-accent transition-colors ${currentChatId === chat.id ? "bg-accent" : ""}`}
-                    onClick={() => loadMessages(chat.id)}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{chat.title}</p>
-                        <p className="text-xs text-muted-foreground flex items-center mt-1">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {(() => {
-                            const d = new Date(chat.updated_at);
-                            const today = new Date();
-                            const y = new Date();
-                            y.setDate(today.getDate() - 1);
-                            const isToday = d.toDateString() === today.toDateString();
-                            const isYesterday = d.toDateString() === y.toDateString();
-                            if (isToday) return `Hoje ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
-                            if (isYesterday) return `Ontem ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
-                            return `${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
-                          })()}
-                        </p>
+                <TooltipProvider>
+                  {chats.map((chat) => (
+                    <Card
+                      key={chat.id}
+                      className={`p-3 mb-2 cursor-pointer hover:bg-accent transition-colors ${currentChatId === chat.id ? "bg-accent" : ""}`}
+                      onClick={() => editingChatId !== chat.id && loadMessages(chat.id)}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          {editingChatId === chat.id ? (
+                            <Input
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onKeyDown={(e) => handleEditKeyDown(e, chat.id)}
+                              onBlur={() => updateChatTitle(chat.id, editValue)}
+                              className="text-sm font-medium h-auto p-1 border-none bg-transparent focus:bg-background focus:border-input"
+                              autoFocus
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          ) : (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <p className="text-sm font-medium truncate cursor-pointer">{chat.title}</p>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="max-w-xs">
+                                <p className="whitespace-normal break-words">{chat.title}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          <p className="text-xs text-muted-foreground flex items-center mt-1">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {(() => {
+                              const d = new Date(chat.updated_at);
+                              const today = new Date();
+                              const y = new Date();
+                              y.setDate(today.getDate() - 1);
+                              const isToday = d.toDateString() === today.toDateString();
+                              const isYesterday = d.toDateString() === y.toDateString();
+                              if (isToday) return `Hoje ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+                              if (isYesterday) return `Ontem ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+                              return `${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+                            })()}
+                          </p>
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditingChat(chat.id, chat.title);
+                            }}
+                            aria-label="Renomear conversa"
+                            className="opacity-60 hover:opacity-100"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteChat(chat.id);
+                            }}
+                            aria-label="Deletar conversa"
+                            className="opacity-60 hover:opacity-100"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteChat(chat.id);
-                          }}
-                          aria-label="Deletar conversa"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  ))}
+                </TooltipProvider>
               </div>
             </div>
           </div>
