@@ -1,23 +1,7 @@
 import React from "react"
 import { NavLink, useLocation } from "react-router-dom"
-import { 
-  Calendar, 
-  ChefHat, 
-  Home, 
-  Users, 
-  ShoppingCart
-} from "lucide-react"
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar"
+import { Calendar, ChefHat, Home, Users, ShoppingCart } from "lucide-react"
+import { useSidebar } from "@/components/ui/sidebar"
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: Home },
@@ -32,7 +16,7 @@ export function AppSidebar() {
   const location = useLocation()
   const currentPath = location.pathname
 
-  // Keep icons perfectly stable: sidebar stays mini, overlay floats over main.
+  // Stable mini rail + hover overlay for captions only
   const [hovered, setHovered] = React.useState(false)
   const closeTimer = React.useRef<number | null>(null)
 
@@ -50,17 +34,17 @@ export function AppSidebar() {
   }
 
   const onLeave = () => {
-    // small delay to avoid blink when moving from rail to overlay
     if (closeTimer.current) window.clearTimeout(closeTimer.current)
+    // small delay to avoid flicker when moving between rail and overlay
     closeTimer.current = window.setTimeout(() => setHovered(false), 120)
   }
 
-  React.useEffect(() => () => { if (closeTimer.current) window.clearTimeout(closeTimer.current) }, [])
+  React.useEffect(() => () => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current)
+  }, [])
 
   const handleNavigate = () => {
-    if (isMobile) {
-      setOpenMobile(false)
-    }
+    if (isMobile) setOpenMobile(false)
     setHovered(false)
   }
 
@@ -71,8 +55,8 @@ export function AppSidebar() {
     return `${base} ${isActive(path) ? active : inactive}`
   }
 
-  const overlayBtnCls = (path: string) => {
-    const base = "w-full flex items-center px-3 py-2 rounded-md transition-colors"
+  const overlayTextCls = (path: string) => {
+    const base = "h-10 flex items-center rounded-md px-3 transition-colors"
     const active = "bg-primary/10 text-primary ring-1 ring-primary/40"
     const inactive = "text-foreground/80 hover:bg-accent/50"
     return `${base} ${isActive(path) ? active : inactive}`
@@ -80,35 +64,29 @@ export function AppSidebar() {
 
   return (
     <div className="relative" onMouseEnter={onEnter} onMouseLeave={onLeave}>
-      {/* Mini rail - fixed width, icons centered with equal padding */}
-      <Sidebar collapsible="none" className="w-14 border-r">
-        <SidebarContent className="px-2 pt-4 pb-4">
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu className="space-y-1">
-                {navigationItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to={item.url}
-                        className={collapsedBtnCls(item.url)}
-                        onClick={handleNavigate}
-                        end={item.url === "/"}
-                      >
-                        <span className="h-10 w-10 flex items-center justify-center">
-                          <item.icon className="h-5 w-5 flex-shrink-0" />
-                        </span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
+      {/* Mini rail - fixed width, stable icons with equal padding */}
+      <aside className="w-14 border-r">
+        <nav className="pt-3 pb-4 px-2">
+          <ul className="space-y-1">
+            {navigationItems.map((item) => (
+              <li key={item.title}>
+                <NavLink
+                  to={item.url}
+                  className={collapsedBtnCls(item.url)}
+                  onClick={handleNavigate}
+                  end={item.url === "/"}
+                >
+                  <span className="h-10 w-10 flex items-center justify-center">
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                  </span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
 
-      {/* Hover overlay - floats over main panel, auto width (widest caption + padding) */}
+      {/* Hover overlay - extends to the right to show captions ONLY (no duplicate icons) */}
       {hovered && !isMobile && (
         <div className="absolute inset-y-0 left-14 z-50" onMouseEnter={onEnter} onMouseLeave={onLeave}>
           <div className="inline-block h-full">
@@ -119,11 +97,10 @@ export function AppSidebar() {
                     key={item.title}
                     to={item.url}
                     end={item.url === "/"}
-                    className={overlayBtnCls(item.url)}
+                    className={overlayTextCls(item.url)}
                     onClick={handleNavigate}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
-                    <span className="ml-3">{item.title}</span>
+                    <span>{item.title}</span>
                   </NavLink>
                 ))}
               </nav>
