@@ -91,7 +91,7 @@ export function AppSidebar() {
 
       {/* Hover overlay - extends from rail with background and border */}
       {hovered && !isMobile && (
-        <div className="absolute inset-y-0 left-0 z-50" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+        <div className="fixed top-16 bottom-0 left-0 z-50" onMouseEnter={onEnter} onMouseLeave={onLeave}>
           <div className="inline-block h-full">
             <div className="h-full border-r pl-0 pr-2 pt-3 pb-4 whitespace-nowrap text-foreground bg-background">
               <nav className="flex flex-col gap-1">
