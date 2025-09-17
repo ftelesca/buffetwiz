@@ -1,12 +1,10 @@
 import { NavLink, useLocation } from "react-router-dom"
-import { useCallback, useLayoutEffect, useRef } from "react"
 import { 
   Calendar, 
   ChefHat, 
   Home, 
   Users, 
-  ShoppingCart,
-  ChefHat as LogoIcon
+  ShoppingCart
 } from "lucide-react"
 
 import {
@@ -41,49 +39,6 @@ export function AppSidebar() {
   const currentPath = location.pathname
   const isCollapsed = state === "collapsed"
 
-  // Ref for the logo area to measure its height
-  const logoAreaRef = useRef<HTMLDivElement | null>(null)
-
-
-  useLayoutEffect(() => {
-    const root = document.documentElement
-    let raf1 = 0
-    let raf2 = 0
-
-    const measure = () => {
-      const el = logoAreaRef.current
-      const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0
-      const value = h > 0 ? `${h}px` : '4rem'
-      root.style.setProperty('--sidebar-logo-height', value)
-    }
-
-    const schedule = () => {
-      cancelAnimationFrame(raf1)
-      cancelAnimationFrame(raf2)
-      raf1 = requestAnimationFrame(() => {
-        raf2 = requestAnimationFrame(measure)
-      })
-    }
-
-    schedule()
-
-    const ro = new ResizeObserver(schedule)
-    const el = logoAreaRef.current
-    if (el) ro.observe(el)
-
-    const mo = new MutationObserver(schedule)
-    if (el) mo.observe(el, { childList: true, subtree: true, characterData: true })
-
-    window.addEventListener('resize', schedule)
-
-    return () => {
-      ro.disconnect()
-      mo.disconnect()
-      window.removeEventListener('resize', schedule)
-      cancelAnimationFrame(raf1)
-      cancelAnimationFrame(raf2)
-    }
-  }, [state])
 
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/"
@@ -113,7 +68,7 @@ export function AppSidebar() {
 
     return (
       <TooltipProvider>
-        <Sidebar collapsible="icon" className="transition-all duration-300 ease-in-out border-t-0">
+        <Sidebar collapsible="icon" className="transition-all duration-300 ease-in-out border-t-0 top-16" style={{ height: 'calc(100vh - 4rem)' }}>
         {/* Navigation Content */}
         <SidebarContent className={`transition-all duration-300 ${isCollapsed ? "px-0 py-2" : "p-3"}`}>
           <SidebarGroup>

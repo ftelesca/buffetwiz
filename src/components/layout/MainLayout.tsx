@@ -21,7 +21,7 @@ function LayoutContent({ children }: MainLayoutProps) {
       <header className="sticky top-0 z-50 w-full border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80 h-16">
         <div className="flex h-full items-center justify-between px-6">
           <div className="flex items-center gap-4">
-            <SidebarTrigger />
+            <SidebarTrigger className={`${isCollapsed ? 'ml-0' : 'ml-2'} transition-all duration-300`} />
             <div className="flex items-center gap-3">
               <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
               <div>
