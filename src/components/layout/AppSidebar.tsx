@@ -26,9 +26,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-// Constants for sidebar dimensions
-const SIDEBAR_WIDTH = "16rem"
-const SIDEBAR_WIDTH_ICON = "3rem"
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: Home },
@@ -75,15 +72,9 @@ export function AppSidebar() {
 
     return (
       <TooltipProvider>
-        <Sidebar 
+        <Sidebar
           collapsible="icon"
-          className={`transition-all duration-300 ease-in-out border-t-0 top-16 ${
-            isHovered ? 'fixed z-50 shadow-lg border-r' : ''
-          }`}
-          style={{ 
-            height: 'calc(100vh - 4rem)',
-            width: isHovered ? SIDEBAR_WIDTH : SIDEBAR_WIDTH_ICON
-          }}
+          className={`transition-all duration-300 ease-in-out border-r ${isHovered ? 'w-56' : 'w-14'}`}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -103,7 +94,7 @@ export function AppSidebar() {
                               className={`${getNavClassNames(item.url)} flex items-center py-2`}
                               onClick={handleNavigate}
                             >
-                              <span className="w-12 flex justify-center">
+                              <span className="w-14 flex justify-center">
                                 <item.icon className="h-5 w-5 flex-shrink-0" />
                               </span>
                               {showExpanded && <span className="ml-3 truncate">{item.title}</span>}
@@ -122,7 +113,7 @@ export function AppSidebar() {
                           onClick={handleNavigate}
                           data-sidebar="menu-button"
                         >
-                          <span className="w-12 flex justify-center">
+                          <span className="w-14 flex justify-center">
                             <item.icon className="h-5 w-5 flex-shrink-0" />
                           </span>
                           {showExpanded && <span className="ml-3 truncate">{item.title}</span>}
