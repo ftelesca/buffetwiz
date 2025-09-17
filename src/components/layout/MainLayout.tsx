@@ -18,19 +18,12 @@ function LayoutContent({ children }: MainLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col w-full bg-background">
       {/* Header - Full Width */}
-      <header
-        className="sticky top-0 z-50 w-full border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80 h-16 relative"
-        style={{
-          paddingLeft: isCollapsed
-            ? 'calc(var(--sidebar-width-icon) + 1rem)'
-            : 'calc(var(--sidebar-width) + 1rem)'
-        }}
-      >
+      <header className="sticky top-0 z-50 w-full border-b border-border/50 glass-effect supports-[backdrop-filter]:bg-background/80 h-16 relative">
         <SidebarTrigger
-          className="h-7 w-7 absolute top-1/2 -translate-y-1/2"
+          className="h-7 w-7 absolute top-1/2 -translate-y-1/2 z-10"
           style={{ left: isCollapsed ? 'calc(var(--sidebar-width-icon)/2 - 14px)' : '22px' }}
         />
-        <div className="flex h-full items-center justify-between pr-6">
+        <div className="flex h-full items-center justify-between px-6 ml-14">
           <div className="flex items-center gap-3">
             <img src="/favicon.png" alt="BuffetWiz Logo" className="h-8 w-8 rounded" />
             <div>
