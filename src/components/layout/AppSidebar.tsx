@@ -82,7 +82,7 @@ export function AppSidebar() {
                   onClick={handleNavigate}
                   end={item.url === "/"}
                 >
-                  <span className="h-10 w-10 flex items-center justify-center">
+                  <span className={`h-10 w-10 flex items-center justify-center ${hovered ? "opacity-0" : ""}`}>
                     <item.icon className="h-5 w-5 flex-shrink-0" />
                   </span>
                 </NavLink>
