@@ -3,7 +3,6 @@ import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "./AppSidebar"
 import { UserMenu } from "@/components/auth/UserMenu"
 import { WizardFloatingButton } from "@/components/wizard/WizardFloatingButton"
-import { WindowDiagnostics } from "@/components/debug/WindowDiagnostics"
 
 interface MainLayoutProps {
   children: ReactNode
@@ -43,9 +42,6 @@ function LayoutContent({ children }: MainLayoutProps) {
       
       {/* Wizard Floating Button */}
       <WizardFloatingButton />
-      
-      {/* Debug Component */}
-      <WindowDiagnostics />
     </div>
   )
 }
