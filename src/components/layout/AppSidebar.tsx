@@ -51,6 +51,7 @@ export function AppSidebar() {
   // Collapsed icon button (equal left/right padding, stable size)
   const collapsedBtnCls = (path: string) => {
     const base = "group w-full h-10 px-2 flex items-center justify-center rounded-md transition-colors"
+    if (hovered) return `${base} text-muted-foreground`
     const active = "text-primary bg-primary/10 ring-1 ring-primary/40"
     const inactive = "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
     return `${base} ${isActive(path) ? active : inactive}`
@@ -58,7 +59,7 @@ export function AppSidebar() {
 
   // Overlay link that covers both icon area (rail) and caption area
   const overlayBtnCls = (path: string) => {
-    const base = "h-10 flex items-center rounded-md pl-14 pr-3 transition-colors select-none"
+    const base = "h-10 flex items-center rounded-md pl-2 pr-3 transition-colors select-none"
     const active = "bg-primary/10 text-primary ring-1 ring-primary/40"
     const inactive = "text-foreground/80 hover:bg-accent/50"
     return `${base} ${isActive(path) ? active : inactive}`
@@ -67,7 +68,7 @@ export function AppSidebar() {
   return (
     <div className="relative" onMouseEnter={onEnter} onMouseLeave={onLeave}>
       {/* Mini rail - fixed width, icons centered with equal padding */}
-      <aside className="w-14 border-r">
+      <aside className="w-14 border-r sticky top-16 h-[calc(100vh-4rem)]">
         <nav className="pt-3 pb-4 px-2">
           <ul className="space-y-1">
             {navigationItems.map((item) => (
@@ -102,6 +103,9 @@ export function AppSidebar() {
                     className={overlayBtnCls(item.url)}
                     onClick={handleNavigate}
                   >
+                    <span className="h-10 w-10 flex items-center justify-center">
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                    </span>
                     <span>{item.title}</span>
                   </NavLink>
                 ))}
