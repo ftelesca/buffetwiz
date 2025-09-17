@@ -57,8 +57,8 @@ export function AppSidebar() {
   const getNavClassNames = (path: string) => {
     const baseClasses = "transition-all duration-300"
     const activeClasses = !isHovered
-      ? "bg-primary text-primary-foreground rounded-lg" 
-      : "bg-primary/10 text-primary border-r-2 border-primary font-medium"
+      ? "bg-primary text-primary-foreground rounded-lg"
+      : "bg-primary/10 text-primary font-medium ring-1 ring-primary/40 rounded-lg"
     const inactiveClasses = "text-muted-foreground hover:text-foreground hover:bg-accent/50"
     
     return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses}`
@@ -74,7 +74,7 @@ export function AppSidebar() {
       <TooltipProvider>
         <Sidebar
           collapsible="icon"
-          className={`transition-all duration-300 ease-in-out border-r ${isHovered ? 'w-56' : 'w-14'}`}
+          className={`transition-all duration-300 ease-in-out border-r ${isHovered ? 'w-52' : 'w-14'}`}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -91,10 +91,10 @@ export function AppSidebar() {
                           <SidebarMenuButton asChild>
                             <NavLink
                               to={item.url}
-                              className={`${getNavClassNames(item.url)} flex items-center py-2`}
+                              className={`${getNavClassNames(item.url)} flex items-center py-2 px-2`}
                               onClick={handleNavigate}
                             >
-                              <span className="w-14 flex justify-center">
+                              <span className="w-10 flex justify-center">
                                 <item.icon className="h-5 w-5 flex-shrink-0" />
                               </span>
                               {showExpanded && <span className="ml-3 truncate">{item.title}</span>}
@@ -109,11 +109,11 @@ export function AppSidebar() {
                       <SidebarMenuButton asChild>
                         <NavLink
                           to={item.url}
-                          className={`${getNavClassNames(item.url)} flex items-center py-2`}
+                          className={`${getNavClassNames(item.url)} flex items-center py-2 px-2`}
                           onClick={handleNavigate}
                           data-sidebar="menu-button"
                         >
-                          <span className="w-14 flex justify-center">
+                          <span className="w-10 flex justify-center">
                             <item.icon className="h-5 w-5 flex-shrink-0" />
                           </span>
                           {showExpanded && <span className="ml-3 truncate">{item.title}</span>}
