@@ -52,11 +52,11 @@ serve(async (req) => {
     // Get user profile for display name
     const { data: profile } = await supabase
       .from('profiles')
-      .select('display_name')
-      .eq('user_id', user.id)
+      .select('full_name')
+      .eq('id', user.id)
       .single();
 
-    const userDisplayName = profile?.display_name || user.email || 'Usuário';
+    const userDisplayName = profile?.full_name || user.email || 'Usuário';
 
     // Generate filename with current date and time
     const now = new Date();
