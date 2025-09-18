@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { marked } from 'https://esm.sh/marked@12.0.2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -71,14 +72,13 @@ serve(async (req) => {
       })
       .join('\n');
 
-    // Simple markdown to HTML conversion
-    function parseMarkdown(text) {
-      return escapeHtml(text)
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\n/g, '<br>')
-        .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>')
-        .replace(/`(.*?)`/g, '<code>$1</code>');
+    // Markdown to HTML using marked (supports GFM tables and lists)
+    function parseMarkdown(text: string) {
+      try {
+        return marked.parse(text ?? '', { gfm: true, breaks: true }) as string;
+      } catch (_) {
+        return escapeHtml(text ?? '').replace(/\n/g, '<br>');
+      }
     }
 
     function escapeHtml(str) {
@@ -220,6 +220,17 @@ serve(async (req) => {
             white-space: pre-wrap;
             margin: 8px 0;
         }
+        
+        /* Lists */
+        .content ul { margin: 8px 0 8px 22px; list-style: disc; }
+        .content ol { margin: 8px 0 8px 22px; list-style: decimal; }
+        .content li { margin: 4px 0; }
+        
+        /* Tables */
+        .content table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+        .content thead { background: #f3f4f6; }
+        .content th, .content td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
+        .content tr, .content td, .content th { page-break-inside: avoid; break-inside: avoid; }
         
         .timestamp {
             font-size: 12px;
