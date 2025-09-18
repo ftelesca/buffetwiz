@@ -11,8 +11,8 @@ export function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5 p-4">
       <div className="w-full max-w-md space-y-8">
-        <img src="/logo.png" alt="BuffetWiz Logo" className="h-16 w-auto rounded-lg hover:opacity-80 transition-opacity" />
         <div className="text-center space-y-4">
+        <img src="/logo.png" alt="BuffetWiz Logo" className="h-16 w-auto rounded-lg hover:opacity-80 transition-opacity" />
           <div>
             <h1 className="text-3xl font-bold text-gradient tracking-tight">
               BuffetWiz
