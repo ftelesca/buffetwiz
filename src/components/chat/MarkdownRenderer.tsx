@@ -113,7 +113,7 @@ async function exportConversationToPDF(content: string, filename: string, chatTi
   const now = new Date();
   const dateStr = now.toISOString().split('T')[0]; // AAAA-MM-DD
   const timeStr = now.toTimeString().split(' ')[0].substring(0, 5).replace(':', '-'); // HH-MM
-  const pdfFilename = `Assistente_BuffeWiz_${dateStr}_${timeStr}.pdf`;
+  const pdfFilename = `Assistente_BuffetWiz_${dateStr}_${timeStr}.pdf`;
   const title = chatTitle || filename.replace(/\.pdf$/i, '');
 
   // Extract only lists and tables from content (strict)
