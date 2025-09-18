@@ -54,6 +54,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatCaptureRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll para o fim ao receber mensagens
   useEffect(() => {
@@ -219,65 +220,97 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         toast({ title: "Nenhuma conversa", description: "Não há mensagens para exportar", variant: "destructive" });
         return;
       }
+      if (!chatCaptureRef.current) {
+        toast({ title: "Erro", description: "Não foi possível capturar o conteúdo do chat", variant: "destructive" });
+        return;
+      }
 
       setIsLoading(true);
 
-      // Get current chat title
-      const currentChat = chats.find(c => c.id === currentChatId);
-      const chatTitle = currentChat?.title || "Conversa BuffetWiz";
-      
-      console.log('Calling edge function for PDF export...');
-      
-      // Call the edge function
-      const { data, error } = await supabase.functions.invoke('wizard-export-pdf', {
-        body: {
-          chatId: currentChatId,
-          messages: messages,
-          chatTitle: chatTitle
-        }
-      });
+      // Build filename: Assistente_BuffetWiz_[AAAA-MM-DD]_[HH-MM].pdf
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const timeStr = now.toTimeString().split(' ')[0].substring(0, 5).replace(':', '-');
+      const pdfFilename = `Assistente_BuffetWiz_${dateStr}_${timeStr}.pdf`;
 
-      if (error) {
-        console.error('Edge function error:', error);
-        throw new Error(error.message || 'Falha ao gerar PDF');
-      }
+      // Ensure html2pdf is available
+      const ensureHtml2pdf = async () => {
+        if ((window as any).html2pdf) return (window as any).html2pdf;
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.12.0/html2pdf.bundle.min.js';
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error('Falha ao carregar html2pdf'));
+          document.body.appendChild(s);
+        });
+        return (window as any).html2pdf;
+      };
+      const html2pdf = await ensureHtml2pdf();
 
-      // Check if it's a fallback response (HTML for client-side generation)
-      if (data?.fallback && data?.html) {
-        console.log('Using client-side fallback...');
-        // Use the old client-side method as fallback
-        const { exportConversationToPDF: exportFunction } = await import("@/components/chat/MarkdownRenderer");
-        const conversationContent = messages
-          .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-          .map(message => {
-            const role = message.role === "user" ? "👤 **Usuário**" : "🤖 **BuffetWiz**";
-            const timestamp = new Date(message.created_at).toLocaleString('pt-BR');
-            return `${role} _(${timestamp})_\n\n${message.content}\n\n---\n`;
-          })
-          .join('\n');
-        
-        await exportFunction(conversationContent, data.filename, chatTitle);
-        
-        toast({ 
-          title: "PDF gerado (fallback)", 
-          description: "PDF gerado no navegador com sucesso!"
-        });
-      } else {
-        // Server-side PDF generation successful
-        console.log('Server-side PDF generated successfully');
-        toast({ 
-          title: "PDF gerado", 
-          description: "PDF gerado no servidor com sucesso!"
-        });
-      }
+      // Off-DOM wrapper to stabilize layout width and page breaks
+      const wrapper = document.createElement('div');
+      wrapper.id = 'bw-pdf-root';
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-10000px';
+      wrapper.style.top = '0';
+      wrapper.style.width = '780px';
+      wrapper.style.background = '#ffffff';
+      wrapper.style.padding = '24px';
+
+      const style = document.createElement('style');
+      style.textContent = `
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        *{box-sizing:border-box}
+        #bw-pdf-root{font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:#111827; line-height:1.6}
+        .pdf-header{text-align:center;margin-bottom:16px}
+        .pdf-header h1{font-size:20px;font-weight:700;margin:0 0 4px}
+        .pdf-header p{font-size:12px;color:#6b7280}
+        [data-pdf-message]{break-inside:avoid;page-break-inside:avoid}
+        table{border-collapse:collapse;width:100%}
+        th,td{border:1px solid #e5e7eb;padding:6px 8px}
+        pre{white-space:pre-wrap;word-wrap:break-word}
+        img{max-width:100%;height:auto}
+      `;
+      wrapper.appendChild(style);
+
+      const header = document.createElement('div');
+      header.className = 'pdf-header';
+      header.innerHTML = `<h1>Conversa com o Assistente BuffetWiz</h1><p>Gerado em ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}</p>`;
+      wrapper.appendChild(header);
+
+      const clone = chatCaptureRef.current.cloneNode(true) as HTMLElement;
+      clone.id = 'bw-chat-clone';
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+
+      const elementWidth = wrapper.scrollWidth || 780;
+      const pdfBlob = await html2pdf()
+        .set({
+          margin: [10,10,10,10],
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: Math.max(elementWidth, 780) },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+        })
+        .from(wrapper)
+        .outputPdf('blob');
+
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = pdfFilename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      document.body.removeChild(wrapper);
+
+      toast({ title: 'PDF gerado', description: 'PDF exportado com sucesso!' });
 
     } catch (err) {
-      console.error("Erro no export:", err);
-      toast({ 
-        title: "Erro no export", 
-        description: err instanceof Error ? err.message : "Falha ao gerar PDF", 
-        variant: "destructive" 
-      });
+      console.error('Erro no export:', err);
+      toast({ title: 'Erro no export', description: err instanceof Error ? err.message : 'Falha ao gerar PDF', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -476,9 +509,9 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div ref={chatCaptureRef} id="bw-chat-capture" className="space-y-4">
                   {messages.map((msg) => (
-                    <div key={msg.id} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div key={msg.id} data-pdf-message className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                       {msg.role === "assistant" && (
                         <div className="flex-shrink-0">
                           <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
