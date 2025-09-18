@@ -250,12 +250,13 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       // Off-DOM wrapper to stabilize layout width and page breaks
       const wrapper = document.createElement('div');
       wrapper.id = 'bw-pdf-root';
-      wrapper.style.position = 'absolute';
+      wrapper.style.position = 'fixed';
       wrapper.style.left = '0';
       wrapper.style.top = '0';
+      wrapper.style.opacity = '0.01';
       wrapper.style.pointerEvents = 'none';
-      wrapper.style.transform = 'translateX(-10000px)';
-      wrapper.style.width = '780px';
+      wrapper.style.zIndex = '-1';
+      wrapper.style.width = '794px';
       wrapper.style.background = '#ffffff';
       wrapper.style.padding = '24px';
 
@@ -282,6 +283,29 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
       const clone = chatCaptureRef.current.cloneNode(true) as HTMLElement;
       clone.id = 'bw-chat-clone';
+      // Inline key computed styles to avoid library skipping Tailwind classes
+      try {
+        const originals = chatCaptureRef.current.querySelectorAll('*');
+        const clones = clone.querySelectorAll('*');
+        const props = [
+          'color','backgroundColor','border','borderColor','borderWidth','borderStyle',
+          'fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','whiteSpace',
+          'display','position','top','left','right','bottom',
+          'flex','flexDirection','justifyContent','alignItems','gap',
+          'padding','paddingTop','paddingRight','paddingBottom','paddingLeft',
+          'margin','marginTop','marginRight','marginBottom','marginLeft',
+          'width','maxWidth','minWidth','height','maxHeight','minHeight',
+          'borderRadius','boxShadow','textAlign','overflow','overflowX','overflowY'
+        ];
+        originals.forEach((el, i) => {
+          const cloneEl = clones[i] as HTMLElement | undefined;
+          if (!cloneEl) return;
+          const cs = getComputedStyle(el as Element);
+          props.forEach(p => {
+            (cloneEl.style as any)[p] = (cs as any)[p];
+          });
+        });
+      } catch {}
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
 
@@ -302,7 +326,16 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
           filename: pdfFilename,
           margin: [10,10,10,10],
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: Math.max(elementWidth, 780), backgroundColor: '#ffffff' },
+          html2canvas: { 
+            scale: 2, 
+            useCORS: true, 
+            letterRendering: true, 
+            backgroundColor: '#ffffff',
+            windowWidth: Math.max(elementWidth, 794),
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            foreignObjectRendering: true
+          },
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
         })
