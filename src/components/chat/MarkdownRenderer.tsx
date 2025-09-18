@@ -107,13 +107,13 @@ async function exportToFile(payload: string) {
   }
 }
 
-// Helper to export last AI response with elegant markdown formatting
-async function exportLastResponseToPDFAndDOCX(content: string, filename: string, eventDetails?: any, includeLogo?: boolean) {
-  console.log('Exportando última resposta em PDF + DOCX:', { content, eventDetails, includeLogo });
+// Helper to export conversation with elegant markdown formatting
+async function exportConversationToPDFAndDOCX(content: string, filename: string, chatTitle?: string, eventDetails?: any, includeLogo?: boolean) {
+  console.log('Exportando conversa em PDF + DOCX:', { content, chatTitle, eventDetails, includeLogo });
   
   const currentDate = new Date().toLocaleDateString('pt-BR');
   const currentTime = new Date().toLocaleTimeString('pt-BR');
-  const title = filename.replace(/\.pdf$/i, '');
+  const title = chatTitle || filename.replace(/\.pdf$/i, '');
 
   // Extract only lists and tables from content (strict)
   const extractListsOnly = (text: string): string => {
@@ -1101,7 +1101,7 @@ export function MarkdownRenderer({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                     exportLastResponseToPDFAndDOCX(content, file);
+                     exportConversationToPDFAndDOCX(content, file);
                   }}
                   className={cn(
                     "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground cursor-pointer", 
@@ -1154,7 +1154,7 @@ export function MarkdownRenderer({
                       const file = match[1].trim();
                       const ext = file.split('.').pop()?.toLowerCase();
                       if (ext === 'pdf') {
-                        exportLastResponseToPDFAndDOCX(content, file);
+                        exportConversationToPDFAndDOCX(content, file);
                       } else {
                         const rows = extractTableDataFromMarkdown(content);
                         if (rows && rows.length) {
@@ -1207,7 +1207,7 @@ export function MarkdownRenderer({
                     const file = match[1].trim();
                     const ext = file.split('.').pop()?.toLowerCase();
                     if (ext === 'pdf') {
-                      exportLastResponseToPDFAndDOCX(content, file);
+                      exportConversationToPDFAndDOCX(content, file);
                     } else {
                       const rows = extractTableDataFromMarkdown(content);
                       if (rows && rows.length) {
@@ -1258,4 +1258,4 @@ export function MarkdownRenderer({
   );
 }
 
-export { exportLastResponseToPDFAndDOCX };
+export { exportConversationToPDFAndDOCX };

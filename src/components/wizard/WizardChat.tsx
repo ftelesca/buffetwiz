@@ -213,36 +213,43 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     }
   };
 
-  const exportLastResponseToPDFAndDOCX = async () => {
+  const exportConversationToPDFAndDOCX = async () => {
     try {
       if (messages.length === 0) {
-        toast({ title: "Nenhuma resposta", description: "Não há mensagens para exportar", variant: "destructive" });
-        return;
-      }
-
-      // Pega a última mensagem do assistant
-      const lastAssistantMessage = messages.slice().reverse().find(msg => msg.role === "assistant");
-      
-      if (!lastAssistantMessage) {
-        toast({ title: "Nenhuma resposta da IA", description: "Não há resposta da IA para exportar", variant: "destructive" });
+        toast({ title: "Nenhuma conversa", description: "Não há mensagens para exportar", variant: "destructive" });
         return;
       }
 
       setIsLoading(true);
 
+      // Get current chat title
+      const currentChat = chats.find(c => c.id === currentChatId);
+      const chatTitle = currentChat?.title || "Conversa BuffetWiz";
+      
+      // Format the entire conversation
+      const conversationContent = messages
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map(message => {
+          const role = message.role === "user" ? "👤 **Usuário**" : "🤖 **BuffetWiz**";
+          const timestamp = new Date(message.created_at).toLocaleString('pt-BR');
+          return `${role} _(${timestamp})_\n\n${message.content}\n\n---\n`;
+        })
+        .join('\n');
+
       // Check for event details in chat context
       const eventDetails = extractEventDetailsFromMessages(messages);
       
       // Use the elegant export function from MarkdownRenderer
-      const { exportLastResponseToPDFAndDOCX: exportFunction } = await import("@/components/chat/MarkdownRenderer");
+      const { exportConversationToPDFAndDOCX: exportFunction } = await import("@/components/chat/MarkdownRenderer");
       const currentDate = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-      const filename = `BuffetWiz_Analise_${currentDate}`;
+      const filename = `BuffetWiz_Conversa_${currentDate}`;
       
       await exportFunction(
-        lastAssistantMessage.content, 
+        conversationContent, 
         filename,
+        chatTitle,
         eventDetails,
-        true // include logo
+        false // don't include logo per request
       );
       
       toast({ 
@@ -531,9 +538,9 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
               </div>
               {currentChatId && messages.length > 0 && (
                 <div className="mt-2 flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={exportLastResponseToPDFAndDOCX} disabled={isLoading}>
+                  <Button variant="ghost" size="sm" onClick={exportConversationToPDFAndDOCX} disabled={isLoading}>
                     <Download className="h-3 w-3 mr-1" />
-                    Exportar última resposta (PDF + DOCX)
+                    Exportar Conversa (PDF + DOCX)
                   </Button>
                 </div>
               )}
