@@ -205,7 +205,7 @@ async function exportConversationToPDF(content: string, filename: string, chatTi
               ${isAssistant ? '<div class="avatar">🤖</div>' : ''}
               <div class="bubble ${isUser ? 'user' : 'assistant'}">
                 <div class="content markdown">${isAssistant ? (marked.parse(messageContent, { gfm: true, breaks: true }) as string) : escapeHtml(messageContent).replace(/\n/g, '<br>')}</div>
-                <div class="meta">${escapeHtml(timestamp)}</div>
+                <div class="timestamp">${escapeHtml(timestamp)}</div>
               </div>
               ${isUser ? '<div class="avatar">👤</div>' : ''}
             </div>
@@ -285,77 +285,50 @@ async function exportConversationToPDF(content: string, filename: string, chatTi
     </div>`;
   }
 
-  // Elegant HTML template
+  // Elegant HTML template (embedded container for html2pdf)
   const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <title>${title}</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      color: #111827;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 32px 24px;
-      background: #ffffff;
-      line-height: 1.6;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    .header h1 {
-      font-size: 20px;
-      font-weight: 600;
-      color: #111827;
-      margin-bottom: 4px;
-    }
-    .header p { font-size: 12px; color: #6B7280; }
-
-    .chat { display: flex; flex-direction: column; gap: 14px; }
-    .message { display: flex; align-items: flex-end; gap: 10px; }
-    .message.user { justify-content: flex-end; }
-
-    .avatar {
-      width: 32px; height: 32px; flex: 0 0 32px; border-radius: 9999px;
-      display: flex; align-items: center; justify-content: center;
-      background: #E5E7EB; color: #111827; font-size: 14px; font-weight: 600;
-    }
-    .message.assistant .avatar { background: #6366F1; color: #ffffff; }
-    .message.user .avatar { background: #E5E7EB; color: #111827; }
-
-    .bubble {
-      max-width: 85%;
-      border: 1px solid #E5E7EB;
-      border-radius: 12px;
-      padding: 12px 14px 8px 14px;
-      background: #ffffff;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    }
-    .bubble.user { background: #6366F1; border-color: #4F46E5; color: #ffffff; }
-
-    .content.markdown { font-size: 14px; }
-    .content.markdown h1 { font-size: 18px; font-weight: 700; margin: 8px 0; }
-    .content.markdown h2 { font-size: 16px; font-weight: 600; margin: 8px 0; }
-    .content.markdown h3 { font-size: 15px; font-weight: 600; margin: 8px 0; }
-    .content.markdown p { margin: 8px 0; }
-    .content.markdown ul { margin: 8px 0 8px 20px; }
-    .content.markdown ol { margin: 8px 0 8px 20px; }
-    .content.markdown code { background: #F3F4F6; padding: 2px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .bubble.user .content.markdown code { background: rgba(255,255,255,0.15); color: #fff; }
-    .content.markdown pre { background: #111827; color: #F9FAFB; padding: 12px; border-radius: 8px; overflow: auto; }
-    .content.markdown table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-    .content.markdown th, .content.markdown td { border: 1px solid #E5E7EB; padding: 6px 8px; text-align: left; }
-
-    .timestamp { font-size: 10px; color: #6B7280; margin-top: 8px; padding-top: 6px; border-top: 1px solid #E5E7EB; }
-    .bubble.user .timestamp { color: #E0E7FF; border-top-color: rgba(255,255,255,0.25); }
-  </style>
-</head>
-<body>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+#bw-pdf-root {
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: #111827;
+  width: 720px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #ffffff;
+  line-height: 1.6;
+}
+.header { text-align: center; margin-bottom: 16px; }
+.header h1 { font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 4px; }
+.header p { font-size: 12px; color: #6B7280; }
+.chat { display: flex; flex-direction: column; gap: 14px; }
+.message { display: flex; align-items: flex-end; gap: 10px; break-inside: avoid; page-break-inside: avoid; }
+.message.user { justify-content: flex-end; }
+.avatar { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; background: #E5E7EB; color: #111827; font-size: 14px; font-weight: 600; }
+.message.assistant .avatar { background: #6366F1; color: #ffffff; }
+.message.user .avatar { background: #E5E7EB; color: #111827; }
+.bubble { max-width: 85%; border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px 14px 8px 14px; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.04); break-inside: avoid; page-break-inside: avoid; }
+.bubble.user { background: #6366F1; border-color: #4F46E5; color: #ffffff; }
+.content.markdown { font-size: 14px; word-break: break-word; overflow-wrap: anywhere; white-space: normal; }
+.content.markdown h1 { font-size: 18px; font-weight: 700; margin: 8px 0; }
+.content.markdown h2 { font-size: 16px; font-weight: 600; margin: 8px 0; }
+.content.markdown h3 { font-size: 15px; font-weight: 600; margin: 8px 0; }
+.content.markdown p { margin: 8px 0; }
+.content.markdown ul { margin: 8px 0 8px 20px; }
+.content.markdown ol { margin: 8px 0 8px 20px; }
+.content.markdown code { background: #F3F4F6; padding: 2px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.bubble.user .content.markdown code { background: rgba(255,255,255,0.15); color: #fff; }
+.content.markdown pre { background: #111827; color: #F9FAFB; padding: 12px; border-radius: 8px; overflow: visible; white-space: pre-wrap; }
+.content.markdown table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+.content.markdown th, .content.markdown td { border: 1px solid #E5E7EB; padding: 6px 8px; text-align: left; }
+.content.markdown thead { display: table-header-group; }
+.content.markdown tr, .content.markdown td, .content.markdown th { page-break-inside: avoid; break-inside: avoid; }
+.timestamp { font-size: 10px; color: #6B7280; margin-top: 8px; padding-top: 6px; border-top: 1px solid #E5E7EB; }
+.bubble.user .timestamp { color: #E0E7FF; border-top-color: rgba(255,255,255,0.25); }
+img { max-width: 100%; height: auto; page-break-inside: avoid; }
+</style>
+<div id="bw-pdf-root">
   <div class="header">
     <h1>Conversa com o Assistente BuffetWiz</h1>
     <p>Gerado em ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}</p>
@@ -363,32 +336,46 @@ async function exportConversationToPDF(content: string, filename: string, chatTi
   <div class="chat">
     ${processedContent}
   </div>
-</body>
-</html>`;
+</div>
+`;
 
   try {
     // Generate PDF only
     const html2pdf = (window as any).html2pdf;
     if (html2pdf) {
       console.log('Gerando PDF...');
+
+      // Create off-DOM container to ensure correct width
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-10000px';
+      wrapper.style.top = '0';
+      wrapper.style.width = '740px';
+      wrapper.innerHTML = html;
+      document.body.appendChild(wrapper);
+      const target = wrapper.querySelector('#bw-pdf-root') as HTMLElement;
+
+      const elementWidth = target?.scrollWidth || 740;
       const pdfBlob = await html2pdf()
         .set({
-          margin: [0.5, 0.5, 0.5, 0.5],
+          margin: [10, 10, 10, 10],
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { 
             scale: 2, 
             useCORS: true,
             letterRendering: true,
-            allowTaint: false
+            allowTaint: false,
+            windowWidth: Math.max(elementWidth, 740)
           },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
           jsPDF: { 
-            unit: 'in', 
+            unit: 'mm', 
             format: 'a4', 
             orientation: 'portrait',
             compress: true
           },
         })
-        .from(html)
+        .from(target)
         .outputPdf('blob');
       
       // Direct download of PDF
@@ -401,6 +388,9 @@ async function exportConversationToPDF(content: string, filename: string, chatTi
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+
+      // Cleanup
+      document.body.removeChild(wrapper);
     }
 
     console.log('PDF gerado com sucesso');

@@ -253,8 +253,8 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       );
       
       toast({ 
-        title: "Documentos exportados", 
-        description: "PDF e DOCX gerados com sucesso!" 
+        title: "PDF gerado",
+        description: "PDF exportado com sucesso!"
       });
 
     } catch (err) {
