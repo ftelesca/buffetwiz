@@ -166,7 +166,10 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
     return out.join('\n').trim();
   };
 
-  const cleanedContent = extractListsOnly(content);
+  // Process conversation content differently than lists-only
+  const conversationContent = content.includes('👤 **Usuário**') || content.includes('🤖 **BuffetWiz**') 
+    ? content 
+    : extractListsOnly(content);
 
   // Build HTML strictly from lists and tables only
   function escapeHtml(str: string) {
@@ -232,7 +235,7 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
     return out.join('\n');
   }
 
-  const processedContent = buildListsAndTablesHTML(cleanedContent);
+  const processedContent = buildListsAndTablesHTML(conversationContent);
 
   // Content already processed correctly above - no additional wrapping needed
 
@@ -487,7 +490,7 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
 </html>`;
 
   // Create enhanced DOCX content
-  const docxContent = await createEnhancedDOCXContent(cleanedContent, currentDate, currentTime, eventDetails);
+  const docxContent = await createEnhancedDOCXContent(conversationContent, currentDate, currentTime, eventDetails);
 
   try {
     const zip = new JSZip();
@@ -565,12 +568,71 @@ async function createEnhancedDOCXContent(content: string, currentDate: string, c
     })
   );
 
-  // Skip event details - only include lists in export
+  // Date and time info
+  children.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: `Data: ${currentDate} às ${currentTime}`,
+          size: 20,
+          color: "6B7280",
+        }),
+      ],
+      spacing: { after: 400 },
+      alignment: "center",
+    })
+  );
 
-  // Content - only lists, no titles
-
-  // Clean content lines
-  const lines = content.split('\n').filter(line => line.trim() !== '');
+  // Process conversation content
+  if (content.includes('👤 **Usuário**') || content.includes('🤖 **BuffetWiz**')) {
+    // This is conversation content
+    const sections = content.split('---').filter(section => section.trim());
+    
+    for (const section of sections) {
+      const lines = section.trim().split('\n');
+      if (lines.length === 0) continue;
+      
+      const firstLine = lines[0];
+      const isUser = firstLine.includes('👤 **Usuário**');
+      const isAssistant = firstLine.includes('🤖 **BuffetWiz**');
+      
+      if (isUser || isAssistant) {
+        // Message header
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: isUser ? "👤 Usuário" : "🤖 BuffetWiz",
+                bold: true,
+                size: 18,
+                color: isUser ? "6366F1" : "0EA5E9",
+              }),
+            ],
+            spacing: { before: 300, after: 100 },
+          })
+        );
+        
+        // Message content (skip first line with role and timestamp)
+        const messageContent = lines.slice(2).join('\n').trim();
+        if (messageContent) {
+          children.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: messageContent,
+                  size: 16,
+                }),
+              ],
+              spacing: { after: 200 },
+              indent: { left: 200 },
+            })
+          );
+        }
+      }
+    }
+  } else {
+    // Regular content processing
+    const lines = content.split('\n').filter(line => line.trim() !== '');
   
   for (const line of lines) {
     if (line.startsWith('# ')) {
@@ -661,6 +723,7 @@ async function createEnhancedDOCXContent(content: string, currentDate: string, c
         })
       );
     }
+  }
   }
 
   // Footer with generation date
