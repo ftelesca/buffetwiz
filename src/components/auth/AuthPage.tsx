@@ -5,17 +5,14 @@ import { LoginForm } from "./LoginForm"
 import { SignUpForm } from "./SignUpForm"
 import { ForgotPasswordForm } from "./ForgotPasswordForm"
 
-const logo = "/logo.png"
-
 export function AuthPage() {
   const [currentTab, setCurrentTab] = useState<"login" | "signup" | "forgot">("login")
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5 p-4">
       <div className="w-full max-w-md space-y-8">
-        {/* Logo and Brand */}
+        <img src="/logo.png" alt="BuffetWiz Logo" className="h-16 w-auto rounded-lg hover:opacity-80 transition-opacity" />
         <div className="text-center space-y-4">
-          <img src="/logo.png" alt="BuffetWiz Logo" className="h-16 w-auto rounded-lg hover:opacity-80 transition-opacity" />
           <div>
             <h1 className="text-3xl font-bold text-gradient tracking-tight">
               BuffetWiz
