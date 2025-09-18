@@ -213,7 +213,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     }
   };
 
-  const exportConversationToPDFAndDOCX = async () => {
+  const exportConversationToPDF = async () => {
     try {
       if (messages.length === 0) {
         toast({ title: "Nenhuma conversa", description: "Não há mensagens para exportar", variant: "destructive" });
@@ -240,7 +240,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       const eventDetails = extractEventDetailsFromMessages(messages);
       
       // Use the elegant export function from MarkdownRenderer
-      const { exportConversationToPDFAndDOCX: exportFunction } = await import("@/components/chat/MarkdownRenderer");
+      const { exportConversationToPDF: exportFunction } = await import("@/components/chat/MarkdownRenderer");
       const currentDate = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
       const filename = `BuffetWiz_Conversa_${currentDate}`;
       
@@ -538,9 +538,9 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
               </div>
               {currentChatId && messages.length > 0 && (
                 <div className="mt-2 flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={exportConversationToPDFAndDOCX} disabled={isLoading}>
+                  <Button variant="ghost" size="sm" onClick={exportConversationToPDF} disabled={isLoading}>
                     <Download className="h-3 w-3 mr-1" />
-                    Exportar Conversa (PDF + DOCX)
+                    Exportar Conversa (PDF)
                   </Button>
                 </div>
               )}
