@@ -250,9 +250,11 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       // Off-DOM wrapper to stabilize layout width and page breaks
       const wrapper = document.createElement('div');
       wrapper.id = 'bw-pdf-root';
-      wrapper.style.position = 'fixed';
-      wrapper.style.left = '-10000px';
+      wrapper.style.position = 'absolute';
+      wrapper.style.left = '0';
       wrapper.style.top = '0';
+      wrapper.style.pointerEvents = 'none';
+      wrapper.style.transform = 'translateX(-10000px)';
       wrapper.style.width = '780px';
       wrapper.style.background = '#ffffff';
       wrapper.style.padding = '24px';
@@ -293,8 +295,11 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       await new Promise((r) => setTimeout(r, 50));
 
       const elementWidth = wrapper.scrollWidth || 780;
-      const pdfBlob = await html2pdf()
+      const elementHeight = wrapper.scrollHeight || 0;
+      console.log('[PDF] capture size:', elementWidth, 'x', elementHeight);
+      await html2pdf()
         .set({
+          filename: pdfFilename,
           margin: [10,10,10,10],
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: Math.max(elementWidth, 780), backgroundColor: '#ffffff' },
@@ -302,19 +307,10 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
         })
         .from(wrapper)
-        .toPdf()
-        .output('blob');
+        .save();
 
-      const url = URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = pdfFilename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      document.body.removeChild(wrapper);
+      // Cleanup off-DOM wrapper
+      try { document.body.removeChild(wrapper); } catch {}
 
       toast({ title: 'PDF gerado', description: 'PDF exportado com sucesso!' });
 
