@@ -771,6 +771,13 @@ function processExportLinks(md: string): string {
       return `[📥 Baixar ${safe}](exportpdf:${encodeURIComponent(safe)})`;
     });
 
+    // Also handle non-PDF files: xlsx, csv, json
+    processed = processed.replace(/(?<!\!)\[(?:Download|Baixar)\s+([^\]]+\.(xlsx|csv|json))\](?!\()/gi, (_m, file) => {
+      const safe = String(file).trim();
+      const payload = encodeURIComponent(`filename:"${safe}"`);
+      return `[📥 Baixar ${safe}](export:${payload})`;
+    });
+
     parts[p] = processed;
   }
 
