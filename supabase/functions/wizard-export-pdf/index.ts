@@ -221,16 +221,63 @@ serve(async (req) => {
             margin: 8px 0;
         }
         
-        /* Lists */
-        .content ul { margin: 8px 0 8px 22px; list-style: disc; }
-        .content ol { margin: 8px 0 8px 22px; list-style: decimal; }
-        .content li { margin: 4px 0; }
+        /* Lists - Better alignment and spacing */
+        .content ul { 
+            margin: 12px 0; 
+            padding-left: 20px; 
+            list-style: disc; 
+            list-style-position: outside; 
+        }
+        .content ol { 
+            margin: 12px 0; 
+            padding-left: 20px; 
+            list-style: decimal; 
+            list-style-position: outside; 
+        }
+        .content li { 
+            margin: 6px 0; 
+            padding-left: 4px; 
+            line-height: 1.5; 
+        }
         
-        /* Tables */
-        .content table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-        .content thead { background: #f3f4f6; }
-        .content th, .content td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
-        .content tr, .content td, .content th { page-break-inside: avoid; break-inside: avoid; }
+        /* Tables - Enhanced styling with rounded corners and better colors */
+        .content table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            margin: 16px 0; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            border: 1px solid #d1d5db; 
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
+        }
+        .content thead { 
+            background: #374151; 
+            color: white; 
+        }
+        .content th { 
+            padding: 12px 16px; 
+            text-align: left; 
+            font-weight: 600; 
+            border-bottom: 1px solid #d1d5db; 
+            font-size: 14px; 
+        }
+        .content td { 
+            padding: 12px 16px; 
+            border-bottom: 1px solid #e5e7eb; 
+            background: #f9fafb; 
+            font-size: 14px; 
+        }
+        .content tbody tr:last-child td { 
+            border-bottom: none; 
+        }
+        .content tbody tr:nth-child(even) td { 
+            background: #ffffff; 
+        }
+        .content tr, .content td, .content th { 
+            page-break-inside: avoid; 
+            break-inside: avoid; 
+        }
         
         .timestamp {
             font-size: 12px;
