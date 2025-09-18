@@ -18,7 +18,9 @@ serve(async (req) => {
   }
 
   try {
-    const { chatId } = await req.json();
+    const { chatId, messages, chatTitle } = await req.json();
+    
+    console.log('Processing PDF export for chat:', chatId);
     
     // Get authorization header
     const authorization = req.headers.get('authorization');
@@ -36,24 +38,6 @@ serve(async (req) => {
 
     const userId = user.user.id;
 
-    // Get chat and messages
-    const { data: chat, error: chatError } = await supabase
-      .from('wizard_chats')
-      .select('*')
-      .eq('id', chatId)
-      .eq('user_id', userId)
-      .single();
-
-    if (chatError) throw chatError;
-
-    const { data: messages, error: messagesError } = await supabase
-      .from('wizard_messages')
-      .select('*')
-      .eq('chat_id', chatId)
-      .order('created_at');
-
-    if (messagesError) throw messagesError;
-
     // Get user profile
     const { data: profile } = await supabase
       .from('profiles')
@@ -61,243 +45,282 @@ serve(async (req) => {
       .eq('id', userId)
       .maybeSingle();
 
-    // Create professional HTML for PDF
-    const currentDate = new Date().toLocaleDateString('pt-BR');
-    const currentTime = new Date().toLocaleTimeString('pt-BR');
+    // Create filename with proper date format
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0]; // AAAA-MM-DD
+    const timeStr = now.toTimeString().split(' ')[0].substring(0, 5).replace(':', '-'); // HH-MM
+    const filename = `Assistente_BuffetWiz_${dateStr}_${timeStr}.pdf`;
+
+    // Generate conversation HTML with chat-like layout
+    const conversationHTML = messages
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      .map(message => {
+        const timestamp = new Date(message.created_at);
+        const isUser = message.role === "user";
+        
+        return `
+          <div class="message ${isUser ? 'user' : 'assistant'}">
+            ${!isUser ? '<div class="avatar">🤖</div>' : ''}
+            <div class="bubble ${isUser ? 'user' : 'assistant'}">
+              <div class="content">${isUser ? escapeHtml(message.content).replace(/\n/g, '<br>') : parseMarkdown(message.content)}</div>
+              <div class="timestamp">${timestamp.toLocaleDateString('pt-BR')} ${timestamp.toLocaleTimeString('pt-BR')}</div>
+            </div>
+            ${isUser ? '<div class="avatar">👤</div>' : ''}
+          </div>
+        `;
+      })
+      .join('\n');
+
+    // Simple markdown to HTML conversion
+    function parseMarkdown(text) {
+      return escapeHtml(text)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>')
+        .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>')
+        .replace(/`(.*?)`/g, '<code>$1</code>');
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
     
     const html = `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Relatório BuffetWiz - ${chat.title}</title>
+    <title>Conversa BuffetWiz - ${chatTitle}</title>
     <style>
-        @page {
-            margin: 2cm;
-            @top-center {
-                content: "BuffetWiz - Relatório de Consultoria";
-            }
-            @bottom-center {
-                content: "Página " counter(page) " de " counter(pages);
-            }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: #111827;
+            background: #ffffff;
             line-height: 1.6;
-            color: #333;
             max-width: 800px;
             margin: 0 auto;
-            background: white;
+            padding: 24px;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            padding: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 10px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e5e7eb;
         }
         
         .header h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-        }
-        
-        .header .subtitle {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-top: 10px;
-        }
-        
-        .meta-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 40px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .meta-info div {
-            font-size: 14px;
-        }
-        
-        .meta-info strong {
-            color: #667eea;
-            font-weight: 600;
-        }
-        
-        .chat-title {
             font-size: 24px;
-            font-weight: 600;
-            color: #667eea;
-            margin-bottom: 30px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e9ecef;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        
+        .header .meta {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .chat {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
         
         .message {
-            margin-bottom: 30px;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         
         .message.user {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            margin-left: 20px;
+            justify-content: flex-end;
         }
         
-        .message.assistant {
-            background: white;
-            border: 2px solid #e9ecef;
-            margin-right: 20px;
-        }
-        
-        .message-role {
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
             font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+            flex-shrink: 0;
+            background: #e5e7eb;
+            color: #111827;
         }
         
-        .message.user .message-role {
-            color: rgba(255,255,255,0.9);
+        .message.assistant .avatar {
+            background: #6366f1;
+            color: #ffffff;
         }
         
-        .message.assistant .message-role {
-            color: #667eea;
+        .bubble {
+            max-width: 85%;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 16px;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         
-        .message-content {
+        .bubble.user {
+            background: #6366f1;
+            border-color: #4f46e5;
+            color: #ffffff;
+        }
+        
+        .content {
             font-size: 15px;
-            line-height: 1.7;
-            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
         }
         
-        .message-time {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-top: 15px;
-            text-align: right;
+        .content strong {
+            font-weight: 600;
         }
         
-        .summary {
-            margin-top: 40px;
-            padding: 25px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 5px solid #28a745;
+        .content em {
+            font-style: italic;
         }
         
-        .summary h3 {
-            color: #28a745;
-            margin-top: 0;
-            font-size: 20px;
-        }
-        
-        .footer {
-            margin-top: 60px;
-            padding: 30px;
-            text-align: center;
-            background: #667eea;
-            color: white;
-            border-radius: 10px;
+        .content code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
             font-size: 14px;
         }
         
-        .footer .logo {
-            font-weight: 700;
-            font-size: 18px;
-            margin-bottom: 10px;
+        .bubble.user .content code {
+            background: rgba(255,255,255,0.2);
+            color: #ffffff;
         }
         
-        .page-break {
-            page-break-before: always;
+        .content pre {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            overflow: visible;
+            white-space: pre-wrap;
+            margin: 8px 0;
+        }
+        
+        .timestamp {
+            font-size: 12px;
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .bubble.user .timestamp {
+            color: #e0e7ff;
+            border-top-color: rgba(255,255,255,0.3);
         }
         
         @media print {
-            body { margin: 0; }
-            .message { break-inside: avoid; }
+            body { margin: 0; padding: 16px; }
+            .message { page-break-inside: avoid; }
+            .bubble { page-break-inside: avoid; }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🧙‍♂️ BuffetWiz</h1>
-        <div class="subtitle">Relatório de Consultoria com Inteligência Artificial</div>
-    </div>
-    
-    <div class="meta-info">
-        <div>
-            <strong>Data de Geração:</strong><br>
-            ${currentDate} às ${currentTime}
-        </div>
-        <div>
-            <strong>Usuário:</strong><br>
-            ${profile?.full_name || user.user.email}
-        </div>
-        <div>
-            <strong>Sessão:</strong><br>
-            ${chat.created_at ? new Date(chat.created_at).toLocaleDateString('pt-BR') : 'N/A'}
-        </div>
-        <div>
-            <strong>Mensagens:</strong><br>
-            ${messages.length} interações
+        <h1>Conversa com o Assistente BuffetWiz</h1>
+        <div class="meta">
+            Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR')}<br>
+            Usuário: ${profile?.full_name || user.user.email}
         </div>
     </div>
     
-    <h2 class="chat-title">${chat.title}</h2>
-    
-    ${messages.map(message => `
-        <div class="message ${message.role}">
-            <div class="message-role">
-                ${message.role === 'user' ? '👤 Consulta' : '🤖 Análise IA'}
-            </div>
-            <div class="message-content">${message.content}</div>
-            <div class="message-time">
-                ${new Date(message.created_at).toLocaleDateString('pt-BR')} às ${new Date(message.created_at).toLocaleTimeString('pt-BR')}
-            </div>
-        </div>
-    `).join('')}
-    
-    <div class="summary">
-        <h3>📊 Resumo da Consultoria</h3>
-        <p><strong>Tema Principal:</strong> ${chat.title}</p>
-        <p><strong>Total de Interações:</strong> ${messages.length}</p>
-        <p><strong>Período:</strong> ${chat.created_at ? new Date(chat.created_at).toLocaleDateString('pt-BR') : 'N/A'} a ${currentDate}</p>
-        <p><strong>Modelo de IA:</strong> GPT-5 2025 (Análise Avançada)</p>
-        
-        <p style="margin-top: 25px; font-style: italic; color: #666;">
-            Este relatório foi gerado automaticamente pelo sistema BuffetWiz com base nas consultas realizadas 
-            e análises da inteligência artificial. As recomendações são baseadas nos dados específicos do seu negócio.
-        </p>
-    </div>
-    
-    <div class="footer">
-        <div class="logo">BuffetWiz</div>
-        <div>Descomplicando seu Buffet</div>
-        <div style="margin-top: 10px; opacity: 0.8;">
-            Powered by AI • Gerado em ${currentDate}
-        </div>
+    <div class="chat">
+        ${conversationHTML}
     </div>
 </body>
 </html>`;
 
-    // Return HTML for client-side PDF generation
-    return new Response(JSON.stringify({
-      html,
-      filename: `BuffetWiz_${chat.title.replace(/[^a-zA-Z0-9]/g, '_')}_${currentDate.replace(/\//g, '-')}.pdf`
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    // Use Puppeteer to generate PDF
+    const puppeteer = await import('https://deno.land/x/puppeteer@16.2.0/mod.ts');
+    
+    try {
+      console.log('Launching Puppeteer browser...');
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+          '--window-size=1920x1080'
+        ]
+      });
+
+      const page = await browser.newPage();
+      
+      // Set viewport and content
+      await page.setViewport({ width: 800, height: 1200 });
+      await page.setContent(html, { 
+        waitUntil: 'networkidle0',
+        timeout: 30000 
+      });
+
+      console.log('Generating PDF...');
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: {
+          top: '20mm',
+          right: '20mm',
+          bottom: '20mm',
+          left: '20mm'
+        },
+        printBackground: true,
+        preferCSSPageSize: true
+      });
+
+      await browser.close();
+      
+      console.log('PDF generated successfully, size:', pdfBuffer.length);
+
+      return new Response(pdfBuffer, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${filename}"`,
+          'Content-Length': pdfBuffer.length.toString()
+        },
+      });
+
+    } catch (puppeteerError) {
+      console.error('Puppeteer error:', puppeteerError);
+      
+      // Fallback: return HTML for client-side generation
+      return new Response(JSON.stringify({
+        html,
+        filename,
+        fallback: true,
+        error: 'Server PDF generation failed, using client fallback'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
   } catch (error) {
     console.error('Error in wizard-export-pdf function:', error);

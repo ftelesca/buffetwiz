@@ -226,42 +226,56 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       const currentChat = chats.find(c => c.id === currentChatId);
       const chatTitle = currentChat?.title || "Conversa BuffetWiz";
       
-      // Format the entire conversation
-      const conversationContent = messages
-        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-        .map(message => {
-          const role = message.role === "user" ? "👤 **Usuário**" : "🤖 **BuffetWiz**";
-          const timestamp = new Date(message.created_at).toLocaleString('pt-BR');
-          return `${role} _(${timestamp})_\n\n${message.content}\n\n---\n`;
-        })
-        .join('\n');
-
-      // Check for event details in chat context
-      const eventDetails = extractEventDetailsFromMessages(messages);
+      console.log('Calling edge function for PDF export...');
       
-      // Use the elegant export function from MarkdownRenderer
-      const { exportConversationToPDF: exportFunction } = await import("@/components/chat/MarkdownRenderer");
-      const currentDate = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-      const filename = `BuffetWiz_Conversa_${currentDate}`;
-      
-      await exportFunction(
-        conversationContent, 
-        filename,
-        chatTitle,
-        eventDetails,
-        false // don't include logo per request
-      );
-      
-      toast({ 
-        title: "PDF gerado",
-        description: "PDF exportado com sucesso!"
+      // Call the edge function
+      const { data, error } = await supabase.functions.invoke('wizard-export-pdf', {
+        body: {
+          chatId: currentChatId,
+          messages: messages,
+          chatTitle: chatTitle
+        }
       });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Falha ao gerar PDF');
+      }
+
+      // Check if it's a fallback response (HTML for client-side generation)
+      if (data?.fallback && data?.html) {
+        console.log('Using client-side fallback...');
+        // Use the old client-side method as fallback
+        const { exportConversationToPDF: exportFunction } = await import("@/components/chat/MarkdownRenderer");
+        const conversationContent = messages
+          .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+          .map(message => {
+            const role = message.role === "user" ? "👤 **Usuário**" : "🤖 **BuffetWiz**";
+            const timestamp = new Date(message.created_at).toLocaleString('pt-BR');
+            return `${role} _(${timestamp})_\n\n${message.content}\n\n---\n`;
+          })
+          .join('\n');
+        
+        await exportFunction(conversationContent, data.filename, chatTitle);
+        
+        toast({ 
+          title: "PDF gerado (fallback)", 
+          description: "PDF gerado no navegador com sucesso!"
+        });
+      } else {
+        // Server-side PDF generation successful
+        console.log('Server-side PDF generated successfully');
+        toast({ 
+          title: "PDF gerado", 
+          description: "PDF gerado no servidor com sucesso!"
+        });
+      }
 
     } catch (err) {
       console.error("Erro no export:", err);
       toast({ 
         title: "Erro no export", 
-        description: err instanceof Error ? err.message : "Falha ao gerar documentos", 
+        description: err instanceof Error ? err.message : "Falha ao gerar PDF", 
         variant: "destructive" 
       });
     } finally {
