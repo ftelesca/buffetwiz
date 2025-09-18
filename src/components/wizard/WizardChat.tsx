@@ -216,22 +216,70 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
   const exportConversationToPDF = async () => {
     try {
-      if (messages.length === 0) {
+      if (!currentChatId || messages.length === 0) {
         toast({ title: "Nenhuma conversa", description: "Não há mensagens para exportar", variant: "destructive" });
-        return;
-      }
-      if (!chatCaptureRef.current) {
-        toast({ title: "Erro", description: "Não foi possível capturar o conteúdo do chat", variant: "destructive" });
         return;
       }
 
       setIsLoading(true);
 
-      // Build filename: Assistente_BuffetWiz_[AAAA-MM-DD]_[HH-MM].pdf
+      const currentChat = chats.find(c => c.id === currentChatId);
+      const chatTitle = currentChat?.title || "Conversa BuffetWiz";
+
+      // Build default filename as fallback
       const now = new Date();
       const dateStr = now.toISOString().split('T')[0];
       const timeStr = now.toTimeString().split(' ')[0].substring(0, 5).replace(':', '-');
-      const pdfFilename = `Assistente_BuffetWiz_${dateStr}_${timeStr}.pdf`;
+      const fallbackFilename = `Assistente_BuffetWiz_${dateStr}_${timeStr}.pdf`;
+
+      // Get auth token
+      const { data: sessionData } = await supabase.auth.getSession();
+      const jwt = sessionData?.session?.access_token;
+      if (!jwt) throw new Error('Sessão inválida. Faça login novamente.');
+
+      // Call edge function directly to support binary response
+      const url = `https://bvubvqckuygqibjtmyhv.supabase.co/functions/v1/wizard-export-pdf`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+          'Content-Type': 'application/json',
+          'apikey': jwt,
+        },
+        body: JSON.stringify({ chatId: currentChatId, messages, chatTitle })
+      });
+
+      const contentType = res.headers.get('Content-Type') || '';
+
+      if (!res.ok) {
+        let msg = `Falha ao gerar PDF (${res.status})`;
+        try { const j = await res.json(); if (j?.error) msg = j.error; } catch {}
+        throw new Error(msg);
+      }
+
+      if (contentType.includes('application/pdf')) {
+        // Download binary PDF
+        const blob = await res.blob();
+        const cd = res.headers.get('Content-Disposition') || '';
+        const match = cd.match(/filename="?([^";]+)"?/i);
+        const filename = match?.[1] || fallbackFilename;
+        const urlObj = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = urlObj;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(urlObj);
+        toast({ title: 'PDF gerado', description: 'PDF gerado no servidor com sucesso!' });
+        return;
+      }
+
+      // JSON fallback with HTML string -> generate client-side
+      const json = await res.json();
+      const html = json?.html as string;
+      const filename = (json?.filename as string) || fallbackFilename;
+      if (!html) throw new Error('Resposta inválida do servidor');
 
       // Ensure html2pdf is available
       const ensureHtml2pdf = async () => {
@@ -245,107 +293,21 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         });
         return (window as any).html2pdf;
       };
+
       const html2pdf = await ensureHtml2pdf();
-
-      // Off-DOM wrapper to stabilize layout width and page breaks
-      const wrapper = document.createElement('div');
-      wrapper.id = 'bw-pdf-root';
-      wrapper.style.position = 'fixed';
-      wrapper.style.left = '0';
-      wrapper.style.top = '0';
-      wrapper.style.opacity = '0.01';
-      wrapper.style.pointerEvents = 'none';
-      wrapper.style.zIndex = '-1';
-      wrapper.style.width = '794px';
-      wrapper.style.background = '#ffffff';
-      wrapper.style.padding = '24px';
-
-      const style = document.createElement('style');
-      style.textContent = `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        *{box-sizing:border-box}
-        #bw-pdf-root{font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:#111827; line-height:1.6}
-        .pdf-header{text-align:center;margin-bottom:16px}
-        .pdf-header h1{font-size:20px;font-weight:700;margin:0 0 4px}
-        .pdf-header p{font-size:12px;color:#6b7280}
-        [data-pdf-message]{break-inside:avoid;page-break-inside:avoid}
-        table{border-collapse:collapse;width:100%}
-        th,td{border:1px solid #e5e7eb;padding:6px 8px}
-        pre{white-space:pre-wrap;word-wrap:break-word}
-        img{max-width:100%;height:auto}
-      `;
-      wrapper.appendChild(style);
-
-      const header = document.createElement('div');
-      header.className = 'pdf-header';
-      header.innerHTML = `<h1>Conversa com o Assistente BuffetWiz</h1><p>Gerado em ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}</p>`;
-      wrapper.appendChild(header);
-
-      const clone = chatCaptureRef.current.cloneNode(true) as HTMLElement;
-      clone.id = 'bw-chat-clone';
-      // Inline key computed styles to avoid library skipping Tailwind classes
-      try {
-        const originals = chatCaptureRef.current.querySelectorAll('*');
-        const clones = clone.querySelectorAll('*');
-        const props = [
-          'color','backgroundColor','border','borderColor','borderWidth','borderStyle',
-          'fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','whiteSpace',
-          'display','position','top','left','right','bottom',
-          'flex','flexDirection','justifyContent','alignItems','gap',
-          'padding','paddingTop','paddingRight','paddingBottom','paddingLeft',
-          'margin','marginTop','marginRight','marginBottom','marginLeft',
-          'width','maxWidth','minWidth','height','maxHeight','minHeight',
-          'borderRadius','boxShadow','textAlign','overflow','overflowX','overflowY'
-        ];
-        originals.forEach((el, i) => {
-          const cloneEl = clones[i] as HTMLElement | undefined;
-          if (!cloneEl) return;
-          const cs = getComputedStyle(el as Element);
-          props.forEach(p => {
-            (cloneEl.style as any)[p] = (cs as any)[p];
-          });
-        });
-      } catch {}
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
-
-      // Wait a tick for layout and fonts
-      try { // @ts-ignore
-        if (document.fonts && (document as any).fonts.ready) {
-          // @ts-ignore
-          await (document as any).fonts.ready;
-        }
-      } catch {}
-      await new Promise((r) => setTimeout(r, 50));
-
-      const elementWidth = wrapper.scrollWidth || 780;
-      const elementHeight = wrapper.scrollHeight || 0;
-      console.log('[PDF] capture size:', elementWidth, 'x', elementHeight);
       await html2pdf()
         .set({
-          filename: pdfFilename,
+          filename,
           margin: [10,10,10,10],
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { 
-            scale: 2, 
-            useCORS: true, 
-            letterRendering: true, 
-            backgroundColor: '#ffffff',
-            windowWidth: Math.max(elementWidth, 794),
-            scrollX: 0,
-            scrollY: -window.scrollY,
-            foreignObjectRendering: true
-          },
+          html2canvas: { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff' },
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
         })
-        .from(wrapper)
+        .from(html)
         .save();
 
-      // Cleanup off-DOM wrapper
-      try { document.body.removeChild(wrapper); } catch {}
-
-      toast({ title: 'PDF gerado', description: 'PDF exportado com sucesso!' });
+      toast({ title: 'PDF gerado', description: 'PDF gerado no navegador (fallback)!' });
 
     } catch (err) {
       console.error('Erro no export:', err);
