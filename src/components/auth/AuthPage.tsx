@@ -11,9 +11,8 @@ export function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5 p-4">
       <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-4">
-        <img src="/logo.png" alt="BuffetWiz Logo" className="h-16 w-auto rounded-lg hover:opacity-80 transition-opacity" />
-          <div>
+        <div className="flex items-center justify-between space-x-4">
+          <div className="text-left">
             <h1 className="text-3xl font-bold text-gradient tracking-tight">
               BuffetWiz
             </h1>
@@ -21,6 +20,7 @@ export function AuthPage() {
               Descomplicando seu Buffet
             </p>
           </div>
+          <img src="/logo.png" alt="BuffetWiz Logo" className="h-16 w-auto rounded-lg hover:opacity-80 transition-opacity" />
         </div>
 
         {/* Auth Forms */}
