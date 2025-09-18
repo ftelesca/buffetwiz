@@ -76,10 +76,11 @@ export async function handleExportClick(payload: string): Promise<void> {
         ? 'json'
         : 'csv';
 
-      let target: 'produtos' | 'eventos' | 'insumos' | 'clientes' = 'produtos';
+      let target: 'produtos' | 'eventos' | 'insumos' | 'clientes' | 'unidades' = 'produtos';
       if (filenameLower.includes('evento')) target = 'eventos';
       else if (filenameLower.includes('insumo') || filenameLower.includes('item')) target = 'insumos';
       else if (filenameLower.includes('cliente')) target = 'clientes';
+      else if (filenameLower.includes('unidade') || filenameLower.includes('medida')) target = 'unidades';
 
       console.log('🎯 Target inferido:', target);
 
@@ -129,6 +130,13 @@ export async function handleExportClick(payload: string): Promise<void> {
           .eq('user_id', userId)
           .limit(500);
         exportData = (items || []).map((i: any) => ({ 'Insumo': i.description, 'Custo': i.cost || 0 }));
+      } else if (target === 'unidades') {
+        // Export units of measure from the database
+        const { data: units } = await supabase
+          .from('unit')
+          .select('description')
+          .limit(100);
+        exportData = (units || []).map((u: any) => ({ 'Unidade de Medida': u.description }));
       } else if (target === 'clientes') {
         const { data: customers } = await supabase
           .from('customer')

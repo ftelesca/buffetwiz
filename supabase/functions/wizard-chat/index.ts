@@ -80,7 +80,7 @@ serve(async (req) => {
 
     // Get user's business data for RAG context - only if no cache hit
     if (!isCacheHit) {
-      const [eventsResponse, recipesResponse, itemsResponse, customersResponse] = await Promise.all([
+      const [eventsResponse, recipesResponse, itemsResponse, customersResponse, unitsResponse] = await Promise.all([
         supabase.from('event').select(`
           *,
           customer:customer(name, email, phone),
@@ -100,20 +100,24 @@ serve(async (req) => {
         
         supabase.from('item').select('*').eq('user_id', userId).limit(200),
         
-        supabase.from('customer').select('*').eq('user_id', userId).limit(50)
+        supabase.from('customer').select('*').eq('user_id', userId).limit(50),
+        
+        supabase.from('unit').select('description').limit(100)
       ]);
 
       if (eventsResponse.error) throw eventsResponse.error;
       if (recipesResponse.error) throw recipesResponse.error;
       if (itemsResponse.error) throw itemsResponse.error;
       if (customersResponse.error) throw customersResponse.error;
+      if (unitsResponse.error) throw unitsResponse.error;
 
       // Prepare RAG context
       const context = {
         events: eventsResponse.data || [],
         recipes: recipesResponse.data || [],
         items: itemsResponse.data || [],
-        customers: customersResponse.data || []
+        customers: customersResponse.data || [],
+        units: unitsResponse.data || []
       };
 
       // Update counts for metadata
@@ -223,6 +227,11 @@ ${context.items.map(item => `
 • "${item.description}": R$ ${item.cost || 'N/A'} por ${item.unit_use?.description || 'unidade'}
 `).join('\n')}
 
+📏 UNIDADES DE MEDIDA DO SISTEMA:
+${context.units?.map(unit => `
+• ${unit.description}
+`).join('\n') || 'N/A'}
+
 👥 CLIENTES CADASTRADOS (${context.customers.length} total):
 ${context.customers.map(customer => `
 • "${customer.name}" - ${customer.email || 'N/A'} | ${customer.phone || 'N/A'}
@@ -277,6 +286,8 @@ IMPORTANTE: VOCÊ TEM CAPACIDADE TOTAL DE GERAR ARQUIVOS PARA DOWNLOAD!
 • Se o usuário viu uma lista simples com apenas descrições, exporte APENAS as descrições
 • Se o usuário viu uma tabela com 3 colunas, exporte APENAS essas 3 colunas
 • NÃO adicione custos, preços ou outros dados se não estavam sendo mostrados
+• SEJA PRECISO: Não diga "vou exportar unidades de medida" se na verdade está exportando produtos
+• DESCREVA CORRETAMENTE: Sempre mencione exatamente o que está sendo exportado
 
 📊 EXEMPLOS CORRETOS:
 • Usuário viu lista: "Lasanha, Pizza, Salada" → Exportar: apenas nomes dos produtos
