@@ -5,8 +5,7 @@ import { marked } from 'https://esm.sh/marked@12.0.2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, Authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
@@ -29,22 +28,20 @@ serve(async (req) => {
       });
     }
 
-    // Initialize Supabase client using environment secrets
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    // Initialize Supabase client
+    const supabaseUrl = 'https://bvubvqckuygqibjtmyhv.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2dWJ2cWNrdXlncWlianRteWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5MTU0MDYsImV4cCI6MjA3MTQ5MTQwNn0.S2fPnn0erhDkrc-Gkn54Ig1ZuGbFtO2wd1JZPlJ1Qk8';
     
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: {
         headers: {
-          Authorization: authHeader,
           authorization: authHeader,
         },
       },
     });
 
-    // Get user from JWT using token explicitly
-    const token = authHeader.replace(/^Bearer\s+/i, '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    // Get user from JWT
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Failed to authenticate user' }), {
         status: 401,
