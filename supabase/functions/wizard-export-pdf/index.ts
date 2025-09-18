@@ -221,26 +221,42 @@ serve(async (req) => {
             margin: 8px 0;
         }
         
-        /* Lists - Improved alignment and wrapping */
-        .content ul {
+        /* Lists - Precise alignment using custom markers */
+        .content ul, .content ol {
             margin: 12px 0;
-            padding-left: 1.25rem; /* 20px */
-            list-style: disc;
-            list-style-position: inside; /* align bullets with wrapped text */
+            padding-left: 0; /* control spacing ourselves */
         }
-        .content ol {
-            margin: 12px 0;
-            padding-left: 1.25rem; /* 20px */
-            list-style: decimal;
-            list-style-position: inside; /* align numbers with wrapped text */
-        }
+        .content ul { list-style: none; }
+        .content ol { list-style: none; counter-reset: list-counter; }
         .content li {
             margin: 6px 0;
-            padding-left: 0; /* remove extra padding that misaligns bullets */
+            padding-left: 1rem; /* tight gap between bullet/number and text */
             line-height: 1.5;
+            position: relative;
         }
-        .content li::marker { color: #4b5563; }
-        .bubble.user .content li::marker { color: #e0e7ff; }
+        .content ul li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            top: 0.2em; /* vertically centers with first line */
+            color: #4b5563;
+            font-weight: 700;
+        }
+        .bubble.user .content ul li::before { color: #e0e7ff; }
+        .content ol li { counter-increment: list-counter; }
+        .content ol li::before {
+            content: counter(list-counter) ".";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #4b5563;
+            font-weight: 600;
+            width: 1rem; /* reserve space so wrapped lines align */
+            text-align: left;
+        }
+        .bubble.user .content ol li::before { color: #e0e7ff; }
+        .content li > p { margin: 0; }
+        .content ul ul, .content ol ol { margin: 6px 0 6px 1rem; }
         
         /* Tables - Rounded corners and consistent borders */
         .content table {
