@@ -221,62 +221,66 @@ serve(async (req) => {
             margin: 8px 0;
         }
         
-        /* Lists - Better alignment and spacing */
-        .content ul { 
-            margin: 12px 0; 
-            padding-left: 20px; 
-            list-style: disc; 
-            list-style-position: outside; 
+        /* Lists - Improved alignment and wrapping */
+        .content ul {
+            margin: 12px 0;
+            padding-left: 1.25rem; /* 20px */
+            list-style: disc;
+            list-style-position: inside; /* align bullets with wrapped text */
         }
-        .content ol { 
-            margin: 12px 0; 
-            padding-left: 20px; 
-            list-style: decimal; 
-            list-style-position: outside; 
+        .content ol {
+            margin: 12px 0;
+            padding-left: 1.25rem; /* 20px */
+            list-style: decimal;
+            list-style-position: inside; /* align numbers with wrapped text */
         }
-        .content li { 
-            margin: 6px 0; 
-            padding-left: 4px; 
-            line-height: 1.5; 
+        .content li {
+            margin: 6px 0;
+            padding-left: 0; /* remove extra padding that misaligns bullets */
+            line-height: 1.5;
         }
+        .content li::marker { color: #4b5563; }
+        .bubble.user .content li::marker { color: #e0e7ff; }
         
-        /* Tables - Enhanced styling with rounded corners and better colors */
-        .content table { 
-            width: 100%; 
-            border-collapse: separate; 
-            border-spacing: 0; 
-            margin: 16px 0; 
-            border-radius: 8px; 
-            overflow: hidden; 
-            border: 1px solid #d1d5db; 
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
+        /* Tables - Rounded corners and consistent borders */
+        .content table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 16px 0;
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden; /* ensures header background clips to radius */
+            border: 1px solid #d1d5db;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        .content thead { 
-            background: #374151; 
-            color: white; 
+        .content thead {
+            background: #374151;
+            color: white;
         }
-        .content th { 
-            padding: 12px 16px; 
-            text-align: left; 
-            font-weight: 600; 
-            border-bottom: 1px solid #d1d5db; 
-            font-size: 14px; 
+        .content th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #d1d5db;
+            font-size: 14px;
         }
-        .content td { 
-            padding: 12px 16px; 
-            border-bottom: 1px solid #e5e7eb; 
-            background: #f9fafb; 
-            font-size: 14px; 
+        .content td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+            font-size: 14px;
         }
-        .content tbody tr:last-child td { 
-            border-bottom: none; 
-        }
-        .content tbody tr:nth-child(even) td { 
-            background: #ffffff; 
-        }
-        .content tr, .content td, .content th { 
-            page-break-inside: avoid; 
-            break-inside: avoid; 
+        .content tbody tr:last-child td { border-bottom: none; }
+        .content tbody tr:nth-child(even) td { background: #ffffff; }
+        /* Explicit corner rounding for better PDF rendering */
+        .content thead tr th:first-child { border-top-left-radius: 10px; }
+        .content thead tr th:last-child { border-top-right-radius: 10px; }
+        .content tbody tr:last-child td:first-child { border-bottom-left-radius: 10px; }
+        .content tbody tr:last-child td:last-child { border-bottom-right-radius: 10px; }
+        .content tr, .content td, .content th {
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         
         .timestamp {
