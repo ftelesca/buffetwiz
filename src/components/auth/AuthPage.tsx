@@ -20,9 +20,20 @@ export function AuthPage() {
               Descomplicando seu Buffet
             </p>
           </div>
-          <img src="/logo.png" alt="BuffetWiz Logo" className="h-16 w-auto rounded-lg hover:opacity-80 transition-opacity" />
+          <a 
+            href="https://looli.com.br" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            title="Visite a Looli"
+            className="inline-block"
+          >
+            <img 
+              src="/logo.png" 
+              alt="BuffetWiz Logo" 
+              className="h-16 w-auto rounded-lg hover:opacity-80 transition-opacity" 
+            />
+          </a>
         </div>
-
         {/* Auth Forms */}
         <Card className="shadow-elegant border-0 glass-effect">
           <CardHeader className="text-center pb-4">
