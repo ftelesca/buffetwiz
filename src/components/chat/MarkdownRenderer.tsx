@@ -181,7 +181,40 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
       .replace(/'/g, '&#39;');
   }
 
-  function buildListsAndTablesHTML(md: string): string {
+  function buildConversationHTML(md: string): string {
+    // Check if this is conversation content
+    if (md.includes('👤 **Usuário**') || md.includes('🤖 **BuffetWiz**')) {
+      const sections = md.split('---').filter(section => section.trim());
+      const out: string[] = [];
+      
+      for (const section of sections) {
+        const lines = section.trim().split('\n');
+        if (lines.length === 0) continue;
+        
+        const firstLine = lines[0];
+        const isUser = firstLine.includes('👤 **Usuário**');
+        const isAssistant = firstLine.includes('🤖 **BuffetWiz**');
+        
+        if (isUser || isAssistant) {
+          const timestamp = firstLine.match(/_\((.*?)\)_/)?.[1] || '';
+          const messageContent = lines.slice(2).join('\n').trim();
+          
+          out.push(`
+            <div class="message ${isUser ? 'user' : 'assistant'}">
+              <div class="message-header">
+                ${isUser ? '👤 Usuário' : '🤖 BuffetWiz'}
+                <span class="message-timestamp">${escapeHtml(timestamp)}</span>
+              </div>
+              <div class="message-content">${escapeHtml(messageContent).replace(/\n/g, '<br>')}</div>
+            </div>
+          `);
+        }
+      }
+      
+      return out.join('\n');
+    }
+    
+    // Fallback to original list/table processing for non-conversation content
     const lines = md.split(/\r?\n/);
     const out: string[] = [];
     let i = 0;
@@ -235,7 +268,7 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
     return out.join('\n');
   }
 
-  const processedContent = buildListsAndTablesHTML(conversationContent);
+  const processedContent = buildConversationHTML(conversationContent);
 
   // Content already processed correctly above - no additional wrapping needed
 
