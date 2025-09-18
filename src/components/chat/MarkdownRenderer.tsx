@@ -202,11 +202,12 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
           
           out.push(`
             <div class="message ${isUser ? 'user' : 'assistant'}">
-              <div class="message-header">
-                ${isUser ? '👤 Usuário' : '🤖 BuffetWiz'}
-                <span class="message-timestamp">${escapeHtml(timestamp)}</span>
+              ${isAssistant ? '<div class="avatar">🤖</div>' : ''}
+              <div class="bubble ${isUser ? 'user' : 'assistant'}">
+                <div class="content markdown">${isAssistant ? (marked.parse(messageContent, { gfm: true, breaks: true }) as string) : escapeHtml(messageContent).replace(/\n/g, '<br>')}</div>
+                <div class="meta">${escapeHtml(timestamp)}</div>
               </div>
-              <div class="message-content">${escapeHtml(messageContent).replace(/\n/g, '<br>')}</div>
+              ${isUser ? '<div class="avatar">👤</div>' : ''}
             </div>
           `);
         }
@@ -315,29 +316,29 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
     }
     .header p { font-size: 12px; color: #6B7280; }
 
-    .chat { display: flex; flex-direction: column; gap: 12px; }
-    .message { display: flex; align-items: flex-start; gap: 8px; }
+    .chat { display: flex; flex-direction: column; gap: 14px; }
+    .message { display: flex; align-items: flex-end; gap: 10px; }
     .message.user { justify-content: flex-end; }
 
     .avatar {
-      width: 28px; height: 28px; flex: 0 0 28px; border-radius: 9999px;
+      width: 32px; height: 32px; flex: 0 0 32px; border-radius: 9999px;
       display: flex; align-items: center; justify-content: center;
-      background: #E5E7EB; font-size: 14px;
+      background: #E5E7EB; color: #111827; font-size: 14px; font-weight: 600;
     }
-    .message.user .avatar { background: #E0E7FF; }
+    .message.assistant .avatar { background: #6366F1; color: #ffffff; }
+    .message.user .avatar { background: #E5E7EB; color: #111827; }
 
     .bubble {
-      max-width: 75%;
+      max-width: 85%;
       border: 1px solid #E5E7EB;
       border-radius: 12px;
-      padding: 12px 14px;
-      background: #F9FAFB;
+      padding: 12px 14px 8px 14px;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
-    .message.user .bubble { background: #EEF2FF; border-color: #C7D2FE; }
+    .bubble.user { background: #6366F1; border-color: #4F46E5; color: #ffffff; }
 
-    .content.markdown {
-      font-size: 14px; color: #111827;
-    }
+    .content.markdown { font-size: 14px; }
     .content.markdown h1 { font-size: 18px; font-weight: 700; margin: 8px 0; }
     .content.markdown h2 { font-size: 16px; font-weight: 600; margin: 8px 0; }
     .content.markdown h3 { font-size: 15px; font-weight: 600; margin: 8px 0; }
@@ -345,11 +346,13 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
     .content.markdown ul { margin: 8px 0 8px 20px; }
     .content.markdown ol { margin: 8px 0 8px 20px; }
     .content.markdown code { background: #F3F4F6; padding: 2px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .bubble.user .content.markdown code { background: rgba(255,255,255,0.15); color: #fff; }
     .content.markdown pre { background: #111827; color: #F9FAFB; padding: 12px; border-radius: 8px; overflow: auto; }
     .content.markdown table { width: 100%; border-collapse: collapse; margin: 8px 0; }
     .content.markdown th, .content.markdown td { border: 1px solid #E5E7EB; padding: 6px 8px; text-align: left; }
 
-    .meta { font-size: 10px; color: #6B7280; margin-top: 6px; }
+    .timestamp { font-size: 10px; color: #6B7280; margin-top: 8px; padding-top: 6px; border-top: 1px solid #E5E7EB; }
+    .bubble.user .timestamp { color: #E0E7FF; border-top-color: rgba(255,255,255,0.25); }
   </style>
 </head>
 <body>
