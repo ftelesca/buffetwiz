@@ -364,7 +364,7 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
 </html>`;
 
   // Create enhanced DOCX content
-  const docxContent = await createEnhancedDOCXContent(conversationContent, currentDate, currentTime, eventDetails);
+  const docxContent = await createEnhancedDOCXContent(conversationContent, currentDate, currentTime);
 
   try {
     const zip = new JSZip();
@@ -524,7 +524,7 @@ async function createEnhancedDOCXContent(content: string, currentDate: string, c
       if (!lines.length) continue;
       const first = lines[0];
       const isUser = first.includes('👤 **Usuário**');
-      const timestamp = first.match(/_\((.*?)\)_/)?[1] || '';
+      const timestamp = first.match(/_\((.*?)\)_/)?.[1] || '';
       const msg = lines.slice(2).join('\n').trim();
       addBubble(isUser, msg, timestamp);
     }
