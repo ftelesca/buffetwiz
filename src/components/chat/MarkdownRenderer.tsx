@@ -1132,23 +1132,33 @@ export function MarkdownRenderer({
               const onSmartDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
                 try {
                   const text = (e.currentTarget.textContent || '').toLowerCase();
-                  const match = text.match(/\bbaixar\s+([\w\-\s]+\.(xlsx|csv|json|pdf))\b/i);
-                  if (match) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const file = match[1].trim();
-                    const ext = file.split('.').pop()?.toLowerCase();
-                    if (ext === 'pdf') {
-                      exportLastResponseToPDFAndDOCX(content, file);
-                    } else {
-                      const rows = extractTableDataFromMarkdown(content);
-                      if (rows && rows.length) {
-                        const type = inferTypeFromFilename(file);
-                        const payload = JSON.stringify({ type, filename: file, data: rows });
-                        handleExportClickLocal(payload);
+                  // More flexible patterns for download detection
+                  const patterns = [
+                    /\bbaixar\s+([\w\-\s\.]+\.(xlsx|csv|json|pdf))\b/i,
+                    /\bdownload\s+([\w\-\s\.]+\.(xlsx|csv|json|pdf))\b/i,
+                    /([\w\-\s\.]+\.(xlsx|csv|json|pdf))/i // Just filename with extension
+                  ];
+                  
+                  for (const pattern of patterns) {
+                    const match = text.match(pattern);
+                    if (match) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const file = match[1].trim();
+                      const ext = file.split('.').pop()?.toLowerCase();
+                      if (ext === 'pdf') {
+                        exportLastResponseToPDFAndDOCX(content, file);
                       } else {
-                        handleExportClickLocal(`filename:"${file}"`);
+                        const rows = extractTableDataFromMarkdown(content);
+                        if (rows && rows.length) {
+                          const type = inferTypeFromFilename(file);
+                          const payload = JSON.stringify({ type, filename: file, data: rows });
+                          handleExportClickLocal(payload);
+                        } else {
+                          handleExportClickLocal(`filename:"${file}"`);
+                        }
                       }
+                      break;
                     }
                   }
                 } catch {}
@@ -1175,23 +1185,33 @@ export function MarkdownRenderer({
             const onSmartDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
               try {
                 const text = (e.currentTarget.textContent || '').toLowerCase();
-                const match = text.match(/\bbaixar\s+([\w\-\s]+\.(xlsx|csv|json|pdf))\b/i);
-                if (match) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const file = match[1].trim();
-                  const ext = file.split('.').pop()?.toLowerCase();
-                  if (ext === 'pdf') {
-                    exportLastResponseToPDFAndDOCX(content, file);
-                  } else {
-                    const rows = extractTableDataFromMarkdown(content);
-                    if (rows && rows.length) {
-                      const type = inferTypeFromFilename(file);
-                      const payload = JSON.stringify({ type, filename: file, data: rows });
-                      handleExportClickLocal(payload);
+                // More flexible patterns for download detection
+                const patterns = [
+                  /\bbaixar\s+([\w\-\s\.]+\.(xlsx|csv|json|pdf))\b/i,
+                  /\bdownload\s+([\w\-\s\.]+\.(xlsx|csv|json|pdf))\b/i,
+                  /([\w\-\s\.]+\.(xlsx|csv|json|pdf))/i // Just filename with extension
+                ];
+                
+                for (const pattern of patterns) {
+                  const match = text.match(pattern);
+                  if (match) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const file = match[1].trim();
+                    const ext = file.split('.').pop()?.toLowerCase();
+                    if (ext === 'pdf') {
+                      exportLastResponseToPDFAndDOCX(content, file);
                     } else {
-                      handleExportClickLocal(`filename:"${file}"`);
+                      const rows = extractTableDataFromMarkdown(content);
+                      if (rows && rows.length) {
+                        const type = inferTypeFromFilename(file);
+                        const payload = JSON.stringify({ type, filename: file, data: rows });
+                        handleExportClickLocal(payload);
+                      } else {
+                        handleExportClickLocal(`filename:"${file}"`);
+                      }
                     }
+                    break;
                   }
                 }
               } catch {}
