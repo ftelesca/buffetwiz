@@ -283,17 +283,27 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
 
+      // Wait a tick for layout and fonts
+      try { // @ts-ignore
+        if (document.fonts && (document as any).fonts.ready) {
+          // @ts-ignore
+          await (document as any).fonts.ready;
+        }
+      } catch {}
+      await new Promise((r) => setTimeout(r, 50));
+
       const elementWidth = wrapper.scrollWidth || 780;
       const pdfBlob = await html2pdf()
         .set({
           margin: [10,10,10,10],
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: Math.max(elementWidth, 780) },
+          html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: Math.max(elementWidth, 780), backgroundColor: '#ffffff' },
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
         })
         .from(wrapper)
-        .outputPdf('blob');
+        .toPdf()
+        .output('blob');
 
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');

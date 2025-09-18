@@ -376,7 +376,8 @@ img { max-width: 100%; height: auto; page-break-inside: avoid; }
           },
         })
         .from(target)
-        .outputPdf('blob');
+        .toPdf()
+        .output('blob');
       
       // Direct download of PDF
       const url = URL.createObjectURL(pdfBlob);
