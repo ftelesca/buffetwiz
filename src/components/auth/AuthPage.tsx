@@ -15,11 +15,7 @@ export function AuthPage() {
       <div className="w-full max-w-md space-y-8">
         {/* Logo and Brand */}
         <div className="text-center space-y-4">
-          <img 
-            src={logo} 
-            alt="BuffetWiz Logo" 
-            className="h-16 w-16 mx-auto object-contain"
-          />
+          <img src="/logo.png" alt="BuffetWiz Logo" className="h-16 w-auto rounded-lg hover:opacity-80 transition-opacity" />
           <div>
             <h1 className="text-3xl font-bold text-gradient tracking-tight">
               BuffetWiz
