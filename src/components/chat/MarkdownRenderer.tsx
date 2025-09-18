@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { handleExportClick } from "@/lib/export-handler";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType } from "docx";
 import JSZip from "jszip";
+import { marked } from "marked";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 
@@ -292,232 +293,72 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
   <title>${title}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body { 
-      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      line-height: 1.7; 
-      color: #1a202c; 
-      max-width: 850px; 
-      margin: 0 auto; 
-      padding: 40px 30px; 
+    body {
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: #111827;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 24px;
       background: #ffffff;
+      line-height: 1.6;
     }
-    
-    .header { 
-      text-align: center; 
-      margin-bottom: 30px; 
-      padding: 20px; 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-      color: white; 
-      border-radius: 12px;
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
     }
-    
     .header h1 {
-      margin: 0;
-      font-size: 24px;
+      font-size: 20px;
       font-weight: 600;
-    }
-    
-    .header p {
-      margin: 8px 0 0 0;
-      font-size: 14px;
-      opacity: 0.9;
-    }
-    
-    .logo-section {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    
-    .company-logo {
-      max-width: 120px;
-      height: auto;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    table th {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 15px 12px;
-      text-align: left;
-      font-weight: 600;
-      font-size: 16px;
-      border: none;
-    }
-    
-    table td {
-      padding: 12px;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 15px;
-      vertical-align: top;
-    }
-    
-    table tr:nth-child(even) {
-      background: #f8fafc;
-    }
-    
-    table tr:hover {
-      background: #edf2f7;
-    }
-    
-    table tr:last-child td {
-      border-bottom: none;
-    }
-    
-    .meta-info { 
-      margin-bottom: 30px; 
-      padding: 20px; 
-      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
-      border-radius: 12px; 
-      border-left: 4px solid #667eea;
-      font-size: 15px;
-      color: #4a5568;
-    }
-    
-    .event-details {
-      margin-bottom: 30px;
-      padding: 25px;
-      background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
-      border-radius: 12px;
-      border-left: 4px solid #f56565;
-    }
-    
-    .event-info p {
-      margin-bottom: 8px;
-      font-size: 15px;
-    }
-    
-    .content { 
-      background: white; 
-      padding: 35px; 
-      border-radius: 16px; 
-      box-shadow: 0 4px 25px rgba(0,0,0,0.08); 
-      border: 2px solid #e2e8f0; 
-      font-size: 16px;
-      line-height: 1.8;
-    }
-    
-    .main-title {
-      color: #667eea;
-      font-size: 28px;
-      font-weight: 700;
-      margin: 0 0 20px 0;
-      letter-spacing: -0.5px;
-    }
-    
-    .section-title {
-      color: #4a5568;
-      font-size: 22px;
-      font-weight: 600;
-      margin: 25px 0 15px 0;
-      padding-bottom: 8px;
-      border-bottom: 2px solid #e2e8f0;
-    }
-    
-    .subsection-title {
-      color: #718096;
-      font-size: 18px;
-      font-weight: 600;
-      margin: 20px 0 12px 0;
-    }
-    
-    .elegant-list, .elegant-numbered-list { 
-      margin: 16px 0; 
-      padding-left: 0; 
-      list-style: none;
-    }
-    
-    .list-item, .numbered-item { 
-      margin: 10px 0; 
-      padding: 12px 20px;
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      border-radius: 8px;
-      border-left: 3px solid #667eea;
-      position: relative;
-    }
-    
-    .list-item:before {
-      content: "▸";
-      color: #667eea;
-      font-weight: bold;
-      position: absolute;
-      left: 8px;
-    }
-    
-    .highlight { 
-      font-weight: 600; 
-      color: #667eea; 
-      background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    
-    .emphasis { 
-      font-style: italic; 
-      color: #718096; 
-      background: #f7fafc;
-      padding: 2px 4px;
-      border-radius: 3px;
-    }
-    
-    .footer {
-      margin-top: 30px;
-      padding: 15px;
-      text-align: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-radius: 8px;
-    }
-    
-    .footer .brand {
-      font-weight: 600;
-      font-size: 16px;
+      color: #111827;
       margin-bottom: 4px;
     }
-    
-    .footer .tagline {
-      font-size: 12px;
-      opacity: 0.9;
+    .header p { font-size: 12px; color: #6B7280; }
+
+    .chat { display: flex; flex-direction: column; gap: 12px; }
+    .message { display: flex; align-items: flex-start; gap: 8px; }
+    .message.user { justify-content: flex-end; }
+
+    .avatar {
+      width: 28px; height: 28px; flex: 0 0 28px; border-radius: 9999px;
+      display: flex; align-items: center; justify-content: center;
+      background: #E5E7EB; font-size: 14px;
     }
-    
-    @media print {
-      body { margin: 0; padding: 20px; }
-      .header, .footer { box-shadow: none; }
+    .message.user .avatar { background: #E0E7FF; }
+
+    .bubble {
+      max-width: 75%;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #F9FAFB;
     }
+    .message.user .bubble { background: #EEF2FF; border-color: #C7D2FE; }
+
+    .content.markdown {
+      font-size: 14px; color: #111827;
+    }
+    .content.markdown h1 { font-size: 18px; font-weight: 700; margin: 8px 0; }
+    .content.markdown h2 { font-size: 16px; font-weight: 600; margin: 8px 0; }
+    .content.markdown h3 { font-size: 15px; font-weight: 600; margin: 8px 0; }
+    .content.markdown p { margin: 8px 0; }
+    .content.markdown ul { margin: 8px 0 8px 20px; }
+    .content.markdown ol { margin: 8px 0 8px 20px; }
+    .content.markdown code { background: #F3F4F6; padding: 2px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .content.markdown pre { background: #111827; color: #F9FAFB; padding: 12px; border-radius: 8px; overflow: auto; }
+    .content.markdown table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+    .content.markdown th, .content.markdown td { border: 1px solid #E5E7EB; padding: 6px 8px; text-align: left; }
+
+    .meta { font-size: 10px; color: #6B7280; margin-top: 6px; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>BuffetWiz</h1>
-    <p>Relatório de Análise</p>
+    <h1>Conversa com o Assistente BuffetWiz</h1>
+    <p>Gerado em ${currentDate} ${currentTime}</p>
   </div>
-  
-  ${logoSection}
-  
-  <div class="meta-info">
-    <strong>📊 Relatório Gerado:</strong> ${currentDate} às ${currentTime}
-  </div>
-  
-  <div class="content">
+  <div class="chat">
     ${processedContent}
-  </div>
-  
-  <div class="footer">
-    <div class="brand">BuffetWiz</div>
-    <div class="tagline">Descomplicando seu Buffet</div>
   </div>
 </body>
 </html>`;
@@ -580,209 +421,118 @@ async function exportConversationToPDFAndDOCX(content: string, filename: string,
   }
 }
 
-// Enhanced DOCX content creation
-async function createEnhancedDOCXContent(content: string, currentDate: string, currentTime: string, eventDetails?: any) {
-  const children = [];
+// Enhanced DOCX content creation (chat-like, simple header, no footer)
+async function createEnhancedDOCXContent(content: string, currentDate: string, currentTime: string) {
+  const children: any[] = [];
 
-  // Header - Only BuffetWiz title
+  // Header: centered, simple
   children.push(
     new Paragraph({
-      children: [
-        new TextRun({
-          text: "BuffetWiz",
-          bold: true,
-          size: 28,
-          color: "4F46E5",
-        }),
-      ],
-      heading: HeadingLevel.TITLE,
+      children: [new TextRun({ text: "Conversa com o Assistente BuffetWiz", bold: true, size: 28 })],
+      alignment: "center",
+      spacing: { after: 120 },
+    })
+  );
+  children.push(
+    new Paragraph({
+      children: [new TextRun({ text: `Gerado em ${currentDate} ${currentTime}`, size: 20, color: "6B7280" })],
+      alignment: "center",
       spacing: { after: 300 },
-      alignment: "center",
     })
   );
 
-  // Date and time info
-  children.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `Data: ${currentDate} às ${currentTime}`,
-          size: 20,
-          color: "6B7280",
-        }),
-      ],
-      spacing: { after: 400 },
-      alignment: "center",
-    })
-  );
+  const toPlainRuns = (line: string) => {
+    const runs: any[] = [];
+    let i = 0;
+    while (i < line.length) {
+      const bold = line.indexOf('**', i);
+      const italic = line.indexOf('*', i);
+      if (bold !== -1 && (italic === -1 || bold < italic)) {
+        if (bold > i) runs.push(new TextRun({ text: line.slice(i, bold) }));
+        const end = line.indexOf('**', bold + 2);
+        if (end !== -1) {
+          runs.push(new TextRun({ text: line.slice(bold + 2, end), bold: true }));
+          i = end + 2; continue;
+        }
+      }
+      if (italic !== -1) {
+        if (italic > i) runs.push(new TextRun({ text: line.slice(i, italic) }));
+        const end = line.indexOf('*', italic + 1);
+        if (end !== -1) {
+          runs.push(new TextRun({ text: line.slice(italic + 1, end), italics: true }));
+          i = end + 1; continue;
+        }
+      }
+      runs.push(new TextRun({ text: line.slice(i) }));
+      break;
+    }
+    if (!runs.length) runs.push(new TextRun({ text: line }));
+    return runs;
+  };
 
-  // Process conversation content
+  const addBubble = (isUser: boolean, htmlOrMd: string, timestamp: string) => {
+    // Header with role + timestamp, aligned left/right
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: isUser ? '👤 Usuário ' : '🤖 BuffetWiz ', bold: true }),
+          new TextRun({ text: timestamp ? `(${timestamp})` : '', size: 16, color: '6B7280' }),
+        ],
+        alignment: isUser ? 'right' : 'left',
+        spacing: { before: 120, after: 60 },
+      })
+    );
+
+    // Convert markdown to plain paragraphs (basic support)
+    const lines = htmlOrMd.split('\n');
+    const paragraphs: any[] = [];
+    let inCode = false;
+    let codeBuffer: string[] = [];
+
+    for (const raw of lines) {
+      const line = raw.replace(/\r/g, '');
+      if (line.trim().startsWith('```')) {
+        if (!inCode) { inCode = true; codeBuffer = []; continue; }
+        // close
+        paragraphs.push(new Paragraph({ children: [new TextRun({ text: codeBuffer.join('\n'), font: 'Consolas' })] }));
+        inCode = false; codeBuffer = []; continue;
+      }
+      if (inCode) { codeBuffer.push(line); continue; }
+      if (!line.trim()) { paragraphs.push(new Paragraph({ children: [new TextRun({ text: '' })] })); continue; }
+      if (line.startsWith('# ')) { paragraphs.push(new Paragraph({ children: [new TextRun({ text: line.slice(2), bold: true, size: 26 })] })); continue; }
+      if (line.startsWith('## ')) { paragraphs.push(new Paragraph({ children: [new TextRun({ text: line.slice(3), bold: true, size: 22 })] })); continue; }
+      if (line.startsWith('### ')) { paragraphs.push(new Paragraph({ children: [new TextRun({ text: line.slice(4), bold: true, size: 20 })] })); continue; }
+      if (/^[-*]\s+/.test(line)) { paragraphs.push(new Paragraph({ children: [new TextRun({ text: '• ' + line.replace(/^[-*]\s+/, '') })], indent: { left: 400 } })); continue; }
+      if (/^\d+\.\s+/.test(line)) { paragraphs.push(new Paragraph({ children: [new TextRun({ text: line })], indent: { left: 400 } })); continue; }
+      paragraphs.push(new Paragraph({ children: toPlainRuns(line) }));
+    }
+
+    // Wrap in a one-cell table to mimic a bubble and align left/right
+    const cell = new TableCell({
+      children: paragraphs,
+      margins: { top: 120, bottom: 120, left: 180, right: 180 },
+    });
+    const row = new TableRow({ children: [cell] });
+    const table = new Table({ rows: [row], width: { size: 6500, type: WidthType.DXA } });
+    children.push(table);
+  };
+
   if (content.includes('👤 **Usuário**') || content.includes('🤖 **BuffetWiz**')) {
-    // This is conversation content
-    const sections = content.split('---').filter(section => section.trim());
-    
+    const sections = content.split('---').filter(s => s.trim());
     for (const section of sections) {
       const lines = section.trim().split('\n');
-      if (lines.length === 0) continue;
-      
-      const firstLine = lines[0];
-      const isUser = firstLine.includes('👤 **Usuário**');
-      const isAssistant = firstLine.includes('🤖 **BuffetWiz**');
-      
-      if (isUser || isAssistant) {
-        // Message header
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: isUser ? "👤 Usuário" : "🤖 BuffetWiz",
-                bold: true,
-                size: 18,
-                color: isUser ? "6366F1" : "0EA5E9",
-              }),
-            ],
-            spacing: { before: 300, after: 100 },
-          })
-        );
-        
-        // Message content (skip first line with role and timestamp)
-        const messageContent = lines.slice(2).join('\n').trim();
-        if (messageContent) {
-          children.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: messageContent,
-                  size: 16,
-                }),
-              ],
-              spacing: { after: 200 },
-              indent: { left: 200 },
-            })
-          );
-        }
-      }
+      if (!lines.length) continue;
+      const first = lines[0];
+      const isUser = first.includes('👤 **Usuário**');
+      const timestamp = first.match(/_\((.*?)\)_/)?[1] || '';
+      const msg = lines.slice(2).join('\n').trim();
+      addBubble(isUser, msg, timestamp);
     }
   } else {
-    // Regular content processing
-    const lines = content.split('\n').filter(line => line.trim() !== '');
-  
-  for (const line of lines) {
-    if (line.startsWith('# ')) {
-      children.push(
-        new Paragraph({
-          children: [new TextRun({ text: line.substring(2), bold: true, size: 28, color: "4F46E5" })],
-          heading: HeadingLevel.HEADING_1,
-          spacing: { before: 300, after: 200 },
-        })
-      );
-    } else if (line.startsWith('## ')) {
-      children.push(
-        new Paragraph({
-          children: [new TextRun({ text: line.substring(3), bold: true, size: 22, color: "6B7280" })],
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 250, after: 150 },
-        })
-      );
-    } else if (line.startsWith('### ')) {
-      children.push(
-        new Paragraph({
-          children: [new TextRun({ text: line.substring(4), bold: true, size: 18, color: "9CA3AF" })],
-          heading: HeadingLevel.HEADING_3,
-          spacing: { before: 200, after: 120 },
-        })
-      );
-    } else if (line.startsWith('• ') || line.startsWith('- ')) {
-      children.push(
-        new Paragraph({
-          children: [new TextRun({ text: `▸ ${line.substring(2)}`, size: 16 })],
-          spacing: { before: 80, after: 80 },
-          indent: { left: 400 },
-        })
-      );
-    } else if (/^\d+\./.test(line)) {
-      children.push(
-        new Paragraph({
-          children: [new TextRun({ text: line, size: 16 })],
-          spacing: { before: 80, after: 80 },
-          indent: { left: 400 },
-        })
-      );
-    } else {
-      // Process markdown formatting in regular text
-      const textRuns = [];
-      let remaining = line;
-      
-      // Process bold text **text**
-      const boldRegex = /\*\*(.*?)\*\*/g;
-      let lastIndex = 0;
-      let match;
-      
-      while ((match = boldRegex.exec(line)) !== null) {
-        // Add text before the bold
-        if (match.index > lastIndex) {
-          textRuns.push(new TextRun({ 
-            text: line.substring(lastIndex, match.index),
-            size: 16
-          }));
-        }
-        // Add bold text
-        textRuns.push(new TextRun({ 
-          text: match[1],
-          bold: true,
-          size: 16,
-          color: "4F46E5"
-        }));
-        lastIndex = match.index + match[0].length;
-      }
-      
-      // Add remaining text
-      if (lastIndex < line.length) {
-        textRuns.push(new TextRun({ 
-          text: line.substring(lastIndex),
-          size: 16
-        }));
-      }
-      
-      // If no bold text found, just add the whole line
-      if (textRuns.length === 0) {
-        textRuns.push(new TextRun({ text: line, size: 16 }));
-      }
-
-      children.push(
-        new Paragraph({
-          children: textRuns,
-          spacing: { after: 120 },
-        })
-      );
-    }
-  }
+    addBubble(false, content, `${currentDate} ${currentTime}`);
   }
 
-  // Footer with generation date
-  children.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `Gerado em: ${currentDate} às ${currentTime}`,
-          size: 14,
-          italics: true,
-          color: "6B7280",
-        }),
-      ],
-      spacing: { before: 600 },
-      alignment: "center",
-    })
-  );
-
-  return new Document({
-    sections: [
-      {
-        properties: {},
-        children,
-      },
-    ],
-  });
+  return new Document({ sections: [{ properties: {}, children }] });
 }
 
 // Process export links: robustly convert raw occurrences like "export:{...}" or "export:%7B...%7D" into markdown links, skipping code blocks
