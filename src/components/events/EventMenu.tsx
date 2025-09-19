@@ -618,7 +618,7 @@ export const EventMenu = ({
                     {selectedProductForItems && (
                       <div className="flex justify-between items-center mt-2 pt-2 border-t">
                         <span className="text-lg font-medium">
-                          Custo Total ({selectedProductForItems.qty} unidades):
+                          Custo Total ({selectedProductForItems.qty} {selectedProductForItems.qty === 1 ? 'unidade' : 'unidades'}):
                         </span>
                         <span className="text-xl font-bold text-primary">
                           {formatCurrency((productUnitCost || 0) * selectedProductForItems.qty)}
