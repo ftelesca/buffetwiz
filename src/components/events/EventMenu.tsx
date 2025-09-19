@@ -476,8 +476,8 @@ export const EventMenu = ({
                   <div 
                     className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                       item.produced === true 
-                        ? 'bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800' 
-                        : 'bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800'
+                        ? 'bg-green-200 hover:bg-green-300 dark:bg-green-800 dark:hover:bg-green-700' 
+                        : 'bg-red-200 hover:bg-red-300 dark:bg-red-800 dark:hover:bg-red-700'
                     }`}
                     onClick={() => handleToggleProduced(item.product.id, item.produced)}
                   >
