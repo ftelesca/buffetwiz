@@ -295,10 +295,6 @@ export const EventMenu = ({
     },
     onSuccess: () => {
       queryClient.refetchQueries({ queryKey: ["event-menu", eventId] });
-      toast({
-        title: "Status atualizado",
-        description: "Status de produção atualizado com sucesso."
-      });
     },
     onError: (error: any) => {
       toast({
