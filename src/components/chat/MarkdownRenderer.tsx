@@ -107,12 +107,20 @@ async function exportToFile(payload: string) {
 }
 
 // Helper to export conversation as PDF
-async function exportConversationToPDF(content: string, filename: string, chatTitle?: string, eventDetails?: any, includeLogo?: boolean) {
+export async function exportConversationToPDF(content: string, filename: string, chatTitle?: string, eventDetails?: any, includeLogo?: boolean) {
   console.log('🚀 === INICIANDO EXPORTAÇÃO PDF ===');
   console.log('📄 Content:', content.substring(0, 200) + '...');
   console.log('📌 Chat Title:', chatTitle);
   console.log('📊 Event Details:', eventDetails);
   console.log('🖼️ Include Logo:', includeLogo);
+  
+  console.log('🎯 Parâmetros recebidos:', {
+    contentLength: content.length,
+    filename,
+    chatTitle,
+    eventDetails: !!eventDetails,
+    includeLogo
+  });
   
   const now = new Date();
   const dateStr = now.toISOString().split('T')[0]; // AAAA-MM-DD
@@ -996,7 +1004,7 @@ export function MarkdownRenderer({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                     exportConversationToPDF(content, file);
+                     exportConversationToPDF(content, file, 'Conversa BuffetWiz');
                   }}
                   className={cn(
                     "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground cursor-pointer", 
@@ -1049,7 +1057,7 @@ export function MarkdownRenderer({
                       const file = match[1].trim();
                       const ext = file.split('.').pop()?.toLowerCase();
                       if (ext === 'pdf') {
-                        exportConversationToPDF(content, file);
+                        exportConversationToPDF(content, file, 'Conversa BuffetWiz');
                       } else {
                         const rows = extractTableDataFromMarkdown(content);
                         if (rows && rows.length) {
@@ -1102,7 +1110,7 @@ export function MarkdownRenderer({
                     const file = match[1].trim();
                     const ext = file.split('.').pop()?.toLowerCase();
                     if (ext === 'pdf') {
-                      exportConversationToPDF(content, file);
+                      exportConversationToPDF(content, file, 'Conversa BuffetWiz');
                     } else {
                       const rows = extractTableDataFromMarkdown(content);
                       if (rows && rows.length) {
@@ -1152,5 +1160,3 @@ export function MarkdownRenderer({
     </div>
   );
 }
-
-export { exportConversationToPDF };
