@@ -422,7 +422,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
   ): number {
     let currentY = y;
     
-    // Dividir conteúdo em blocos (texto normal vs tabelas)
+      // Dividir conteúdo em blocos (texto normal vs tabelas)
     const lines = content.split('\n');
     let currentBlock: string[] = [];
     let isTable = false;
@@ -431,12 +431,18 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       const isTableLine = line.trim().startsWith('|');
       
       if (isTableLine && !isTable) {
-        // Renderizar texto acumulado antes da tabela
+        // Renderizar texto acumulado antes da tabela (preservando quebras de linha)
         if (currentBlock.length > 0) {
-          const text = currentBlock.join(' ');
-          const textLines = doc.splitTextToSize(text, maxWidth);
-          doc.text(textLines, x, currentY);
-          currentY += (textLines.length * 5) + 5;
+          for (const textLine of currentBlock) {
+            if (textLine === '') {
+              currentY += 5; // Linha vazia
+            } else {
+              const wrappedLines = doc.splitTextToSize(textLine, maxWidth);
+              doc.text(wrappedLines, x, currentY);
+              currentY += wrappedLines.length * 5;
+            }
+          }
+          currentY += 5; // Espaço após bloco de texto
           currentBlock = [];
         }
         isTable = true;
@@ -454,13 +460,20 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     
     // Renderizar bloco final
     if (currentBlock.length > 0) {
-        if (isTable) {
-          currentY = renderTable(doc, currentBlock, x, currentY, maxWidth, pageHeight, margin, addHeaderFooter);
-        } else {
-        const text = currentBlock.join(' ');
-        const textLines = doc.splitTextToSize(text, maxWidth);
-        doc.text(textLines, x, currentY);
-        currentY += (textLines.length * 5) + 5;
+      if (isTable) {
+        currentY = renderTable(doc, currentBlock, x, currentY, maxWidth, pageHeight, margin, addHeaderFooter);
+      } else {
+        // Renderizar texto preservando quebras de linha
+        for (const textLine of currentBlock) {
+          if (textLine === '') {
+            currentY += 5; // Linha vazia
+          } else {
+            const wrappedLines = doc.splitTextToSize(textLine, maxWidth);
+            doc.text(wrappedLines, x, currentY);
+            currentY += wrappedLines.length * 5;
+          }
+        }
+        currentY += 5; // Espaço após bloco de texto
       }
     }
     
