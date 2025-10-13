@@ -357,16 +357,33 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             addHeaderFooter
           );
         } else {
-          // Texto normal com quebra inteligente
-          const lines = doc.splitTextToSize(msg.content, contentWidth - 8);
+          // Texto normal com respeito a quebras de linha e parágrafos
+          // Dividir em parágrafos (linhas vazias separam parágrafos)
+          const paragraphs = msg.content.split(/\n\s*\n/);
           
-          // Desenhar fundo do balão
-          const balloonHeight = (lines.length * 5) + 6;
-          doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-          doc.roundedRect(margin + 2, contentStartY, contentWidth - 4, balloonHeight, 2, 2, 'F');
-          
-          doc.text(lines, margin + 5, yPosition);
-          yPosition += (lines.length * 5) + 8;
+          for (const paragraph of paragraphs) {
+            if (!paragraph.trim()) continue;
+            
+            // Processar cada linha do parágrafo mantendo quebras simples
+            const paragraphLines = paragraph.split('\n').filter(l => l.trim());
+            
+            for (const line of paragraphLines) {
+              const wrappedLines = doc.splitTextToSize(line, contentWidth - 8);
+              
+              // Verificar espaço antes de desenhar
+              const lineHeight = (wrappedLines.length * 5) + 3;
+              if (yPosition + lineHeight > pageHeight - 30) {
+                doc.addPage();
+                if (addHeaderFooter) addHeaderFooter();
+                yPosition = 25;
+              }
+              
+              doc.text(wrappedLines, margin + 5, yPosition);
+              yPosition += (wrappedLines.length * 5) + 3;
+            }
+            
+            yPosition += 4; // Espaço extra entre parágrafos
+          }
         }
 
         yPosition += 5; // Espaço entre mensagens
