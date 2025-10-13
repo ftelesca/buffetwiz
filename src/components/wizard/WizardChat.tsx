@@ -350,30 +350,29 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             addHeaderFooter
           );
         } else {
-          // Texto normal: respeitar CRLF e linhas vazias exatamente
+          // Texto normal: respeitar quebras de linha com espaçamento adequado
           const normalized = msg.content.replace(/\r\n/g, '\n');
           const lines = normalized.split('\n');
+          
+          const lineSpacing = 5; // Espaçamento entre linhas (como line-height)
           
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             
-            // Linha em branco: ocupar altura de uma linha
-            if (line === '') {
-              const dims = doc.getTextDimensions(' ', { maxWidth: maxTextWidth });
-              const needed = Math.max(5, dims.h || 5);
-              if (yPosition + needed > pageHeight - 30) {
+            // Linha em branco: adicionar espaçamento de uma linha
+            if (line.trim() === '') {
+              if (yPosition + lineSpacing > pageHeight - 30) {
                 doc.addPage();
                 if (addHeaderFooter) addHeaderFooter();
                 yPosition = 25;
               }
-              yPosition += needed;
+              yPosition += lineSpacing;
               continue;
             }
             
-            // Quebrar linha longa se necessário (sem trim para preservar espaços)
+            // Quebrar linha longa se necessário
             const wrappedLines = doc.splitTextToSize(line, maxTextWidth);
-            const dims = doc.getTextDimensions(wrappedLines);
-            const blockHeight = Math.max(5, dims.h || wrappedLines.length * 5);
+            const blockHeight = wrappedLines.length * lineSpacing;
             
             // Verificar espaço antes de desenhar
             if (yPosition + blockHeight > pageHeight - 30) {
@@ -382,8 +381,11 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
               yPosition = 25;
             }
             
-            doc.text(wrappedLines, contentX, yPosition);
-            yPosition += blockHeight;
+            // Desenhar com line-height (espaçamento entre linhas)
+            for (let j = 0; j < wrappedLines.length; j++) {
+              doc.text(wrappedLines[j], contentX, yPosition);
+              yPosition += lineSpacing;
+            }
           }
         }
 
