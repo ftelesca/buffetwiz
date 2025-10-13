@@ -284,7 +284,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         // Cabeçalho
         doc.setFontSize(10);
         doc.setTextColor(120, 120, 120);
-        doc.text('BuffetWiz - Assistente de Eventos', margin, 10);
+        doc.text('BuffetWiz', margin, 10);
         
         // Rodapé
         doc.setFontSize(8);
@@ -332,7 +332,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-        const senderLabel = isUser ? '👤 Você' : '🤖 Assistente';
+        const senderLabel = isUser ? 'Você' : 'Assistente';
         doc.text(senderLabel, margin, yPosition);
         yPosition += 6;
 
@@ -357,32 +357,31 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             addHeaderFooter
           );
         } else {
-          // Texto normal com respeito a quebras de linha e parágrafos
-          // Dividir em parágrafos (linhas vazias separam parágrafos)
-          const paragraphs = msg.content.split(/\n\s*\n/);
+          // Texto normal com respeito a quebras de linha
+          const lines = msg.content.split('\n');
           
-          for (const paragraph of paragraphs) {
-            if (!paragraph.trim()) continue;
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
             
-            // Processar cada linha do parágrafo mantendo quebras simples
-            const paragraphLines = paragraph.split('\n').filter(l => l.trim());
-            
-            for (const line of paragraphLines) {
-              const wrappedLines = doc.splitTextToSize(line, contentWidth - 8);
-              
-              // Verificar espaço antes de desenhar
-              const lineHeight = (wrappedLines.length * 5) + 3;
-              if (yPosition + lineHeight > pageHeight - 30) {
-                doc.addPage();
-                if (addHeaderFooter) addHeaderFooter();
-                yPosition = 25;
-              }
-              
-              doc.text(wrappedLines, margin + 5, yPosition);
-              yPosition += (wrappedLines.length * 5) + 3;
+            // Verificar se é linha vazia (parágrafo)
+            if (!line.trim()) {
+              yPosition += 3; // Espaço para linha vazia
+              continue;
             }
             
-            yPosition += 4; // Espaço extra entre parágrafos
+            // Quebrar linha se necessário
+            const wrappedLines = doc.splitTextToSize(line, contentWidth - 8);
+            
+            // Verificar espaço antes de desenhar
+            const lineHeight = (wrappedLines.length * 5) + 3;
+            if (yPosition + lineHeight > pageHeight - 30) {
+              doc.addPage();
+              if (addHeaderFooter) addHeaderFooter();
+              yPosition = 25;
+            }
+            
+            doc.text(wrappedLines, margin + 5, yPosition);
+            yPosition += (wrappedLines.length * 5) + 3;
           }
         }
 
