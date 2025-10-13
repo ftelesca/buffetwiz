@@ -213,13 +213,13 @@ ${context.events.map(event => `
 • "${event.title}" - ${event.date} (${event.numguests} convidados)
   Cliente: ${event.customer?.name || 'N/A'}
   Custo: R$ ${event.cost || 'N/A'} | Preço: R$ ${event.price || 'N/A'}
-  Menu: ${event.event_menu?.map(m => `${m.recipe?.description} (${m.qty})`).join(', ') || 'Vazio'}
+  Menu: ${event.event_menu?.map((m: any) => `${m.recipe?.description} (${m.qty})`).join(', ') || 'Vazio'}
 `).join('\n')}
 
 🍽️ PRODUTOS DO CARDÁPIO (${context.recipes.length} total):
 ${context.recipes.map(recipe => `
 • "${recipe.description}" (Rendimento: ${recipe.efficiency || 1})
-  Insumos: ${recipe.recipe_item?.map(ri => `${ri.item?.description} (${ri.qty} ${ri.item?.unit_use?.description || 'un'})`).join(', ') || 'N/A'}
+  Insumos: ${recipe.recipe_item?.map((ri: any) => `${ri.item?.description} (${ri.qty} ${ri.item?.unit_use?.description || 'un'})`).join(', ') || 'N/A'}
 `).join('\n')}
 
 📦 INSUMOS DISPONÍVEIS (${context.items.length} total):
@@ -445,7 +445,7 @@ O sistema exportará exatamente os dados conforme solicitado.
           const dataType = exportMatch[1].toLowerCase();
           const format = exportMatch[2].toLowerCase();
           
-          let exportData = [];
+          let exportData: any[] = [];
           
           // Determine what data to export based on the request
           if (dataType.includes('produto') || dataType.includes('receita')) {
@@ -756,9 +756,11 @@ O sistema exportará exatamente os dados conforme solicitado.
 
   } catch (error) {
     console.error('Error in wizard-chat function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    const errorDetails = error instanceof Error ? error.toString() : String(error);
     return new Response(JSON.stringify({ 
-      error: error.message || 'Internal server error',
-      details: error.toString()
+      error: errorMessage,
+      details: errorDetails
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
