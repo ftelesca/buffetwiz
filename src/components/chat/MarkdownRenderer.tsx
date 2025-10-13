@@ -285,53 +285,135 @@ async function exportConversationToPDF(content: string, filename: string, chatTi
     </div>`;
   }
 
-  // Elegant HTML template (embedded container for html2pdf)
+// Elegant HTML template matching MessageBubble.tsx layout
   const html = `
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 * { margin: 0; padding: 0; box-sizing: border-box; }
 #bw-pdf-root {
-  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  color: #111827;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #0f172a;
   width: 720px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 20px;
   background: #ffffff;
   line-height: 1.6;
 }
-.header { text-align: center; margin-bottom: 16px; }
-.header h1 { font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 4px; }
-.header p { font-size: 12px; color: #6B7280; }
-.chat { display: flex; flex-direction: column; gap: 14px; }
-.message { display: flex; align-items: flex-end; gap: 10px; break-inside: avoid; page-break-inside: avoid; }
+/* Header - simple with title, date and time only */
+.header { margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
+.header h1 { font-size: 18px; font-weight: 600; color: #0f172a; margin-bottom: 6px; }
+.header p { font-size: 11px; color: #64748b; }
+
+/* Chat area */
+.chat { display: flex; flex-direction: column; gap: 16px; }
+
+/* Message layout matching MessageBubble.tsx */
+.message { display: flex; align-items: flex-start; gap: 10px; break-inside: avoid; page-break-inside: avoid; }
 .message.user { justify-content: flex-end; }
-.avatar { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; background: #E5E7EB; color: #111827; font-size: 14px; font-weight: 600; }
-.message.assistant .avatar { background: #6366F1; color: #ffffff; }
-.message.user .avatar { background: #E5E7EB; color: #111827; }
-.bubble { max-width: 85%; border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px 14px 8px 14px; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.04); break-inside: avoid; page-break-inside: avoid; }
-.bubble.user { background: #6366F1; border-color: #4F46E5; color: #ffffff; }
-.content.markdown { font-size: 14px; word-break: break-word; overflow-wrap: anywhere; white-space: normal; }
-.content.markdown h1 { font-size: 18px; font-weight: 700; margin: 8px 0; }
+
+/* Avatar styling - matching component */
+.avatar { 
+  width: 32px; 
+  height: 32px; 
+  flex: 0 0 32px; 
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 14px; 
+  margin-top: 4px;
+}
+.message.assistant .avatar { 
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+.message.user .avatar { 
+  background: #6366f1;
+}
+
+/* Message bubble - matching bg-primary for user, bg-muted/60 for assistant */
+.bubble { 
+  max-width: 75%;
+  padding: 12px 16px; 
+  border-radius: 16px; 
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  break-inside: avoid; 
+  page-break-inside: avoid;
+}
+
+/* User message - bg-primary text-primary-foreground rounded-br-md */
+.bubble.user { 
+  background: #6366f1;
+  color: #ffffff;
+  border-radius: 16px 16px 4px 16px;
+}
+
+/* Assistant message - bg-muted/60 rounded-bl-md border */
+.bubble.assistant {
+  max-width: 80%;
+  background: rgba(241, 245, 249, 0.6);
+  color: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.4);
+  border-radius: 16px 16px 16px 4px;
+}
+
+/* Message content */
+.content.markdown { 
+  word-break: break-word; 
+  overflow-wrap: anywhere; 
+  white-space: pre-wrap;
+  line-height: 1.65;
+}
+.content.markdown h1 { font-size: 17px; font-weight: 600; margin: 8px 0; }
 .content.markdown h2 { font-size: 16px; font-weight: 600; margin: 8px 0; }
 .content.markdown h3 { font-size: 15px; font-weight: 600; margin: 8px 0; }
 .content.markdown p { margin: 8px 0; }
-.content.markdown ul { margin: 8px 0 8px 20px; }
+.content.markdown ul { margin: 8px 0 8px 20px; list-style-type: disc; }
 .content.markdown ol { margin: 8px 0 8px 20px; }
-.content.markdown code { background: #F3F4F6; padding: 2px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-.bubble.user .content.markdown code { background: rgba(255,255,255,0.15); color: #fff; }
-.content.markdown pre { background: #111827; color: #F9FAFB; padding: 12px; border-radius: 8px; overflow: visible; white-space: pre-wrap; }
+.content.markdown li { margin-bottom: 4px; }
+.content.markdown strong { font-weight: 600; }
+.content.markdown code { 
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 6px; 
+  border-radius: 4px; 
+  font-size: 12px;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+.bubble.user .content.markdown code { 
+  background: rgba(255, 255, 255, 0.2);
+  color: #f1f5f9;
+}
+.bubble.user .content.markdown strong {
+  color: #f1f5f9;
+}
+.bubble.assistant .content.markdown strong {
+  color: #1e293b;
+}
+.content.markdown pre { 
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 12px; 
+  border-radius: 6px; 
+  overflow: visible; 
+  white-space: pre-wrap;
+  margin: 10px 0;
+}
 .content.markdown table { width: 100%; border-collapse: collapse; margin: 8px 0; }
 .content.markdown th, .content.markdown td { border: 1px solid #E5E7EB; padding: 6px 8px; text-align: left; }
-.content.markdown thead { display: table-header-group; }
-.content.markdown tr, .content.markdown td, .content.markdown th { page-break-inside: avoid; break-inside: avoid; }
-.timestamp { font-size: 10px; color: #6B7280; margin-top: 8px; padding-top: 6px; border-top: 1px solid #E5E7EB; }
-.bubble.user .timestamp { color: #E0E7FF; border-top-color: rgba(255,255,255,0.25); }
+
+/* Timestamp - matching component */
+.timestamp { 
+  font-size: 10px; 
+  color: #94a3b8;
+  margin-top: 6px; 
+  padding-top: 4px;
+}
 img { max-width: 100%; height: auto; page-break-inside: avoid; }
 </style>
 <div id="bw-pdf-root">
   <div class="header">
-    <h1>Conversa com o Assistente BuffetWiz</h1>
-    <p>Gerado em ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}</p>
+    <h1>${title}</h1>
+    <p>Exportado em ${now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
   </div>
   <div class="chat">
     ${processedContent}
