@@ -130,13 +130,10 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     setMessages((prev) => [...prev, optimistic]);
 
     try {
-      console.log('[WizardChat] Enviando mensagem para wizard-chat...', { userText, currentChatId });
-      
-      const { data, error } = await supabase.functions.invoke("wizard-chat", {
-        body: { message: userText, chatId: currentChatId },
+      const { data, error } = await supabase.functions.invoke('wizard-chat', {
+        body: { message: userText, chatId: currentChatId }
       });
       
-      console.log('[WizardChat] Resposta recebida:', { data, error });
       if (error) throw error;
 
       const resolvedChatId = (data as any)?.chatId || currentChatId;
@@ -147,10 +144,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
       if (resolvedChatId) await loadMessages(resolvedChatId);
     } catch (err: any) {
-      console.error('[WizardChat] ERRO COMPLETO:', err);
-      console.error('[WizardChat] Tipo do erro:', typeof err, err?.constructor?.name);
-      console.error('[WizardChat] Mensagem:', err?.message);
-      console.error('[WizardChat] Stack:', err?.stack);
+      console.error('[WizardChat] Erro ao enviar mensagem:', err);
       
       // Remove a otimista
       setMessages((prev) => prev.filter((m) => m.id !== tempId));

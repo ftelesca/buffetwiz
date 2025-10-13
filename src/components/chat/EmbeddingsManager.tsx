@@ -16,8 +16,6 @@ export class EmbeddingsManager {
     if (this.initialized) return;
     
     try {
-      console.log('Initializing embeddings model...');
-      
       // Initialize small, fast embedding model for browser
       this.embedder = await pipeline(
         "feature-extraction",
@@ -26,14 +24,11 @@ export class EmbeddingsManager {
       );
       
       this.initialized = true;
-      console.log('Embeddings model initialized successfully');
       
       // Load cached responses from localStorage
       this.loadCacheFromStorage();
       
     } catch (error) {
-      console.warn('Failed to initialize WebGPU embeddings, falling back to CPU:', error);
-      
       try {
         this.embedder = await pipeline(
           "feature-extraction",
@@ -41,7 +36,6 @@ export class EmbeddingsManager {
           { device: "cpu" }
         );
         this.initialized = true;
-        console.log('Embeddings model initialized with CPU');
       } catch (cpuError) {
         console.error('Failed to initialize embeddings model:', cpuError);
         this.initialized = false;
@@ -51,7 +45,7 @@ export class EmbeddingsManager {
 
   async getEmbedding(text: string): Promise<number[]> {
     if (!this.initialized || !this.embedder || !text || typeof text !== 'string') {
-      console.warn('Embeddings model not initialized or invalid text, returning empty array');
+      
       return [];
     }
 
@@ -114,7 +108,7 @@ export class EmbeddingsManager {
       }
 
       if (bestMatch) {
-        console.log('Found cached response with similarity:', bestMatch.similarity);
+        
         return bestMatch.response;
       }
 
@@ -131,7 +125,7 @@ export class EmbeddingsManager {
           if (responseData?.embedding && Array.isArray(responseData.embedding)) {
             const similarity = this.cosineSimilarity(queryEmbedding, responseData.embedding);
             if (similarity > 0.85) {
-              console.log('Found database cached response with similarity:', similarity);
+              
               return {
                 content: responseData.content || '',
                 embedding: responseData.embedding,
@@ -214,7 +208,7 @@ export class EmbeddingsManager {
       if (cached) {
         const parsed = JSON.parse(cached);
         this.cache = new Map(Object.entries(parsed));
-        console.log(`Loaded ${this.cache.size} cached responses from storage`);
+        
       }
     } catch (error) {
       console.error('Error loading cache from storage:', error);

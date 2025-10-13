@@ -17,13 +17,7 @@ import "katex/dist/katex.min.css";
 
 // Função de exportação integrada (caso o arquivo externo não esteja disponível)
 async function exportToFile(payload: string) {
-  console.log('=== EXPORT TO FILE STARTED ===');
-  console.log('Raw payload:', payload);
-  console.log('Payload type:', typeof payload);
-  console.log('Payload length:', payload?.length);
-  
   try {
-    console.log('exportToFile called with payload:', payload);
     
     // Decodifica o payload se estiver em URL encoding
     let decodedPayload;
@@ -34,11 +28,7 @@ async function exportToFile(payload: string) {
       decodedPayload = payload;
     }
     
-    console.log('Decoded payload:', decodedPayload);
-    
-    // Parse do JSON
     const exportData = JSON.parse(decodedPayload);
-    console.log('Parsed export data:', exportData);
     
     const { filename, content, type = 'text/plain' } = exportData;
     
@@ -68,7 +58,7 @@ async function exportToFile(payload: string) {
       blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
     }
 
-    console.log('Created blob:', blob.size, 'bytes, type:', blob.type);
+    
 
     // Método mais confiável para forçar download
     const url = URL.createObjectURL(blob);
@@ -84,7 +74,7 @@ async function exportToFile(payload: string) {
     // Adicionar ao DOM
     document.body.appendChild(link);
     
-    console.log('Created download link:', link.href, 'filename:', link.download);
+    
     
     // Forçar o clique
     link.click();
@@ -93,15 +83,12 @@ async function exportToFile(payload: string) {
     setTimeout(() => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      console.log('Cleanup completed');
     }, 100);
     
-    console.log(`Download de ${filename} iniciado com sucesso`);
     return true;
     
   } catch (error) {
-    console.error('Erro detalhado ao exportar arquivo:', error);
-    console.error('Payload original:', payload);
+    console.error('Erro ao exportar arquivo:', error);
     throw new Error(`Falha ao exportar arquivo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
   }
 }
@@ -247,7 +234,7 @@ export function MarkdownRenderer({
     
     // BLOQUEIO: Prevenir chamadas ao endpoint antigo wizard-export-pdf
     if (payload.includes('wizard-export-pdf')) {
-      console.warn('[MarkdownRenderer] Bloqueado export para endpoint descontinuado:', payload);
+      
       toast({
         title: "Exportação descontinuada",
         description: "Use os botões de exportação do app",

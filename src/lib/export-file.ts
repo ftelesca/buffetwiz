@@ -41,7 +41,7 @@ export async function exportToFile(payload: string) {
     // Limpa a URL temporária
     URL.revokeObjectURL(url);
     
-    console.log(`Arquivo ${filename} baixado com sucesso`);
+    
     
   } catch (error) {
     console.error('Erro ao exportar arquivo:', error);

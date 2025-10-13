@@ -133,7 +133,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   // Populate form when editing
   useEffect(() => {
     if (eventData) {
-      console.log('EventData loaded:', eventData); // Debug log
+      
       setFormData({
         title: eventData.title || "",
         customer: (eventData as any).customer?.toString() || "",

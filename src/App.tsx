@@ -42,7 +42,7 @@ const App = () => {
       if (href.includes('/functions/v1/wizard-export-pdf') || href.includes('wizard-export-pdf')) {
         e.preventDefault();
         e.stopPropagation();
-        console.warn('[App] Bloqueado link para endpoint descontinuado:', href);
+        
         return;
       }
 

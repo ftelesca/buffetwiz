@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const timeSinceLastActivity = now - lastActivityRef.current
         
         if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
-          console.log('Session expired due to inactivity')
+          
           handleInactivityTimeout()
         }
       }, INACTIVITY_TIMEOUT)

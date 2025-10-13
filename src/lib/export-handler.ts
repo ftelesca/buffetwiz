@@ -51,7 +51,7 @@ function localDownloadXLSX(rows: any[], filename: string) {
 }
 
 export async function handleExportClick(payload: string): Promise<void> {
-  console.log('🔄 Iniciando exportação...', { payload });
+  
   
   // Show loading toast
   const loadingToast = toast({
@@ -61,10 +61,8 @@ export async function handleExportClick(payload: string): Promise<void> {
 
   try {
     const parsed = parseExportPayload(payload);
-    console.log('📝 Payload parseado:', parsed);
 
     if (!parsed) {
-      console.warn('❌ Falha no parse, usando fallback');
       
       // Fallback: try to infer export target and rebuild data
       const cleaned = (payload || '').toLowerCase();
