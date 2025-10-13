@@ -108,13 +108,20 @@ async function exportToFile(payload: string) {
 
 // Helper to export conversation as PDF
 async function exportConversationToPDF(content: string, filename: string, chatTitle?: string, eventDetails?: any, includeLogo?: boolean) {
-  console.log('Exportando conversa em PDF:', { content, chatTitle, eventDetails, includeLogo });
+  console.log('🚀 === INICIANDO EXPORTAÇÃO PDF ===');
+  console.log('📄 Content:', content.substring(0, 200) + '...');
+  console.log('📌 Chat Title:', chatTitle);
+  console.log('📊 Event Details:', eventDetails);
+  console.log('🖼️ Include Logo:', includeLogo);
   
   const now = new Date();
   const dateStr = now.toISOString().split('T')[0]; // AAAA-MM-DD
   const timeStr = now.toTimeString().split(' ')[0].substring(0, 5).replace(':', '-'); // HH-MM
   const pdfFilename = `Assistente_BuffetWiz_${dateStr}_${timeStr}.pdf`;
   const title = chatTitle || filename.replace(/\.pdf$/i, '');
+  
+  console.log('📁 PDF Filename:', pdfFilename);
+  console.log('🏷️ Title:', title);
 
   // Extract only lists and tables from content (strict)
   const extractListsOnly = (text: string): string => {
@@ -271,8 +278,11 @@ async function exportConversationToPDF(content: string, filename: string, chatTi
   }
 
   const processedContent = buildConversationHTML(conversationContent);
-
-  // Content already processed correctly above - no additional wrapping needed
+  
+  console.log('📝 Processed Content Preview:');
+  console.log(processedContent.substring(0, 500) + '...');
+  console.log('📊 Tables in processed:', (processedContent.match(/<table/g) || []).length);
+  console.log('💬 Messages in processed:', (processedContent.match(/class="message/g) || []).length);
 
   // No event details section in export - only lists
 
@@ -488,12 +498,18 @@ img { max-width: 100%; height: auto; page-break-inside: avoid; }
   console.log('Content length:', processedContent.length);
   console.log('Number of tables:', (processedContent.match(/<table/g) || []).length);
   console.log('Number of messages:', (processedContent.match(/class="message/g) || []).length);
+  console.log('html2pdf available:', typeof (window as any).html2pdf !== 'undefined');
 
   try {
     // Generate PDF only
     const html2pdf = (window as any).html2pdf;
+    
+    if (!html2pdf) {
+      throw new Error('html2pdf não está disponível. Certifique-se de que a biblioteca está carregada.');
+    }
+    
     if (html2pdf) {
-      console.log('Gerando PDF...');
+      console.log('Gerando PDF com html2pdf...');
 
       // Create off-DOM container to ensure correct width
       const wrapper = document.createElement('div');
@@ -557,9 +573,10 @@ img { max-width: 100%; height: auto; page-break-inside: avoid; }
 
       // Cleanup
       document.body.removeChild(wrapper);
+      
+      console.log('✅ PDF gerado com sucesso - Layout customizado aplicado!');
+      console.log('📦 Arquivo:', pdfFilename);
     }
-
-    console.log('PDF gerado com sucesso');
     
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
