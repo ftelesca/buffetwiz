@@ -214,62 +214,81 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
   };
 
   const exportConversationToPDF = async () => {
+    let wrapper: HTMLDivElement | null = null;
     try {
-      console.log('[WizardChat] Export button clicked', { messagesCount: messages.length, currentChatId });
       if (messages.length === 0) {
         toast({ title: "Nenhuma conversa", description: "Não há mensagens para exportar", variant: "destructive" });
         return;
       }
-
       setIsLoading(true);
 
-      // Get current chat title
       const currentChat = chats.find(c => c.id === currentChatId);
-      const chatTitle = currentChat?.title || "Conversa BuffetWiz";
-      
-      // Format the entire conversation
-      const conversationContent = messages
-        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-        .map(message => {
-          const role = message.role === "user" ? "👤 **Usuário**" : "🤖 **BuffetWiz**";
-          const timestamp = new Date(message.created_at).toLocaleString('pt-BR');
-          return `${role} _(${timestamp})_\n\n${message.content}\n\n---\n`;
+      const chatTitle = currentChat?.title || "Conversa";
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+      // Cria container off-screen
+      wrapper = document.createElement('div');
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-10000px';
+      wrapper.style.top = '0';
+      wrapper.style.width = '900px';
+      wrapper.style.background = '#ffffff';
+
+      const root = document.createElement('div');
+      root.id = 'bw-pdf-root';
+      root.style.padding = '24px';
+      root.style.maxWidth = '820px';
+      root.style.margin = '0 auto';
+
+      // Cabeçalho solicitado: BuffetWiz, título do chat, data/hora
+      const header = document.createElement('div');
+      header.innerHTML = `
+        <div style="border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:16px;">
+          <div style="font-weight:700; font-size:14px;">BuffetWiz</div>
+          <div style="font-size:18px; font-weight:600; margin-top:4px;">${(chatTitle || '').replace(/</g, '&lt;')}</div>
+          <div style="font-size:12px; color:#64748b; margin-top:2px;">${dateStr} ${timeStr}</div>
+        </div>
+      `;
+
+      // Clona a lista de mensagens exatamente como exibida
+      const list = scrollRef.current?.querySelector('.space-y-4') as HTMLElement | null;
+      if (!list) throw new Error('Container de mensagens não encontrado');
+      const listClone = list.cloneNode(true) as HTMLElement;
+
+      root.appendChild(header);
+      root.appendChild(listClone);
+      wrapper.appendChild(root);
+      document.body.appendChild(wrapper);
+
+      // Carrega html2pdf
+      let html2pdf: any = (window as any).html2pdf;
+      if (!html2pdf) {
+        const mod = await import('html2pdf.js');
+        html2pdf = (mod as any)?.default || (mod as any);
+      }
+
+      const safeTitle = (chatTitle || 'Conversa').replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '_');
+      const filename = `BuffetWiz_${safeTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
+
+      await html2pdf()
+        .set({
+          margin: [10, 10, 10, 10],
+          filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         })
-        .join('\n');
+        .from(root)
+        .save();
 
-      // Check for event details in chat context
-      const eventDetails = extractEventDetailsFromMessages(messages);
-      
-      // Use the elegant export function from MarkdownRenderer
-      console.log('[WizardChat] Importing MarkdownRenderer.exportConversationToPDF...');
-      const { exportConversationToPDF: exportFunction } = await import("@/components/chat/MarkdownRenderer");
-      console.log('[WizardChat] Import loaded');
-      const currentDate = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-      const filename = `BuffetWiz_Conversa_${currentDate}`;
-      console.log('[WizardChat] Calling export function', { filename, chatTitle, includeLogo: false });
-      
-      await exportFunction(
-        conversationContent, 
-        filename,
-        chatTitle,
-        eventDetails,
-        false // don't include logo per request
-      );
-      
-      console.log('[WizardChat] Export finished successfully');
-      toast({ 
-        title: "PDF gerado",
-        description: "PDF exportado com sucesso!"
-      });
-
+      toast({ title: "PDF gerado", description: "PDF exportado com sucesso!" });
     } catch (err) {
       console.error("Erro no export:", err);
-      toast({ 
-        title: "Erro no export", 
-        description: err instanceof Error ? err.message : "Falha ao gerar documentos", 
-        variant: "destructive" 
-      });
+      toast({ title: "Erro no export", description: err instanceof Error ? err.message : "Falha ao gerar PDF", variant: "destructive" });
     } finally {
+      if (wrapper && wrapper.parentElement) wrapper.parentElement.removeChild(wrapper);
       setIsLoading(false);
     }
   };
