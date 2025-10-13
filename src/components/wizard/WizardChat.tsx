@@ -667,10 +667,10 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[80vh] p-0 flex flex-col">
-        <div className="flex h-full min-h-0">
+      <DialogContent className="max-w-4xl h-[80vh] p-0 flex flex-col overflow-hidden">
+        <div className="flex h-full min-h-0 overflow-hidden">
           {/* Sidebar de histórico */}
-          <div className={`${showHistory ? "w-96" : "w-0"} transition-all duration-300 border-r bg-muted/30 overflow-hidden flex flex-col`}>
+          <div className={`${showHistory ? "w-96" : "w-0"} transition-all duration-300 border-r bg-muted/30 overflow-hidden flex flex-col rounded-tl-xl rounded-bl-xl`}>
             <div className="p-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-sm">Histórico</h3>
