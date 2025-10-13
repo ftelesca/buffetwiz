@@ -333,15 +333,18 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
         doc.setTextColor(40, 40, 40);
+        // Margens consistentes para todas as mensagens
+        const contentX = margin + 5;
+        const maxTextWidth = contentWidth - 8;
 
         if (msg.content.includes('|') && msg.content.includes('---')) {
           // Renderizar tabelas
           yPosition = renderMarkdownTables(
             doc,
             msg.content,
-            margin + 3,
+            contentX,
             yPosition,
-            contentWidth - 6,
+            maxTextWidth,
             pageHeight,
             margin,
             addHeaderFooter
@@ -354,31 +357,33 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             
-            // Linha em branco: adicionar espaço equivalente a uma linha
+            // Linha em branco: ocupar altura de uma linha
             if (line === '') {
-              const blankHeight = 5;
-              if (yPosition + blankHeight > pageHeight - 30) {
+              const dims = doc.getTextDimensions(' ', { maxWidth: maxTextWidth });
+              const needed = Math.max(5, dims.h || 5);
+              if (yPosition + needed > pageHeight - 30) {
                 doc.addPage();
                 if (addHeaderFooter) addHeaderFooter();
                 yPosition = 25;
               }
-              yPosition += blankHeight;
+              yPosition += needed;
               continue;
             }
             
             // Quebrar linha longa se necessário (sem trim para preservar espaços)
-            const wrappedLines = doc.splitTextToSize(line, contentWidth - 8);
+            const wrappedLines = doc.splitTextToSize(line, maxTextWidth);
+            const dims = doc.getTextDimensions(wrappedLines);
+            const blockHeight = Math.max(5, dims.h || wrappedLines.length * 5);
             
             // Verificar espaço antes de desenhar
-            const lineHeight = wrappedLines.length * 5;
-            if (yPosition + lineHeight > pageHeight - 30) {
+            if (yPosition + blockHeight > pageHeight - 30) {
               doc.addPage();
               if (addHeaderFooter) addHeaderFooter();
               yPosition = 25;
             }
             
-            doc.text(wrappedLines, margin + 5, yPosition);
-            yPosition += lineHeight;
+            doc.text(wrappedLines, contentX, yPosition);
+            yPosition += blockHeight;
           }
         }
 
