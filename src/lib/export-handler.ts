@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { parseExportPayload } from "./export-utils";
 import { toast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
 
 // Simple CSV generator (ChatGPT-like client-side fallback)
 function generateCSV(rows: any[]): string {
@@ -156,18 +157,26 @@ export async function handleExportClick(payload: string): Promise<void> {
       }
 
       const fallbackData = { type: inferredType, filename, data: exportData };
-      const { data: response, error } = await supabase.functions.invoke('wizard-export', {
-        body: fallbackData
-      });
 
-      if (error) {
-        console.error('❌ Erro na função de export (fallback):', error);
-        throw error;
+      // 100% client-side generation (sem edge function)
+      if (inferredType === 'csv' || inferredType === 'json') {
+        const contentType = inferredType === 'csv' ? 'text/csv;charset=utf-8' : 'application/json;charset=utf-8';
+        const contentStr = inferredType === 'csv' ? generateCSV(exportData) : JSON.stringify(exportData, null, 2);
+        const base64 = btoa(unescape(encodeURIComponent(contentStr)));
+        const downloadUrl = `data:${contentType};base64,${base64}`;
+        await downloadFile({ downloadUrl, filename }, filename);
+        loadingToast.dismiss();
+        toast({ title: 'Arquivo exportado', description: `${filename} foi baixado com sucesso` });
+        return;
       }
 
-      console.log('✅ Resposta da função (fallback):', response);
-      await downloadFile(response, filename);
+      // Já tratamos XLSX acima. Se cair aqui, notificar usuário
       loadingToast.dismiss();
+      toast({
+        title: 'Formato não suportado',
+        description: 'Não foi possível exportar esse formato no cliente.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -197,7 +206,7 @@ export async function handleExportClick(payload: string): Promise<void> {
     if (parsed.type === 'pdf' && Array.isArray(parsed.data)) {
       console.log('📄 Gerando PDF de dados localmente...');
       
-      const { jsPDF } = await import('jspdf');
+      // Import estático no topo recomendado para evitar fetch dinâmico
       const doc = new jsPDF();
       const margin = 15;
       let y = margin;
@@ -249,19 +258,15 @@ export async function handleExportClick(payload: string): Promise<void> {
       return;
     }
 
-    console.log('📤 Invocando função wizard-export...');
-    const { data: response, error } = await supabase.functions.invoke('wizard-export', {
-      body: parsed
-    });
-
-    if (error) {
-      console.error('❌ Erro na função de export:', error);
-      throw error;
-    }
-
-    console.log('✅ Resposta da função:', response);
-    await downloadFile(response, parsed.filename || 'export');
+    // Em ambientes somente cliente, não chamamos edge functions
+    console.log('🚫 Edge function desabilitada para exportação.');
     loadingToast.dismiss();
+    toast({
+      title: 'Exportação não suportada',
+      description: 'Este tipo de exportação requer dados que não estão presentes. Peça ao assistente para incluir os dados no link (data: [...]).',
+      variant: 'destructive',
+    });
+    return;
 
   } catch (err) {
     console.error('💥 Erro durante exportação:', err);
