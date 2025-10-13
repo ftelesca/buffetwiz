@@ -130,12 +130,13 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     setMessages((prev) => [...prev, optimistic]);
 
     try {
-      // Pega sessão atual para incluir token JWT
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('[WizardChat] Enviando mensagem para wizard-chat...', { userText, currentChatId });
       
       const { data, error } = await supabase.functions.invoke("wizard-chat", {
         body: { message: userText, chatId: currentChatId },
       });
+      
+      console.log('[WizardChat] Resposta recebida:', { data, error });
       if (error) throw error;
 
       const resolvedChatId = (data as any)?.chatId || currentChatId;
@@ -145,15 +146,23 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       }
 
       if (resolvedChatId) await loadMessages(resolvedChatId);
-    } catch (err) {
-      console.error("Erro enviando mensagem:", err);
+    } catch (err: any) {
+      console.error('[WizardChat] ERRO COMPLETO:', err);
+      console.error('[WizardChat] Tipo do erro:', typeof err, err?.constructor?.name);
+      console.error('[WizardChat] Mensagem:', err?.message);
+      console.error('[WizardChat] Stack:', err?.stack);
+      
       // Remove a otimista
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
 
-      const isNetwork = (err as any)?.message?.toLowerCase?.().includes('failed to fetch') || (err as any)?.name === 'TypeError';
-      const description = isNetwork
-        ? "Falha de rede ao chamar a função wizard-chat (CORS/timeout). Verifique se a função está implantada e as Secrets (OPENAI_API_KEY)."
-        : (typeof (err as any)?.message === 'string' ? (err as any).message : "Erro ao chamar wizard-chat");
+      const errorMsg = err?.message || String(err);
+      const isNetworkError = errorMsg.toLowerCase().includes('failed to fetch') || 
+                            errorMsg.toLowerCase().includes('network') ||
+                            err?.name === 'TypeError';
+      
+      const description = isNetworkError
+        ? `Erro de rede ao chamar wizard-chat. Verifique: (1) Se a função está implantada no Supabase, (2) Se OPENAI_API_KEY está configurada nas Secrets, (3) Logs da função para mais detalhes. Erro: ${errorMsg}`
+        : `Erro: ${errorMsg}`;
 
       toast({
         title: "Falha ao enviar",
