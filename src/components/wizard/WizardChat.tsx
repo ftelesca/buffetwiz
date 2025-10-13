@@ -213,85 +213,259 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     }
   };
 
-  const exportConversationToPDF = async () => {
-    let wrapper: HTMLDivElement | null = null;
-    try {
-      if (messages.length === 0) {
-        toast({ title: "Nenhuma conversa", description: "Não há mensagens para exportar", variant: "destructive" });
-        return;
-      }
-      setIsLoading(true);
+  const generateChatPDF = async () => {
+    if (messages.length === 0) {
+      toast({ 
+        title: "Nenhuma conversa", 
+        description: "Não há mensagens para exportar", 
+        variant: "destructive" 
+      });
+      return;
+    }
 
+    try {
+      setIsLoading(true);
+      
+      // Importar jsPDF
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      // Obter dados do chat
       const currentChat = chats.find(c => c.id === currentChatId);
       const chatTitle = currentChat?.title || "Conversa";
       const now = new Date();
-      const dateStr = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-      // Cria container off-screen
-      wrapper = document.createElement('div');
-      wrapper.style.position = 'fixed';
-      wrapper.style.left = '-10000px';
-      wrapper.style.top = '0';
-      wrapper.style.width = '900px';
-      wrapper.style.background = '#ffffff';
-
-      const root = document.createElement('div');
-      root.id = 'bw-pdf-root';
-      root.style.padding = '24px';
-      root.style.maxWidth = '820px';
-      root.style.margin = '0 auto';
-
-      // Cabeçalho solicitado: BuffetWiz, título do chat, data/hora
-      const header = document.createElement('div');
-      header.innerHTML = `
-        <div style="border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:16px;">
-          <div style="font-weight:700; font-size:14px;">BuffetWiz</div>
-          <div style="font-size:18px; font-weight:600; margin-top:4px;">${(chatTitle || '').replace(/</g, '&lt;')}</div>
-          <div style="font-size:12px; color:#64748b; margin-top:2px;">${dateStr} ${timeStr}</div>
-        </div>
-      `;
-
-      // Clona a lista de mensagens exatamente como exibida
-      const list = scrollRef.current?.querySelector('.space-y-4') as HTMLElement | null;
-      if (!list) throw new Error('Container de mensagens não encontrado');
-      const listClone = list.cloneNode(true) as HTMLElement;
-
-      root.appendChild(header);
-      root.appendChild(listClone);
-      wrapper.appendChild(root);
-      document.body.appendChild(wrapper);
-
-      // Carrega html2pdf
-      let html2pdf: any = (window as any).html2pdf;
-      if (!html2pdf) {
-        const mod = await import('html2pdf.js');
-        html2pdf = (mod as any)?.default || (mod as any);
+      const dateStr = now.toLocaleDateString('pt-BR');
+      const timeStr = now.toLocaleTimeString('pt-BR', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      // Configurações de página
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 15;
+      const contentWidth = pageWidth - (2 * margin);
+      let yPosition = margin;
+      
+      // HEADER: BuffetWiz + Título + Data/Hora
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('BuffetWiz', margin, yPosition);
+      yPosition += 8;
+      
+      doc.setFontSize(14);
+      doc.text(chatTitle, margin, yPosition);
+      yPosition += 6;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text(`${dateStr} ${timeStr}`, margin, yPosition);
+      yPosition += 10;
+      
+      // Linha separadora
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+      
+      // MENSAGENS
+      for (const msg of messages) {
+        // Verificar se precisa nova página
+        if (yPosition > pageHeight - 40) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        
+        // Identificador do remetente
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        
+        if (msg.role === 'user') {
+          doc.text('👤 Você:', margin, yPosition);
+        } else {
+          doc.text('🤖 Assistente:', margin, yPosition);
+        }
+        yPosition += 7;
+        
+        // Conteúdo da mensagem
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        
+        // Processar o conteúdo (texto simples + tabelas)
+        if (msg.content.includes('|')) {
+          yPosition = renderMarkdownTables(
+            doc, 
+            msg.content, 
+            margin + 5, 
+            yPosition, 
+            contentWidth - 10,
+            pageHeight,
+            margin
+          );
+        } else {
+          // Renderizar texto normal
+          const lines = doc.splitTextToSize(msg.content, contentWidth - 10);
+          doc.text(lines, margin + 5, yPosition);
+          yPosition += (lines.length * 5) + 10;
+        }
+        
+        yPosition += 5; // Espaço entre mensagens
       }
-
-      const safeTitle = (chatTitle || 'Conversa').replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '_');
+      
+      // Salvar PDF
+      const safeTitle = chatTitle
+        .replace(/[^a-zA-Z0-9-_ ]/g, '')
+        .replace(/\s+/g, '_');
       const filename = `BuffetWiz_${safeTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
-
-      await html2pdf()
-        .set({
-          margin: [10, 10, 10, 10],
-          filename,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        })
-        .from(root)
-        .save();
-
-      toast({ title: "PDF gerado", description: "PDF exportado com sucesso!" });
+      
+      doc.save(filename);
+      
     } catch (err) {
-      console.error("Erro no export:", err);
-      toast({ title: "Erro no export", description: err instanceof Error ? err.message : "Falha ao gerar PDF", variant: "destructive" });
+      console.error("Erro ao gerar PDF:", err);
+      toast({ 
+        title: "Erro ao exportar", 
+        description: "Não foi possível gerar o PDF", 
+        variant: "destructive" 
+      });
     } finally {
-      if (wrapper && wrapper.parentElement) wrapper.parentElement.removeChild(wrapper);
       setIsLoading(false);
     }
   };
+
+  function renderMarkdownTables(
+    doc: any,
+    content: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    pageHeight: number,
+    margin: number
+  ): number {
+    let currentY = y;
+    
+    // Dividir conteúdo em blocos (texto normal vs tabelas)
+    const lines = content.split('\n');
+    let currentBlock: string[] = [];
+    let isTable = false;
+    
+    for (const line of lines) {
+      const isTableLine = line.trim().startsWith('|');
+      
+      if (isTableLine && !isTable) {
+        // Renderizar texto acumulado antes da tabela
+        if (currentBlock.length > 0) {
+          const text = currentBlock.join(' ');
+          const textLines = doc.splitTextToSize(text, maxWidth);
+          doc.text(textLines, x, currentY);
+          currentY += (textLines.length * 5) + 5;
+          currentBlock = [];
+        }
+        isTable = true;
+      } else if (!isTableLine && isTable) {
+        // Fim da tabela, renderizar
+        if (currentBlock.length > 0) {
+          currentY = renderTable(doc, currentBlock, x, currentY, maxWidth, pageHeight, margin);
+          currentBlock = [];
+        }
+        isTable = false;
+      }
+      
+      currentBlock.push(line);
+    }
+    
+    // Renderizar bloco final
+    if (currentBlock.length > 0) {
+      if (isTable) {
+        currentY = renderTable(doc, currentBlock, x, currentY, maxWidth, pageHeight, margin);
+      } else {
+        const text = currentBlock.join(' ');
+        const textLines = doc.splitTextToSize(text, maxWidth);
+        doc.text(textLines, x, currentY);
+        currentY += (textLines.length * 5) + 5;
+      }
+    }
+    
+    return currentY;
+  }
+
+  function renderTable(
+    doc: any,
+    tableLines: string[],
+    x: number,
+    y: number,
+    maxWidth: number,
+    pageHeight: number,
+    margin: number
+  ): number {
+    // Parse tabela markdown
+    const rows: string[][] = [];
+    let headerRow: string[] = [];
+    
+    for (let i = 0; i < tableLines.length; i++) {
+      const line = tableLines[i].trim();
+      if (!line.startsWith('|')) continue;
+      
+      // Remover pipes do início/fim e dividir
+      const cells = line
+        .slice(1, -1)
+        .split('|')
+        .map(c => c.trim());
+      
+      if (i === 0) {
+        headerRow = cells;
+      } else if (i === 1) {
+        // Linha separadora, ignorar
+        continue;
+      } else {
+        rows.push(cells);
+      }
+    }
+    
+    if (headerRow.length === 0) return y;
+    
+    // Calcular largura das colunas
+    const colWidth = maxWidth / headerRow.length;
+    let currentY = y;
+    
+    // Verificar se precisa nova página
+    if (currentY > pageHeight - 40) {
+      doc.addPage();
+      currentY = margin;
+    }
+    
+    // Header com fundo cinza
+    doc.setFillColor(240, 240, 240);
+    doc.rect(x, currentY - 4, maxWidth, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    
+    headerRow.forEach((cell, i) => {
+      doc.text(cell, x + (i * colWidth) + 2, currentY);
+    });
+    currentY += 8;
+    
+    // Linhas de dados
+    doc.setFont('helvetica', 'normal');
+    rows.forEach(row => {
+      // Verificar se precisa nova página
+      if (currentY > pageHeight - 20) {
+        doc.addPage();
+        currentY = margin;
+      }
+      
+      row.forEach((cell, i) => {
+        doc.text(cell, x + (i * colWidth) + 2, currentY);
+      });
+      currentY += 6;
+    });
+    
+    // Borda da tabela
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(x, y - 4, maxWidth, currentY - y + 4);
+    
+    return currentY + 5;
+  }
 
   // Helper to extract event details from chat messages
   const extractEventDetailsFromMessages = (msgs: MessageRow[]) => {
@@ -562,7 +736,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
               </div>
               {currentChatId && messages.length > 0 && (
                 <div className="mt-2 flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={exportConversationToPDF} disabled={isLoading}>
+                  <Button variant="ghost" size="sm" onClick={generateChatPDF} disabled={isLoading}>
                     <Download className="h-3 w-3 mr-1" />
                     Exportar Conversa (PDF)
                   </Button>
