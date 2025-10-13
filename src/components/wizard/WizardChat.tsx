@@ -266,17 +266,17 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       // Mensagens
       for (const msg of messages) {
         // Nova página se necessário
-        if (yPosition > pageHeight - 40) {
+        if (yPosition > pageHeight - 30) {
           doc.addPage();
           yPosition = margin;
         }
 
-        // Papel do remetente
+        // Papel do remetente (sem ícones)
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
-        doc.text(msg.role === 'user' ? '👤 Você:' : '🤖 Assistente:', margin, yPosition);
-        yPosition += 7;
+        doc.text(msg.role === 'user' ? 'Você:' : 'Assistente:', margin, yPosition);
+        yPosition += 6;
 
         // Conteúdo
         doc.setFont('helvetica', 'normal');
@@ -297,10 +297,10 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
           // Texto normal com quebra de linha automática
           const lines = doc.splitTextToSize(msg.content, contentWidth - 10);
           doc.text(lines, margin + 5, yPosition);
-          yPosition += (lines.length * 5) + 10;
+          yPosition += (lines.length * 5) + 5;
         }
 
-        yPosition += 5; // Espaço entre mensagens
+        yPosition += 3; // Espaço entre mensagens (reduzido)
       }
 
       // Salvar PDF
@@ -435,6 +435,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     
     // Linhas de dados
     doc.setFont('helvetica', 'normal');
+    const tableStartY = y - 4;
     rows.forEach(row => {
       // Verificar se precisa nova página
       if (currentY > pageHeight - 20) {
@@ -448,9 +449,11 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       currentY += 6;
     });
     
-    // Borda da tabela
-    doc.setDrawColor(200, 200, 200);
-    doc.rect(x, y - 4, maxWidth, currentY - y + 4);
+    // Borda da tabela (somente se não houve quebra de página)
+    if (currentY < pageHeight - 20) {
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(x, tableStartY, maxWidth, currentY - tableStartY + 4);
+    }
     
     return currentY + 5;
   }
