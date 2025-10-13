@@ -195,69 +195,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setProfile(data)
-      
-      // Check if we should update avatar from Google data
-      await updateAvatarFromGoogleIfNeeded(userId, data)
     } catch (error) {
       console.error('Error fetching profile:', error)
-    }
-  }
-
-  const updateAvatarFromGoogleIfNeeded = async (userId: string, currentProfile: Profile | null) => {
-    try {
-      // Get current session to check for Google provider data
-      const { data: { session: currentSession } } = await supabase.auth.getSession()
-      
-      if (!currentSession?.user) return
-      
-      // Check if this login was via Google and has avatar data
-      const userMetadata = currentSession.user.user_metadata
-      const appMetadata = currentSession.user.app_metadata
-      
-      // Check if user logged in with Google and has avatar_url
-      const isGoogleLogin = appMetadata?.providers?.includes('google') || 
-                           appMetadata?.provider === 'google' ||
-                           userMetadata?.iss?.includes('accounts.google.com')
-      
-      const googleAvatarUrl = userMetadata?.avatar_url || userMetadata?.picture
-      
-      // Only update if:
-      // 1. This is a Google login
-      // 2. Google has an avatar URL
-      // 3. Current profile doesn't have an avatar or has a different one
-      if (isGoogleLogin && googleAvatarUrl && 
-          (!currentProfile?.avatar_url || currentProfile.avatar_url !== googleAvatarUrl)) {
-        
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ 
-            avatar_url: googleAvatarUrl,
-            updated_at: new Date().toISOString() 
-          })
-          .eq('id', userId)
-        
-        if (updateError) {
-          console.error('Error updating avatar from Google:', updateError)
-        } else {
-          // Refresh profile to get updated data
-          const { data: updatedProfile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single()
-          
-          if (updatedProfile) {
-            setProfile(updatedProfile)
-            
-            toast({
-              title: "Avatar atualizado",
-              description: "Seu avatar foi sincronizado com sua conta Google."
-            })
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error checking Google avatar update:', error)
     }
   }
 
@@ -305,7 +244,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo
+        redirectTo,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent'
+        }
       }
     })
 

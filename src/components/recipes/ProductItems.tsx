@@ -54,7 +54,7 @@ export default function ProductItems({
 
   // Calculate base cost using Supabase function
   const { data: productBaseCost } = useQuery({
-    queryKey: ["productBaseCost", selectedProduct?.id, selectedProduct?.efficiency, productItems.length, productItems.map(item => `${item.item}-${item.qty}`).join(',')],
+    queryKey: ["productBaseCost", selectedProduct?.id, selectedProduct?.efficiency],
     queryFn: async () => {
       if (!selectedProduct?.id) return 0;
       
@@ -75,7 +75,7 @@ export default function ProductItems({
 
   // Calculate unit cost using Supabase function
   const { data: productUnitCost } = useQuery({
-    queryKey: ["productUnitCost", selectedProduct?.id, selectedProduct?.efficiency, productItems.length, productItems.map(item => `${item.item}-${item.qty}`).join(',')],
+    queryKey: ["productUnitCost", selectedProduct?.id, selectedProduct?.efficiency],
     queryFn: async () => {
       if (!selectedProduct?.id) return 0;
       
@@ -179,7 +179,7 @@ export default function ProductItems({
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                   <span>Rendimento:</span>
                   <span>
-                    {efficiency % 1 !== 0 ? efficiency.toFixed(2) : efficiency.toFixed(0)} {efficiency === 1 ? 'unidade' : 'unidades'}
+                    {efficiency % 1 !== 0 ? efficiency.toFixed(2) : efficiency.toFixed(0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center border-t pt-2">

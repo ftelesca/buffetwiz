@@ -36,7 +36,6 @@ interface EventMenuProps {
 
 interface EventMenuProduct {
   qty: number;
-  produced?: boolean | null;
   product: {
     id: number;
     description: string;
@@ -76,8 +75,7 @@ export const EventMenu = ({
       const { data, error } = await supabase
         .from("event_menu")
         .select(`
-          qty,
-          produced,
+          *,
           product:recipe(id, description)
         `)
         .eq("event", eventId);
@@ -98,7 +96,6 @@ export const EventMenu = ({
           
           return {
             qty: item.qty || 1,
-            produced: item.produced,
             product: {
               ...item.product,
               unit_cost: unitCost || 0
@@ -277,34 +274,6 @@ export const EventMenu = ({
     }
   });
 
-  // Toggle produced status mutation
-  const toggleProducedMutation = useMutation({
-    mutationFn: async ({ productId, currentProduced }: { productId: number; currentProduced?: boolean | null }) => {
-      // Toggle logic: null/false -> true -> false -> true...
-      const nextProduced = currentProduced === true ? false : true;
-      
-      const { data, error } = await supabase
-        .from("event_menu")
-        .update({ produced: nextProduced } as any)
-        .eq("event", eventId)
-        .eq("recipe", productId)
-        .select();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: ["event-menu", eventId] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar status: " + error.message,
-        variant: "destructive"
-      });
-    }
-  });
-
   const handleAddProduct = () => {
     if (!selectedProductId) {
       toast({
@@ -353,10 +322,6 @@ export const EventMenu = ({
         qty 
       });
     }
-  };
-
-  const handleToggleProduced = (productId: number, currentProduced?: boolean | null) => {
-    toggleProducedMutation.mutate({ productId, currentProduced });
   };
 
   const getUnitDescription = (unitId: number) => {
@@ -469,18 +434,9 @@ export const EventMenu = ({
             <Card key={item.product.id}>
               <CardHeader className="pb-3 text-center">
                 <div className="space-y-1">
-                  <div 
-                    className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                      item.produced === true 
-                        ? 'bg-green-200 hover:bg-green-300 dark:bg-green-800 dark:hover:bg-green-700' 
-                        : 'bg-red-200 hover:bg-red-300 dark:bg-red-800 dark:hover:bg-red-700'
-                    }`}
-                    onClick={() => handleToggleProduced(item.product.id, item.produced)}
-                  >
-                    <CardTitle className="text-lg">
-                      {item.product.description}
-                    </CardTitle>
-                  </div>
+                  <CardTitle className="text-lg">
+                    {item.product.description}
+                  </CardTitle>
                   <CardDescription>
                     {item.qty} x {formatCurrency(item.product.unit_cost || 0)} = {formatCurrency((item.qty * (item.product.unit_cost || 0)))}
                   </CardDescription>
@@ -618,7 +574,7 @@ export const EventMenu = ({
                     {selectedProductForItems && (
                       <div className="flex justify-between items-center mt-2 pt-2 border-t">
                         <span className="text-lg font-medium">
-                          Custo Total ({selectedProductForItems.qty} {selectedProductForItems.qty === 1 ? 'unidade' : 'unidades'}):
+                          Custo Total ({selectedProductForItems.qty} unidades):
                         </span>
                         <span className="text-xl font-bold text-primary">
                           {formatCurrency((productUnitCost || 0) * selectedProductForItems.qty)}

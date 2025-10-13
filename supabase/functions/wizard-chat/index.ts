@@ -128,7 +128,7 @@ serve(async (req) => {
         customers: context.customers.length,
       };
 
-      // Create comprehensive context for Lovable AI (Gemini 2.5 Flash)
+      // Create comprehensive context for GPT-5
       const businessContext = `
 CONTEXTO DO NEGÓCIO - BUFFETWIZ:
 Este é um sistema de gestão para buffets e eventos. Você é um assistente especialista em análise de custos, otimização de cardápios e gestão de eventos.
@@ -144,14 +144,6 @@ Este é um sistema de gestão para buffets e eventos. Você é um assistente esp
 • Nunca use "item", "ingrediente" ou "ingredient" ao responder - sempre diga "insumo"
 • Exemplo: Em vez de "Este item custa...", diga "Este insumo custa..."
 
-⚡ GESTÃO DE RECURSOS E LIMITES:
-• O sistema usa Lovable AI Gateway com Google Gemini 2.5 Flash
-• Atualmente TODOS os modelos Gemini são GRATUITOS até 13 de Outubro de 2025
-• Após essa data, haverá limites de taxa baseados no plano do workspace
-• Se receber erro 429 (rate limit), aguarde alguns segundos antes de tentar novamente
-• Se receber erro 402 (payment required), informe o usuário para adicionar créditos ao workspace
-• NUNCA exponha detalhes técnicos da API ao usuário - mantenha mensagens amigáveis
-
 ⚠️ CRÍTICO - ACESSO COMPLETO AOS DADOS:
 • VOCÊ TEM ACESSO TOTAL: A TODOS os dados fornecidos abaixo (eventos, produtos, insumos, clientes)
 • PODE RESPONDER QUALQUER PERGUNTA: Sobre custos, listagens, análises, comparações, otimizações
@@ -166,20 +158,6 @@ Este é um sistema de gestão para buffets e eventos. Você é um assistente esp
 • "Quais produtos usam mais ingredientes?" → Conte insumos de cada produto
 • "Mostre clientes com mais eventos" → Agrupe eventos por cliente
 • QUALQUER pergunta sobre os dados fornecidos - você tem capacidade total de análise!
-
-🔍 ANÁLISE OTIMIZADA DE DADOS ESTRUTURADOS:
-O modelo atual (Gemini 2.5 Flash) é especialmente eficiente para:
-• Análise de grandes volumes de dados tabulares
-• Comparações multi-dimensionais (custo x preço x lucro)
-• Detecção de padrões em histórico de eventos
-• Agregações complexas (totais, médias, tendências)
-• Correlações entre diferentes entidades (eventos → clientes → produtos → insumos)
-
-QUANDO RESPONDER CONSULTAS ANALÍTICAS:
-1. Processe TODO o dataset disponível (não se limite a poucos exemplos)
-2. Apresente insights acionáveis, não apenas dados brutos
-3. Use tabelas formatadas para comparações complexas
-4. Adicione contexto e recomendações baseadas nos padrões encontrados
 
 💬 COMO COMUNICAR COM O USUÁRIO:
 • SEMPRE use NOMES/DESCRIÇÕES, NUNCA IDs nas respostas ao usuário
@@ -325,24 +303,11 @@ PROCESSO OBRIGATÓRIO:
 2. EXPORTAR: APENAS esses mesmos campos, na mesma estrutura
 3. FORMATAR: Manter a simplicidade da exibição original
 
-📄 FORMATOS DE EXPORTAÇÃO SUPORTADOS:
-• **PDF**: Ideal para relatórios formatados e apresentações
-• **XLSX**: Ideal para análise em Excel com múltiplas planilhas
-• **CSV**: Ideal para importação em outros sistemas
-• **JSON**: Ideal para integração com APIs e sistemas externos
-
-🎯 QUANDO USAR CADA FORMATO:
-• PDF: Relatórios gerenciais, listas para impressão, apresentações
-• XLSX: Análises complexas, dados com múltiplas dimensões, gráficos
-• CSV: Dados simples, importação em outros softwares
-• JSON: Backup de dados, integração técnica
-
 📄 EXPORTAÇÃO PARA PDF:
 Quando o usuário solicitar "exportar para PDF" ou "baixar PDF", você DEVE:
 1. Responder com a lista/dados solicitados
 2. SEMPRE incluir o link de download no formato: [Download NomeDoArquivo.pdf]
 3. NUNCA esquecer de incluir o link - o usuário precisa clicar no link para baixar
-4. Usar nomes de arquivo descritivos (ex: Produtos_Bacalhau.pdf, não arquivo.pdf)
 
 EXEMPLO CORRETO DE RESPOSTA PDF:
 "Aqui estão os produtos que contêm bacalhau:
@@ -358,54 +323,23 @@ EXEMPLO CORRETO DE RESPOSTA PDF:
 - NÃO use funções calculate_recipe_unit_cost() nos dados de exportação  
 - NÃO adicione informações que não estavam na tela/contexto
 - Mantenha a simplicidade: se foi lista simples, exporte lista simples
-- SEMPRE inclua o link [Download arquivo.ext] quando solicitar exportação
-- Use nomes de arquivo descritivos e significativos
+- SEMPRE inclua o link [Download arquivo.pdf] quando solicitar PDF
+
+FORMATOS SUPORTADOS: xlsx, csv, json, pdf
+O sistema exportará exatamente os dados conforme solicitado.
 `;
 
-      // Call Lovable AI only if no valid cache
-      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-      if (!LOVABLE_API_KEY) {
-        console.error('Missing LOVABLE_API_KEY secret');
+      // Call GPT-5 only if no valid cache
+      const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+      if (!OPENAI_API_KEY) {
+        console.error('Missing OPENAI_API_KEY secret');
         return new Response(JSON.stringify({
-          error: 'LOVABLE_API_KEY não configurada. Verifique as configurações do workspace.',
-          hint: 'Contate o suporte se o problema persistir'
+          error: 'OPENAI_API_KEY não configurada nas Secrets das Edge Functions.',
+          hint: 'Adicione a chave em Supabase > Settings > Functions > Secrets'
         }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      const selectedModel = (model && typeof model === 'string') ? model : 'google/gemini-2.5-flash';
-      
-      // Model metadata for user context
-      const modelInfo: Record<string, { name: string; status: string; strengths: string }> = {
-        'google/gemini-2.5-flash': { 
-          name: 'Gemini 2.5 Flash', 
-          status: 'GRATUITO até 13/Out/2025',
-          strengths: 'Análise de dados, comparações, agregações'
-        },
-        'google/gemini-2.5-pro': { 
-          name: 'Gemini 2.5 Pro', 
-          status: 'GRATUITO até 13/Out/2025',
-          strengths: 'Raciocínio complexo, visual + texto'
-        },
-        'google/gemini-2.5-flash-lite': { 
-          name: 'Gemini 2.5 Flash Lite', 
-          status: 'GRATUITO até 13/Out/2025',
-          strengths: 'Velocidade, classificação simples'
-        },
-        'openai/gpt-5': { 
-          name: 'GPT-5', 
-          status: 'PAGO',
-          strengths: 'Precisão máxima, raciocínio nuançado'
-        }
-      };
-
-      const currentModelInfo = modelInfo[selectedModel] || { 
-        name: selectedModel, 
-        status: 'Modelo customizado',
-        strengths: 'Uso geral'
-      };
-
-      console.log(`Using model: ${currentModelInfo.name} (${currentModelInfo.status})`);
-      
+      const selectedModel = (model && typeof model === 'string') ? model : 'gpt-4.1-mini-2025-04-14'; // Use faster model by default
       const isNewModel = /^(gpt-5|gpt-4\.1|o3|o4)/.test(selectedModel);
 
       // Build conversation history for context
@@ -446,10 +380,10 @@ EXEMPLO CORRETO DE RESPOSTA PDF:
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 20 second timeout
 
-      const openAIResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
         signal: controller.signal,
@@ -464,31 +398,9 @@ EXEMPLO CORRETO DE RESPOSTA PDF:
           const errJson = JSON.parse(errorText);
           errorText = errJson.error?.message || JSON.stringify(errJson);
         } catch {}
-        console.error('Lovable AI Gateway error:', errorText);
+        console.error('OpenAI API error:', errorText);
 
         const status = openAIResponse.status;
-        
-        // Handle Lovable AI specific errors
-        if (status === 429) {
-          return new Response(JSON.stringify({
-            error: 'Limite de requisições atingido. Aguarde alguns segundos e tente novamente.',
-            code: 'RATE_LIMIT_EXCEEDED',
-            retryAfter: 5
-          }), { 
-            status: 429, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          });
-        }
-
-        if (status === 402) {
-          return new Response(JSON.stringify({
-            error: 'Créditos insuficientes no workspace. Adicione créditos em Settings → Workspace → Usage.',
-            code: 'PAYMENT_REQUIRED'
-          }), { 
-            status: 402, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          });
-        }
 
         if (status === 401) {
           return new Response(JSON.stringify({

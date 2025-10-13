@@ -54,7 +54,6 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const chatCaptureRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll para o fim ao receber mensagens
   useEffect(() => {
@@ -216,102 +215,55 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
   const exportConversationToPDF = async () => {
     try {
-      if (!currentChatId || messages.length === 0) {
+      if (messages.length === 0) {
         toast({ title: "Nenhuma conversa", description: "Não há mensagens para exportar", variant: "destructive" });
         return;
       }
 
       setIsLoading(true);
 
+      // Get current chat title
       const currentChat = chats.find(c => c.id === currentChatId);
       const chatTitle = currentChat?.title || "Conversa BuffetWiz";
+      
+      // Format the entire conversation
+      const conversationContent = messages
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map(message => {
+          const role = message.role === "user" ? "👤 **Usuário**" : "🤖 **BuffetWiz**";
+          const timestamp = new Date(message.created_at).toLocaleString('pt-BR');
+          return `${role} _(${timestamp})_\n\n${message.content}\n\n---\n`;
+        })
+        .join('\n');
 
-      // Build default filename as fallback
-      const now = new Date();
-      const dateStr = now.toISOString().split('T')[0];
-      const timeStr = now.toTimeString().split(' ')[0].substring(0, 5).replace(':', '-');
-      const fallbackFilename = `Assistente_BuffetWiz_${dateStr}_${timeStr}.pdf`;
-
-      // Get auth token
-      const { data: sessionData } = await supabase.auth.getSession();
-      const jwt = sessionData?.session?.access_token;
-      if (!jwt) throw new Error('Sessão inválida. Faça login novamente.');
-
-      // Call edge function directly to support binary response
-      const url = `https://bvubvqckuygqibjtmyhv.supabase.co/functions/v1/wizard-export-pdf`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${jwt}`,
-          'Content-Type': 'application/json',
-          'apikey': jwt,
-        },
-        body: JSON.stringify({ chatId: currentChatId, messages, chatTitle })
+      // Check for event details in chat context
+      const eventDetails = extractEventDetailsFromMessages(messages);
+      
+      // Use the elegant export function from MarkdownRenderer
+      const { exportConversationToPDF: exportFunction } = await import("@/components/chat/MarkdownRenderer");
+      const currentDate = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+      const filename = `BuffetWiz_Conversa_${currentDate}`;
+      
+      await exportFunction(
+        conversationContent, 
+        filename,
+        chatTitle,
+        eventDetails,
+        false // don't include logo per request
+      );
+      
+      toast({ 
+        title: "PDF gerado",
+        description: "PDF exportado com sucesso!"
       });
 
-      const contentType = res.headers.get('Content-Type') || '';
-
-      if (!res.ok) {
-        let msg = `Falha ao gerar PDF (${res.status})`;
-        try { const j = await res.json(); if (j?.error) msg = j.error; } catch {}
-        throw new Error(msg);
-      }
-
-      if (contentType.includes('application/pdf')) {
-        // Download binary PDF
-        const blob = await res.blob();
-        const cd = res.headers.get('Content-Disposition') || '';
-        const match = cd.match(/filename="?([^";]+)"?/i);
-        const filename = match?.[1] || fallbackFilename;
-        const urlObj = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = urlObj;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(urlObj);
-        toast({ title: 'PDF gerado', description: 'PDF gerado no servidor com sucesso!' });
-        return;
-      }
-
-      // JSON fallback with HTML string -> generate client-side
-      const json = await res.json();
-      const html = json?.html as string;
-      const filename = (json?.filename as string) || fallbackFilename;
-      if (!html) throw new Error('Resposta inválida do servidor');
-
-      // Ensure html2pdf is available
-      const ensureHtml2pdf = async () => {
-        if ((window as any).html2pdf) return (window as any).html2pdf;
-        await new Promise<void>((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.12.0/html2pdf.bundle.min.js';
-          s.onload = () => resolve();
-          s.onerror = () => reject(new Error('Falha ao carregar html2pdf'));
-          document.body.appendChild(s);
-        });
-        return (window as any).html2pdf;
-      };
-
-      const html2pdf = await ensureHtml2pdf();
-      await html2pdf()
-        .set({
-          filename,
-          margin: [10,10,10,10],
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff' },
-          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
-        })
-        .from(html)
-        .save();
-
-      toast({ title: 'PDF gerado', description: 'PDF gerado no navegador (fallback)!' });
-
     } catch (err) {
-      console.error('Erro no export:', err);
-      toast({ title: 'Erro no export', description: err instanceof Error ? err.message : 'Falha ao gerar PDF', variant: 'destructive' });
+      console.error("Erro no export:", err);
+      toast({ 
+        title: "Erro no export", 
+        description: err instanceof Error ? err.message : "Falha ao gerar documentos", 
+        variant: "destructive" 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -510,9 +462,9 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                   </div>
                 </div>
               ) : (
-                <div ref={chatCaptureRef} id="bw-chat-capture" className="space-y-4">
+                <div className="space-y-4">
                   {messages.map((msg) => (
-                    <div key={msg.id} data-pdf-message className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div key={msg.id} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                       {msg.role === "assistant" && (
                         <div className="flex-shrink-0">
                           <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
