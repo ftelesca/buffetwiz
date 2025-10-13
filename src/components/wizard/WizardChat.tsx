@@ -130,9 +130,11 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     setMessages((prev) => [...prev, optimistic]);
 
     try {
+      // Pega sessão atual para incluir token JWT
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const { data, error } = await supabase.functions.invoke("wizard-chat", {
         body: { message: userText, chatId: currentChatId },
-        headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
       });
       if (error) throw error;
 
