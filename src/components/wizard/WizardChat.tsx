@@ -214,7 +214,11 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
   };
 
   const generateChatPDF = async () => {
+    const VERSION = '2.0-' + Date.now();
+    console.log(`🎯 PDF EXPORT VERSION ${VERSION} - Iniciando...`);
+    
     if (messages.length === 0) {
+      console.log('❌ Sem mensagens para exportar');
       toast({ 
         title: "Nenhuma conversa", 
         description: "Não há mensagens para exportar", 
@@ -225,10 +229,13 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
     try {
       setIsLoading(true);
+      console.log('📦 Importando jsPDF...');
       
       // Importar jsPDF
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
+      
+      console.log('✅ jsPDF carregado, gerando PDF...');
       
       // Obter dados do chat
       const currentChat = chats.find(c => c.id === currentChatId);
@@ -320,9 +327,10 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       const filename = `BuffetWiz_${safeTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
       
       doc.save(filename);
+      console.log(`✅ PDF salvo: ${filename}`);
       
     } catch (err) {
-      console.error("Erro ao gerar PDF:", err);
+      console.error("❌ Erro ao gerar PDF:", err);
       toast({ 
         title: "Erro ao exportar", 
         description: "Não foi possível gerar o PDF", 
