@@ -214,11 +214,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
   };
 
   const generateChatPDF = async () => {
-    const VERSION = '2.1-' + Date.now();
-    console.log(`🎯 PDF EXPORT VERSION ${VERSION} - Iniciando...`);
-    
     if (messages.length === 0) {
-      console.log('❌ Sem mensagens para exportar');
       toast({ 
         title: "Nenhuma conversa", 
         description: "Não há mensagens para exportar", 
@@ -229,120 +225,87 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
     try {
       setIsLoading(true);
-      console.log('📦 Importando jsPDF...');
       
-      // Importar jsPDF com tratamento de erro melhorado
-      let jsPDF;
-      try {
-        const module = await import('jspdf');
-        jsPDF = module.jsPDF;
-        console.log('✅ jsPDF importado com sucesso');
-      } catch (importError) {
-        console.error('❌ Erro ao importar jsPDF:', importError);
-        throw new Error('Falha ao carregar biblioteca de PDF');
-      }
-      
-      const doc = new jsPDF();
-      
-      console.log('✅ jsPDF carregado, gerando PDF...');
-      
-      // Obter dados do chat
+      // Gerar HTML da conversa
       const currentChat = chats.find(c => c.id === currentChatId);
       const chatTitle = currentChat?.title || "Conversa";
       const now = new Date();
       const dateStr = now.toLocaleDateString('pt-BR');
-      const timeStr = now.toLocaleTimeString('pt-BR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      
+      let htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${chatTitle}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+    .header { border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+    .header h1 { margin: 0 0 10px 0; font-size: 24px; }
+    .header h2 { margin: 0 0 5px 0; font-size: 18px; color: #555; }
+    .header .date { color: #888; font-size: 14px; }
+    .message { margin-bottom: 25px; padding: 15px; border-radius: 8px; }
+    .user { background: #f0f0f0; }
+    .assistant { background: #e3f2fd; }
+    .role { font-weight: bold; margin-bottom: 8px; }
+    .content { white-space: pre-wrap; line-height: 1.6; }
+    table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f5f5f5; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>BuffetWiz</h1>
+    <h2>${chatTitle}</h2>
+    <div class="date">${dateStr} ${timeStr}</div>
+  </div>
+`;
+      
+      messages.forEach(msg => {
+        const role = msg.role === 'user' ? '👤 Você' : '🤖 Assistente';
+        const className = msg.role === 'user' ? 'user' : 'assistant';
+        const content = msg.content
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\n/g, '<br>');
+        
+        htmlContent += `
+  <div class="message ${className}">
+    <div class="role">${role}</div>
+    <div class="content">${content}</div>
+  </div>
+`;
       });
       
-      // Configurações de página
-      const pageWidth = doc.internal.pageSize.width;
-      const pageHeight = doc.internal.pageSize.height;
-      const margin = 15;
-      const contentWidth = pageWidth - (2 * margin);
-      let yPosition = margin;
+      htmlContent += `
+</body>
+</html>`;
       
-      // HEADER: BuffetWiz + Título + Data/Hora
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text('BuffetWiz', margin, yPosition);
-      yPosition += 8;
+      // Criar blob e download
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const safeTitle = chatTitle.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '_');
+      a.download = `BuffetWiz_${safeTitle}_${dateStr.replace(/\//g, '-')}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       
-      doc.setFontSize(14);
-      doc.text(chatTitle, margin, yPosition);
-      yPosition += 6;
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text(`${dateStr} ${timeStr}`, margin, yPosition);
-      yPosition += 10;
-      
-      // Linha separadora
-      doc.setDrawColor(200, 200, 200);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 10;
-      
-      // MENSAGENS
-      for (const msg of messages) {
-        // Verificar se precisa nova página
-        if (yPosition > pageHeight - 40) {
-          doc.addPage();
-          yPosition = margin;
-        }
-        
-        // Identificador do remetente
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0);
-        
-        if (msg.role === 'user') {
-          doc.text('👤 Você:', margin, yPosition);
-        } else {
-          doc.text('🤖 Assistente:', margin, yPosition);
-        }
-        yPosition += 7;
-        
-        // Conteúdo da mensagem
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        
-        // Processar o conteúdo (texto simples + tabelas)
-        if (msg.content.includes('|')) {
-          yPosition = renderMarkdownTables(
-            doc, 
-            msg.content, 
-            margin + 5, 
-            yPosition, 
-            contentWidth - 10,
-            pageHeight,
-            margin
-          );
-        } else {
-          // Renderizar texto normal
-          const lines = doc.splitTextToSize(msg.content, contentWidth - 10);
-          doc.text(lines, margin + 5, yPosition);
-          yPosition += (lines.length * 5) + 10;
-        }
-        
-        yPosition += 5; // Espaço entre mensagens
-      }
-      
-      // Salvar PDF
-      const safeTitle = chatTitle
-        .replace(/[^a-zA-Z0-9-_ ]/g, '')
-        .replace(/\s+/g, '_');
-      const filename = `BuffetWiz_${safeTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
-      
-      doc.save(filename);
-      console.log(`✅ PDF salvo: ${filename}`);
+      toast({ 
+        title: "Conversa exportada", 
+        description: "Arquivo HTML baixado com sucesso. Você pode abri-lo no navegador e imprimir como PDF." 
+      });
       
     } catch (err) {
-      console.error("❌ Erro ao gerar PDF:", err);
+      console.error("❌ Erro ao exportar:", err);
       toast({ 
         title: "Erro ao exportar", 
-        description: "Não foi possível gerar o PDF", 
+        description: "Não foi possível gerar o arquivo", 
         variant: "destructive" 
       });
     } finally {
@@ -755,7 +718,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
                 <div className="mt-2 flex justify-end">
                   <Button variant="ghost" size="sm" onClick={generateChatPDF} disabled={isLoading}>
                     <Download className="h-3 w-3 mr-1" />
-                    Exportar Conversa (PDF)
+                    Exportar Conversa (HTML)
                   </Button>
                 </div>
               )}
