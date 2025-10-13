@@ -132,6 +132,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     try {
       const { data, error } = await supabase.functions.invoke("wizard-chat", {
         body: { message: userText, chatId: currentChatId },
+        headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
       });
       if (error) throw error;
 
@@ -146,9 +147,15 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       console.error("Erro enviando mensagem:", err);
       // Remove a otimista
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
+
+      const isNetwork = (err as any)?.message?.toLowerCase?.().includes('failed to fetch') || (err as any)?.name === 'TypeError';
+      const description = isNetwork
+        ? "Falha de rede ao chamar a função wizard-chat (CORS/timeout). Verifique se a função está implantada e as Secrets (OPENAI_API_KEY)."
+        : (typeof (err as any)?.message === 'string' ? (err as any).message : "Erro ao chamar wizard-chat");
+
       toast({
         title: "Falha ao enviar",
-        description: "Verifique as secrets no Supabase e tente novamente.",
+        description,
         variant: "destructive",
       });
     } finally {
