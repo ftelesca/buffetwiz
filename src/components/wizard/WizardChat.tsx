@@ -347,14 +347,27 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             addHeaderFooter
           );
         } else {
-          // Texto normal: cada \n vira uma nova linha
-          const lines = msg.content.split('\n');
+          // Texto normal: respeitar CRLF e linhas vazias exatamente
+          const normalized = msg.content.replace(/\r\n/g, '\n');
+          const lines = normalized.split('\n');
           
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             
-            // Quebrar linha longa se necessário (respeitando largura)
-            const wrappedLines = doc.splitTextToSize(line.trim() || ' ', contentWidth - 8);
+            // Linha em branco: adicionar espaço equivalente a uma linha
+            if (line === '') {
+              const blankHeight = 5;
+              if (yPosition + blankHeight > pageHeight - 30) {
+                doc.addPage();
+                if (addHeaderFooter) addHeaderFooter();
+                yPosition = 25;
+              }
+              yPosition += blankHeight;
+              continue;
+            }
+            
+            // Quebrar linha longa se necessário (sem trim para preservar espaços)
+            const wrappedLines = doc.splitTextToSize(line, contentWidth - 8);
             
             // Verificar espaço antes de desenhar
             const lineHeight = wrappedLines.length * 5;
@@ -366,9 +379,6 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             
             doc.text(wrappedLines, margin + 5, yPosition);
             yPosition += lineHeight;
-            
-            // Adicionar espaçamento mínimo entre linhas (equivalente a line-height)
-            yPosition += 2;
           }
         }
 
@@ -380,7 +390,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       const filename = `BuffetWiz_${safeTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
       doc.save(filename);
 
-      toast({ title: 'PDF exportado', description: `${filename} foi baixado com sucesso` });
+      // Download concluído
     } catch (err) {
       console.error('❌ Erro ao gerar PDF:', err);
       toast({ 
