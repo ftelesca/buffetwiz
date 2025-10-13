@@ -193,6 +193,62 @@ export async function handleExportClick(payload: string): Promise<void> {
       return;
     }
 
+    // Local PDF generation for AI-generated data PDFs
+    if (parsed.type === 'pdf' && Array.isArray(parsed.data)) {
+      console.log('📄 Gerando PDF de dados localmente...');
+      
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      const margin = 15;
+      let y = margin;
+      
+      // Header simples
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('BuffetWiz', margin, y);
+      y += 10;
+      
+      doc.setFontSize(12);
+      doc.text(parsed.filename || 'Exportação de Dados', margin, y);
+      y += 7;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100);
+      doc.text(new Date().toLocaleString('pt-BR'), margin, y);
+      y += 15;
+      
+      doc.setTextColor(0);
+      
+      // Dados
+      parsed.data.forEach((row: any) => {
+        if (y > 270) {
+          doc.addPage();
+          y = margin;
+        }
+        
+        const text = typeof row === 'string' 
+          ? row 
+          : Object.entries(row).map(([k, v]) => `${k}: ${v}`).join(' | ');
+        
+        const lines = doc.splitTextToSize(text, 180);
+        doc.text(lines, margin, y);
+        y += lines.length * 6 + 3;
+      });
+      
+      const filename = parsed.filename?.endsWith('.pdf') 
+        ? parsed.filename 
+        : `${parsed.filename || 'export'}.pdf`;
+      
+      doc.save(filename);
+      loadingToast.dismiss();
+      toast({ 
+        title: 'PDF exportado', 
+        description: `${filename} foi baixado com sucesso` 
+      });
+      return;
+    }
+
     console.log('📤 Invocando função wizard-export...');
     const { data: response, error } = await supabase.functions.invoke('wizard-export', {
       body: parsed
