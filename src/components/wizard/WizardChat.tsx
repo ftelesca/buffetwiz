@@ -214,7 +214,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
   };
 
   const generateChatPDF = async () => {
-    const VERSION = '2.0-' + Date.now();
+    const VERSION = '2.1-' + Date.now();
     console.log(`🎯 PDF EXPORT VERSION ${VERSION} - Iniciando...`);
     
     if (messages.length === 0) {
@@ -231,8 +231,17 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       setIsLoading(true);
       console.log('📦 Importando jsPDF...');
       
-      // Importar jsPDF
-      const { jsPDF } = await import('jspdf');
+      // Importar jsPDF com tratamento de erro melhorado
+      let jsPDF;
+      try {
+        const module = await import('jspdf');
+        jsPDF = module.jsPDF;
+        console.log('✅ jsPDF importado com sucesso');
+      } catch (importError) {
+        console.error('❌ Erro ao importar jsPDF:', importError);
+        throw new Error('Falha ao carregar biblioteca de PDF');
+      }
+      
       const doc = new jsPDF();
       
       console.log('✅ jsPDF carregado, gerando PDF...');
