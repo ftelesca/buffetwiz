@@ -502,6 +502,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     }
     
     let currentY = y;
+    const tableStartY = currentY - 3;
     
     // Verificar se precisa nova página
     if (currentY > pageHeight - 50) {
@@ -532,7 +533,6 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     doc.setFontSize(9);
     doc.setTextColor(50, 50, 50);
     
-    const tableStartY = y - 3;
     rows.forEach((row, rowIdx) => {
       // Calcular altura da linha (baseado no maior texto quebrado)
       let maxLineHeight = 5;
@@ -565,10 +565,14 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       currentY += maxLineHeight;
     });
     
-    // Borda da tabela
+    // CORREÇÃO: Calcular altura final da tabela ANTES de desenhar a borda
+    const tableEndY = currentY;
+    const tableHeight = tableEndY - tableStartY;
+    
+    // Borda da tabela (agora com a altura correta)
     doc.setDrawColor(200, 210, 220);
     doc.setLineWidth(0.3);
-    doc.roundedRect(x, tableStartY, availableWidth, currentY - tableStartY, 1, 1, 'S');
+    doc.roundedRect(x, tableStartY, availableWidth, tableHeight, 1, 1, 'S');
     
     return currentY + 8;
   }
