@@ -37,6 +37,15 @@ const App = () => {
       if (!anchor) return;
 
       const href = anchor.getAttribute('href') || '';
+      
+      // BLOQUEIO: Prevenir chamadas ao endpoint antigo wizard-export-pdf
+      if (href.includes('/functions/v1/wizard-export-pdf') || href.includes('wizard-export-pdf')) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.warn('[App] Bloqueado link para endpoint descontinuado:', href);
+        return;
+      }
+
       // Case 1: explicit export: links
       if (href.startsWith('export:')) {
         e.preventDefault();

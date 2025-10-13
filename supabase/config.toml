@@ -56,6 +56,3 @@ policy = "oneshot"
 
 [functions.wizard-chat]
 verify_jwt = true
-
-[functions.wizard-export-pdf]
-verify_jwt = true

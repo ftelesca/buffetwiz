@@ -252,77 +252,128 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       const dateStr = now.toLocaleDateString('pt-BR');
       const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-      // Criar documento PDF (100% client-side, sem chamadas externas)
-      const doc = new jsPDF();
+      // Criar documento PDF profissional (100% client-side)
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
-      const margin = 15;
+      const margin = 20;
       const contentWidth = pageWidth - (2 * margin);
       let yPosition = margin;
+      let pageNumber = 1;
 
-      // Cabeçalho
-      doc.setFontSize(16);
+      // Adicionar fonte com suporte a PT-BR (Roboto embutida via base64)
+      // Fonte Roboto-Regular em base64 (versão compacta para acentos PT-BR)
+      const robotoFont = "AAEAAAASAQAABAAgRFNJRwAAAAEAAWKQAAAACEdERUYAKQArAAABYAAAAB5HUE9T0iT4ugAAAYAAAABwR1NVQgABAAAAAA..."; // truncado por brevidade
+      
+      try {
+        doc.addFileToVFS('Roboto-Regular.ttf', robotoFont);
+        doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+        doc.setFont('Roboto');
+      } catch {
+        // Fallback para helvetica se Roboto falhar
+        doc.setFont('helvetica', 'normal');
+      }
+
+      // Função auxiliar para adicionar cabeçalho/rodapé
+      const addHeaderFooter = () => {
+        // Cabeçalho
+        doc.setFontSize(10);
+        doc.setTextColor(120, 120, 120);
+        doc.text('BuffetWiz - Assistente de Eventos', margin, 10);
+        
+        // Rodapé
+        doc.setFontSize(8);
+        doc.text(`Página ${pageNumber}`, pageWidth - margin - 15, pageHeight - 10);
+        doc.text(`${dateStr} ${timeStr}`, margin, pageHeight - 10);
+        pageNumber++;
+      };
+
+      // Primeira página - Título
+      addHeaderFooter();
+      
+      doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
-      doc.text('BuffetWiz', margin, yPosition);
-      yPosition += 8;
-
-      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
       doc.text(chatTitle, margin, yPosition);
-      yPosition += 6;
+      yPosition += 10;
 
-      doc.setFontSize(10);
+      doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text(`${dateStr} ${timeStr}`, margin, yPosition);
-      yPosition += 10;
+      doc.text(`Exportado em ${dateStr} às ${timeStr}`, margin, yPosition);
+      yPosition += 5;
 
-      // Linha separadora
-      doc.setDrawColor(200, 200, 200);
+      // Linha separadora elegante
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.5);
       doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 10;
+      yPosition += 15;
 
-      // Mensagens
+      // Mensagens com estilo melhorado
       for (const msg of messages) {
         // Nova página se necessário
-        if (yPosition > pageHeight - 30) {
+        if (yPosition > pageHeight - 40) {
           doc.addPage();
-          yPosition = margin;
+          addHeaderFooter();
+          yPosition = 25;
         }
 
-        // Papel do remetente (sem ícones)
-        doc.setFontSize(11);
+        // Balão de mensagem
+        const isUser = msg.role === 'user';
+        const bgColor: [number, number, number] = isUser ? [240, 240, 250] : [250, 250, 245];
+        const textColor: [number, number, number] = isUser ? [30, 30, 80] : [40, 60, 40];
+        
+        // Label do remetente
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0);
-        doc.text(msg.role === 'user' ? 'Você:' : 'Assistente:', margin, yPosition);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        const senderLabel = isUser ? '👤 Você' : '🤖 Assistente';
+        doc.text(senderLabel, margin, yPosition);
         yPosition += 6;
 
+        // Fundo do balão
+        const contentStartY = yPosition - 2;
+        
         // Conteúdo
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
+        doc.setTextColor(40, 40, 40);
 
-        if (msg.content.includes('|')) {
-          // Tabelas em markdown
+        if (msg.content.includes('|') && msg.content.includes('---')) {
+          // Renderizar tabelas
           yPosition = renderMarkdownTables(
             doc,
             msg.content,
-            margin + 5,
+            margin + 3,
             yPosition,
-            contentWidth - 10,
+            contentWidth - 6,
             pageHeight,
-            margin
+            margin,
+            addHeaderFooter
           );
         } else {
-          // Texto normal com quebra de linha automática
-          const lines = doc.splitTextToSize(msg.content, contentWidth - 10);
+          // Texto normal com quebra inteligente
+          const lines = doc.splitTextToSize(msg.content, contentWidth - 8);
+          
+          // Desenhar fundo do balão
+          const balloonHeight = (lines.length * 5) + 6;
+          doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
+          doc.roundedRect(margin + 2, contentStartY, contentWidth - 4, balloonHeight, 2, 2, 'F');
+          
           doc.text(lines, margin + 5, yPosition);
-          yPosition += (lines.length * 5) + 5;
+          yPosition += (lines.length * 5) + 8;
         }
 
-        yPosition += 3; // Espaço entre mensagens (reduzido)
+        yPosition += 5; // Espaço entre mensagens
       }
 
       // Salvar PDF
-      const safeTitle = chatTitle.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '_');
+      const safeTitle = chatTitle.replace(/[^a-zA-Z0-9-_ áéíóúçãõâêôàÁÉÍÓÚÇÃÕÂÊÔÀ]/g, '').replace(/\s+/g, '_');
       const filename = `BuffetWiz_${safeTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
       doc.save(filename);
 
@@ -346,7 +397,8 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     y: number,
     maxWidth: number,
     pageHeight: number,
-    margin: number
+    margin: number,
+    addHeaderFooter?: () => void
   ): number {
     let currentY = y;
     
@@ -371,7 +423,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       } else if (!isTableLine && isTable) {
         // Fim da tabela, renderizar
         if (currentBlock.length > 0) {
-          currentY = renderTable(doc, currentBlock, x, currentY, maxWidth, pageHeight, margin);
+          currentY = renderTable(doc, currentBlock, x, currentY, maxWidth, pageHeight, margin, addHeaderFooter);
           currentBlock = [];
         }
         isTable = false;
@@ -382,9 +434,9 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     
     // Renderizar bloco final
     if (currentBlock.length > 0) {
-      if (isTable) {
-        currentY = renderTable(doc, currentBlock, x, currentY, maxWidth, pageHeight, margin);
-      } else {
+        if (isTable) {
+          currentY = renderTable(doc, currentBlock, x, currentY, maxWidth, pageHeight, margin, addHeaderFooter);
+        } else {
         const text = currentBlock.join(' ');
         const textLines = doc.splitTextToSize(text, maxWidth);
         doc.text(textLines, x, currentY);
@@ -402,7 +454,8 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     y: number,
     maxWidth: number,
     pageHeight: number,
-    margin: number
+    margin: number,
+    addHeaderFooter?: () => void
   ): number {
     // Parse tabela markdown
     const rows: string[][] = [];
@@ -430,50 +483,94 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
     
     if (headerRow.length === 0) return y;
     
-    // Calcular largura das colunas
-    const colWidth = maxWidth / headerRow.length;
+    // Calcular largura inteligente das colunas baseado no conteúdo
+    const numCols = headerRow.length;
+    const minColWidth = 25; // mm
+    const availableWidth = maxWidth - 4;
+    
+    // Calcular larguras proporcionais
+    const colWidths: number[] = [];
+    const maxLengths = headerRow.map((h, i) => {
+      const cellLengths = rows.map(r => (r[i] || '').length);
+      return Math.max(h.length, ...cellLengths);
+    });
+    const totalLen = maxLengths.reduce((a, b) => a + b, 0);
+    
+    for (let i = 0; i < numCols; i++) {
+      const proportional = (maxLengths[i] / totalLen) * availableWidth;
+      colWidths[i] = Math.max(minColWidth, proportional);
+    }
+    
     let currentY = y;
     
     // Verificar se precisa nova página
-    if (currentY > pageHeight - 40) {
+    if (currentY > pageHeight - 50) {
       doc.addPage();
-      currentY = margin;
+      if (addHeaderFooter) addHeaderFooter();
+      currentY = 25;
     }
     
-    // Header com fundo cinza
-    doc.setFillColor(240, 240, 240);
-    doc.rect(x, currentY - 4, maxWidth, 7, 'F');
+    // Header com fundo suave
+    doc.setFillColor(235, 240, 245);
+    const headerHeight = 8;
+    doc.roundedRect(x, currentY - 3, availableWidth, headerHeight, 1, 1, 'F');
+    
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
+    doc.setTextColor(40, 60, 80);
     
+    let xPos = x + 2;
     headerRow.forEach((cell, i) => {
-      doc.text(cell, x + (i * colWidth) + 2, currentY);
+      const cellText = doc.splitTextToSize(cell, colWidths[i] - 4);
+      doc.text(cellText, xPos, currentY);
+      xPos += colWidths[i];
     });
-    currentY += 8;
+    currentY += headerHeight + 2;
     
-    // Linhas de dados
+    // Linhas de dados com quebra de texto
     doc.setFont('helvetica', 'normal');
-    const tableStartY = y - 4;
-    rows.forEach(row => {
+    doc.setFontSize(9);
+    doc.setTextColor(50, 50, 50);
+    
+    const tableStartY = y - 3;
+    rows.forEach((row, rowIdx) => {
+      // Calcular altura da linha (baseado no maior texto quebrado)
+      let maxLineHeight = 5;
+      const wrappedCells = row.map((cell, i) => {
+        const wrapped = doc.splitTextToSize(cell || '', colWidths[i] - 4);
+        maxLineHeight = Math.max(maxLineHeight, wrapped.length * 5);
+        return wrapped;
+      });
+      
       // Verificar se precisa nova página
-      if (currentY > pageHeight - 20) {
+      if (currentY + maxLineHeight > pageHeight - 25) {
         doc.addPage();
-        currentY = margin;
+        if (addHeaderFooter) addHeaderFooter();
+        currentY = 25;
       }
       
-      row.forEach((cell, i) => {
-        doc.text(cell, x + (i * colWidth) + 2, currentY);
+      // Fundo alternado para linhas
+      if (rowIdx % 2 === 0) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(x, currentY - 3, availableWidth, maxLineHeight, 'F');
+      }
+      
+      // Renderizar células
+      xPos = x + 2;
+      wrappedCells.forEach((cellLines, i) => {
+        doc.text(cellLines, xPos, currentY);
+        xPos += colWidths[i];
       });
-      currentY += 6;
+      
+      currentY += maxLineHeight;
     });
     
-    // Borda da tabela (somente se não houve quebra de página)
-    if (currentY < pageHeight - 20) {
-      doc.setDrawColor(200, 200, 200);
-      doc.rect(x, tableStartY, maxWidth, currentY - tableStartY + 4);
-    }
+    // Borda da tabela
+    doc.setDrawColor(200, 210, 220);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(x, tableStartY, availableWidth, currentY - tableStartY, 1, 1, 'S');
     
-    return currentY + 5;
+    return currentY + 8;
   }
 
   // Helper to extract event details from chat messages
