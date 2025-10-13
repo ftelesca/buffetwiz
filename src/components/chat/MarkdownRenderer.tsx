@@ -293,7 +293,8 @@ async function exportConversationToPDF(content: string, filename: string, chatTi
 #bw-pdf-root {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   color: #0f172a;
-  width: 720px;
+  width: 800px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 20px;
   background: #ffffff;
@@ -350,7 +351,7 @@ async function exportConversationToPDF(content: string, filename: string, chatTi
 
 /* Assistant message - bg-muted/60 rounded-bl-md border */
 .bubble.assistant {
-  max-width: 80%;
+  max-width: 90%;
   background: rgba(241, 245, 249, 0.6);
   color: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(226, 232, 240, 0.4);
@@ -398,8 +399,70 @@ async function exportConversationToPDF(content: string, filename: string, chatTi
   white-space: pre-wrap;
   margin: 10px 0;
 }
-.content.markdown table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-.content.markdown th, .content.markdown td { border: 1px solid #E5E7EB; padding: 6px 8px; text-align: left; }
+/* Tables - elegant styling matching chat */
+.content.markdown table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  margin: 12px 0; 
+  font-size: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.content.markdown thead {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #ffffff;
+}
+
+.content.markdown th { 
+  border: none;
+  padding: 10px 12px; 
+  text-align: left; 
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.content.markdown td { 
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 9px 12px; 
+  text-align: left; 
+}
+
+.content.markdown tbody tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.content.markdown tbody tr:nth-child(even) {
+  background-color: rgba(241, 245, 249, 0.5);
+}
+
+.content.markdown tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.08);
+}
+
+.content.markdown tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Ensure numbers align right for better readability */
+.content.markdown td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+/* First column bold for labels */
+.content.markdown td:first-child {
+  font-weight: 500;
+  color: #1e293b;
+}
 
 /* Timestamp - matching component */
 .timestamp { 
@@ -421,6 +484,11 @@ img { max-width: 100%; height: auto; page-break-inside: avoid; }
 </div>
 `;
 
+  console.log('=== PDF EXPORT DEBUG ===');
+  console.log('Content length:', processedContent.length);
+  console.log('Number of tables:', (processedContent.match(/<table/g) || []).length);
+  console.log('Number of messages:', (processedContent.match(/class="message/g) || []).length);
+
   try {
     // Generate PDF only
     const html2pdf = (window as any).html2pdf;
@@ -432,30 +500,46 @@ img { max-width: 100%; height: auto; page-break-inside: avoid; }
       wrapper.style.position = 'fixed';
       wrapper.style.left = '-10000px';
       wrapper.style.top = '0';
-      wrapper.style.width = '740px';
+      wrapper.style.width = '820px';
       wrapper.innerHTML = html;
       document.body.appendChild(wrapper);
       const target = wrapper.querySelector('#bw-pdf-root') as HTMLElement;
 
-      const elementWidth = target?.scrollWidth || 740;
+      const elementWidth = target?.scrollWidth || 820;
       const pdfBlob = await html2pdf()
         .set({
           margin: [10, 10, 10, 10],
+          filename: pdfFilename,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { 
-            scale: 2, 
+            scale: 2.5,
             useCORS: true,
             letterRendering: true,
             allowTaint: false,
-            windowWidth: Math.max(elementWidth, 740)
+            scrollY: 0,
+            scrollX: 0,
+            windowWidth: Math.max(elementWidth, 820),
+            onclone: (clonedDoc) => {
+              // Garante que todas as tabelas sejam visíveis
+              const tables = clonedDoc.querySelectorAll('table');
+              tables.forEach(table => {
+                (table as HTMLElement).style.pageBreakInside = 'avoid';
+                (table as HTMLElement).style.display = 'table';
+              });
+            }
           },
-          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
           jsPDF: { 
             unit: 'mm', 
             format: 'a4', 
             orientation: 'portrait',
             compress: true
           },
+          pagebreak: { 
+            mode: ['avoid-all', 'css', 'legacy'],
+            before: '.page-break-before',
+            after: '.page-break-after',
+            avoid: ['table', 'tr', 'td', 'th', '.bubble', '.message']
+          }
         })
         .from(target)
         .outputPdf('blob');
