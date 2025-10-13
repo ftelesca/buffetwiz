@@ -266,18 +266,8 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       let yPosition = margin;
       let pageNumber = 1;
 
-      // Adicionar fonte com suporte a PT-BR (Roboto embutida via base64)
-      // Fonte Roboto-Regular em base64 (versão compacta para acentos PT-BR)
-      const robotoFont = "AAEAAAASAQAABAAgRFNJRwAAAAEAAWKQAAAACEdERUYAKQArAAABYAAAAB5HUE9T0iT4ugAAAYAAAABwR1NVQgABAAAAAA..."; // truncado por brevidade
-      
-      try {
-        doc.addFileToVFS('Roboto-Regular.ttf', robotoFont);
-        doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-        doc.setFont('Roboto');
-      } catch {
-        // Fallback para helvetica se Roboto falhar
-        doc.setFont('helvetica', 'normal');
-      }
+      // Usar Helvetica (fonte nativa do PDF, suporta acentos PT-BR)
+      doc.setFont('helvetica', 'normal');
 
       // Função auxiliar para adicionar cabeçalho/rodapé
       const addHeaderFooter = () => {
@@ -357,23 +347,17 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             addHeaderFooter
           );
         } else {
-          // Texto normal com respeito a quebras de linha
+          // Texto normal: cada \n vira uma nova linha
           const lines = msg.content.split('\n');
           
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             
-            // Verificar se é linha vazia (parágrafo)
-            if (!line.trim()) {
-              yPosition += 3; // Espaço para linha vazia
-              continue;
-            }
-            
-            // Quebrar linha se necessário
-            const wrappedLines = doc.splitTextToSize(line, contentWidth - 8);
+            // Quebrar linha longa se necessário (respeitando largura)
+            const wrappedLines = doc.splitTextToSize(line.trim() || ' ', contentWidth - 8);
             
             // Verificar espaço antes de desenhar
-            const lineHeight = (wrappedLines.length * 5) + 3;
+            const lineHeight = wrappedLines.length * 5;
             if (yPosition + lineHeight > pageHeight - 30) {
               doc.addPage();
               if (addHeaderFooter) addHeaderFooter();
@@ -381,7 +365,10 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
             }
             
             doc.text(wrappedLines, margin + 5, yPosition);
-            yPosition += (wrappedLines.length * 5) + 3;
+            yPosition += lineHeight;
+            
+            // Adicionar espaçamento mínimo entre linhas (equivalente a line-height)
+            yPosition += 2;
           }
         }
 
