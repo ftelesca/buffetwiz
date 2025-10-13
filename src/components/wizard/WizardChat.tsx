@@ -215,6 +215,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
   const exportConversationToPDF = async () => {
     try {
+      console.log('[WizardChat] Export button clicked', { messagesCount: messages.length, currentChatId });
       if (messages.length === 0) {
         toast({ title: "Nenhuma conversa", description: "Não há mensagens para exportar", variant: "destructive" });
         return;
@@ -240,9 +241,12 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
       const eventDetails = extractEventDetailsFromMessages(messages);
       
       // Use the elegant export function from MarkdownRenderer
+      console.log('[WizardChat] Importing MarkdownRenderer.exportConversationToPDF...');
       const { exportConversationToPDF: exportFunction } = await import("@/components/chat/MarkdownRenderer");
+      console.log('[WizardChat] Import loaded');
       const currentDate = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
       const filename = `BuffetWiz_Conversa_${currentDate}`;
+      console.log('[WizardChat] Calling export function', { filename, chatTitle, includeLogo: false });
       
       await exportFunction(
         conversationContent, 
@@ -252,6 +256,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
         false // don't include logo per request
       );
       
+      console.log('[WizardChat] Export finished successfully');
       toast({ 
         title: "PDF gerado",
         description: "PDF exportado com sucesso!"

@@ -510,10 +510,16 @@ img { max-width: 100%; height: auto; page-break-inside: avoid; }
 
   try {
     // Generate PDF only
-    const html2pdf = (window as any).html2pdf;
-    
+    let html2pdf = (window as any).html2pdf;
     if (!html2pdf) {
-      throw new Error('html2pdf não está disponível. Certifique-se de que a biblioteca está carregada.');
+      console.warn('html2pdf não encontrado no window, tentando import dinâmico...');
+      try {
+        const mod = await import('html2pdf.js');
+        // Some bundlers expose default, others return the function directly
+        html2pdf = (mod as any)?.default || (mod as any);
+      } catch (e) {
+        throw new Error('html2pdf não está disponível. Certifique-se de que a biblioteca está carregada.');
+      }
     }
     
     if (html2pdf) {
