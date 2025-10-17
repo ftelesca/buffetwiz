@@ -29,6 +29,7 @@ interface DashboardStats {
   eventsThisMonth: number
   eventsLastMonth: number
   totalGuests: number
+  previousGuests: number
   totalRevenue: number
   previousRevenue: number
 }
@@ -129,6 +130,13 @@ export default function Dashboard() {
         .gte('date', format(currentMonthStart, 'yyyy-MM-dd'))
         .lte('date', format(currentMonthEnd, 'yyyy-MM-dd'))
 
+      // Total guests for events last month
+      const { data: guestsLastMonth } = await supabase
+        .from('event')
+        .select('numguests')
+        .gte('date', format(lastMonthStart, 'yyyy-MM-dd'))
+        .lte('date', format(lastMonthEnd, 'yyyy-MM-dd'))
+
       // Revenue this month (completed events)
       const { data: revenueThisMonth } = await supabase
         .from('event')
@@ -144,6 +152,7 @@ export default function Dashboard() {
         .lte('date', format(lastMonthEnd, 'yyyy-MM-dd'))
 
       const totalGuests = guestsThisMonth?.reduce((sum, event) => sum + (event.numguests || 0), 0) || 0
+      const previousGuests = guestsLastMonth?.reduce((sum, event) => sum + (event.numguests || 0), 0) || 0
       const totalRevenue = (revenueThisMonth || []).reduce((sum: number, e: any) => sum + (e?.price ? Number(e.price) : 0), 0) || 0
       const previousRevenue = (revenueLastMonth || []).reduce((sum: number, e: any) => sum + (e?.price ? Number(e.price) : 0), 0) || 0
 
@@ -151,6 +160,7 @@ export default function Dashboard() {
         eventsThisMonth: eventsThisMonth?.length || 0,
         eventsLastMonth: eventsLastMonth?.length || 0,
         totalGuests,
+        previousGuests,
         totalRevenue,
         previousRevenue,
       }
@@ -203,7 +213,7 @@ export default function Dashboard() {
     {
       title: "Total de Convidados",
       value: stats.totalGuests.toLocaleString('pt-BR'),
-      change: "+12%", // This would need historical data to calculate properly
+      change: calculatePercentageChange(stats.totalGuests, stats.previousGuests),
       icon: Users,
       color: "text-secondary"
     },
