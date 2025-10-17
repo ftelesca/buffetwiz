@@ -122,7 +122,7 @@ export default function Dashboard() {
         .gte('date', format(lastMonthStart, 'yyyy-MM-dd'))
         .lte('date', format(lastMonthEnd, 'yyyy-MM-dd'))
 
-      // Total guests for upcoming events
+      // Total guests for upcoming events (from today onwards)
       const { data: upcomingEvents } = await supabase
         .from('event')
         .select('numguests')
