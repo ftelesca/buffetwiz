@@ -133,7 +133,6 @@ export default function Dashboard() {
       const { data: revenueThisMonth } = await supabase
         .from('event')
         .select('price')
-        .eq('status', 'concluido')
         .gte('date', format(currentMonthStart, 'yyyy-MM-dd'))
         .lte('date', format(currentMonthEnd, 'yyyy-MM-dd'))
 
@@ -141,13 +140,12 @@ export default function Dashboard() {
       const { data: revenueLastMonth } = await supabase
         .from('event')
         .select('price')
-        .eq('status', 'concluido')
         .gte('date', format(lastMonthStart, 'yyyy-MM-dd'))
         .lte('date', format(lastMonthEnd, 'yyyy-MM-dd'))
 
       const totalGuests = guestsThisMonth?.reduce((sum, event) => sum + (event.numguests || 0), 0) || 0
-      const totalRevenue = revenueThisMonth?.reduce((sum, event) => sum + (event.price || 0), 0) || 0
-      const previousRevenue = revenueLastMonth?.reduce((sum, event) => sum + (event.price || 0), 0) || 0
+      const totalRevenue = (revenueThisMonth || []).reduce((sum: number, e: any) => sum + (e?.price ? Number(e.price) : 0), 0) || 0
+      const previousRevenue = (revenueLastMonth || []).reduce((sum: number, e: any) => sum + (e?.price ? Number(e.price) : 0), 0) || 0
 
       return {
         eventsThisMonth: eventsThisMonth?.length || 0,
