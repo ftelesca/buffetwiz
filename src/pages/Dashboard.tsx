@@ -122,11 +122,12 @@ export default function Dashboard() {
         .gte('date', format(lastMonthStart, 'yyyy-MM-dd'))
         .lte('date', format(lastMonthEnd, 'yyyy-MM-dd'))
 
-      // Total guests for upcoming events (from today onwards)
-      const { data: upcomingEvents } = await supabase
+      // Total guests for events this month (entire month)
+      const { data: guestsThisMonth } = await supabase
         .from('event')
         .select('numguests')
-        .gte('date', format(now, 'yyyy-MM-dd'))
+        .gte('date', format(currentMonthStart, 'yyyy-MM-dd'))
+        .lte('date', format(currentMonthEnd, 'yyyy-MM-dd'))
 
       // Revenue this month (completed events)
       const { data: revenueThisMonth } = await supabase
@@ -144,7 +145,7 @@ export default function Dashboard() {
         .gte('date', format(lastMonthStart, 'yyyy-MM-dd'))
         .lte('date', format(lastMonthEnd, 'yyyy-MM-dd'))
 
-      const totalGuests = upcomingEvents?.reduce((sum, event) => sum + (event.numguests || 0), 0) || 0
+      const totalGuests = guestsThisMonth?.reduce((sum, event) => sum + (event.numguests || 0), 0) || 0
       const totalRevenue = revenueThisMonth?.reduce((sum, event) => sum + (event.price || 0), 0) || 0
       const previousRevenue = revenueLastMonth?.reduce((sum, event) => sum + (event.price || 0), 0) || 0
 
