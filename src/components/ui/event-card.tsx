@@ -6,6 +6,7 @@ import { formatDateWithoutTimezone, formatCurrency } from "@/lib/utils"
 import { formatTimeWithoutSeconds } from "@/lib/utils"
 import { CalendarIntegration } from "@/components/events/CalendarIntegration"
 import { EventDeleteConfirmation } from "@/components/events/EventDeleteConfirmation"
+import { EventStatus, EVENT_STATUS_LABELS, DEFAULT_EVENT_STATUS } from "@/constants/events"
 
 interface EventCardProps {
   id: string
@@ -16,7 +17,7 @@ interface EventCardProps {
   guests?: number
   budget: number
   cost?: number
-  status: "planejamento" | "confirmado" | "concluido" | "cancelado"
+  status: EventStatus
   description?: string
   duration?: number
   customerName?: string
@@ -78,10 +79,10 @@ export function EventCard({
               {customerName}
             </CardDescription>
           </div>
-          <Badge 
+          <Badge
             variant={getStatusBadgeVariant(status)}
           >
-            {status || "planejamento"}
+            {EVENT_STATUS_LABELS[status || DEFAULT_EVENT_STATUS]}
           </Badge>
         </div>
       </CardHeader>

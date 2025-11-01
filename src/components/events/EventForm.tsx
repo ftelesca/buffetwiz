@@ -16,6 +16,7 @@ import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIntegration } from "./CalendarIntegration";
 import { getSupabaseErrorMessage } from "@/lib/errorHandler";
+import { EVENT_TYPES, EVENT_STATUSES, DEFAULT_EVENT_STATUS, DEFAULT_EVENT_DURATION, EVENT_STATUS_LABELS } from "@/constants/events";
 
 // Helper function to format currency with thousands separator
 const formatCurrencyBrazilian = (value: number): string => {
@@ -60,22 +61,6 @@ const timeFormatToMinutes = (timeString: string): number => {
   return (hours * 60) + minutes;
 };
 
-const eventTypes = [
-  "Casamento",
-  "Aniversário", 
-  "Corporativo",
-  "Formatura",
-  "Confraternização",
-  "Outro"
-];
-
-const eventStatuses = [
-  "planejamento",
-  "confirmado", 
-  "concluido",
-  "cancelado"
-];
-
 export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   const { user } = useAuth();
   const [formData, setFormData] = useState<EventFormData>({
@@ -83,10 +68,10 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     customer: "",
     date: undefined,
     time: "",
-    duration: "02:00", // Default 2 hours in HH:MM format
+    duration: DEFAULT_EVENT_DURATION,
     location: "",
     type: "",
-    status: "planejamento",
+    status: DEFAULT_EVENT_STATUS,
     numguests: "",
     cost: "",
     price: "",
@@ -357,7 +342,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               <SelectValue placeholder="Tipo de evento" />
             </SelectTrigger>
             <SelectContent>
-              {eventTypes.map((type) => (
+              {EVENT_TYPES.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type}
                 </SelectItem>
@@ -373,9 +358,9 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               <SelectValue placeholder="Status do evento" />
             </SelectTrigger>
             <SelectContent>
-              {eventStatuses.map((status) => (
+              {EVENT_STATUSES.map((status) => (
                 <SelectItem key={status} value={status}>
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                  {EVENT_STATUS_LABELS[status]}
                 </SelectItem>
               ))}
             </SelectContent>

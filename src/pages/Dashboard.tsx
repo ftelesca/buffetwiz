@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom"
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { EventMenu } from "@/components/events/EventMenu"
+import { EventStatus, DEFAULT_EVENT_STATUS } from "@/constants/events"
 
 interface Event {
   id: string
@@ -19,7 +20,7 @@ interface Event {
   guests: number
   budget: number
   cost: number
-  status: "confirmado" | "planejamento" | "concluido"
+  status: EventStatus
   description: string | null
   duration: number | null
   customerName?: string
@@ -90,7 +91,7 @@ export default function Dashboard() {
         guests: (event as any).numguests || 0,
         budget: (event as any).price || 0,
         cost: (event as any).cost || 0, // Exibindo diretamente event.cost
-        status: ((event as any).status as "confirmado" | "planejamento" | "concluido") || "planejamento",
+        status: ((event as any).status as EventStatus) || DEFAULT_EVENT_STATUS,
         description: (event as any).description || '',
         duration: (event as any).duration || null,
         customerName: (event as any).customer_info?.name

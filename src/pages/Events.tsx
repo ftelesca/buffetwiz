@@ -14,6 +14,7 @@ import { EventCard } from "@/components/ui/event-card"
 import { useToast } from "@/hooks/use-toast"
 import { getDeletedMessage } from "@/lib/utils"
 import { getSupabaseErrorMessage } from "@/lib/errorHandler"
+import { EventStatus } from "@/constants/events"
 
 interface Event {
   id: string;
@@ -24,7 +25,7 @@ interface Event {
   duration: number | null;
   location: string | null;
   type: string | null;
-  status: string | null;
+  status: EventStatus | null;
   numguests: number | null;
   cost: number | null;
   price: number | null;
@@ -215,7 +216,7 @@ export default function Events() {
               guests={event.numguests}
               budget={event.price}
               cost={event.cost}
-              status={event.status as "confirmado" | "planejamento" | "concluido" | "cancelado"}
+              status={event.status as EventStatus}
               description={event.description}
               duration={event.duration}
               customerName={event.customer_info?.name}
