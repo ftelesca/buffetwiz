@@ -39,13 +39,6 @@ export type Database = {
             referencedRelation: "users";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "event_customer_fkey";
-            columns: ["id"]; // reverse reference note
-            isOneToOne: false;
-            referencedRelation: "event";
-            referencedColumns: ["customer"];
-          },
         ];
       };
 
@@ -213,13 +206,6 @@ export type Database = {
             referencedRelation: "unit";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "recipe_item_item_fkey";
-            columns: ["id"]; // reverse reference note
-            isOneToOne: false;
-            referencedRelation: "recipe_item";
-            referencedColumns: ["item"];
-          },
         ];
       };
 
@@ -291,13 +277,6 @@ export type Database = {
             columns: ["id"]; // reverse reference note
             isOneToOne: false;
             referencedRelation: "event_menu";
-            referencedColumns: ["recipe"];
-          },
-          {
-            foreignKeyName: "recipe_item_recipe_fkey";
-            columns: ["id"]; // reverse reference note
-            isOneToOne: false;
-            referencedRelation: "recipe_item";
             referencedColumns: ["recipe"];
           },
         ];
