@@ -24,7 +24,7 @@ const formatCurrencyBrazilian = (value: number): string => {
 };
 
 interface EventMenuProps {
-  eventId: number;
+  eventId: string;
   eventTitle: string;
   eventDescription?: string;
   customerName?: string;
@@ -37,14 +37,14 @@ interface EventMenuProps {
 interface EventMenuProduct {
   qty: number;
   product: {
-    id: number;
+    id: string;
     description: string;
     unit_cost?: number;
   };
 }
 
 interface Product {
-  id: number;
+  id: string;
   description: string;
 }
 
@@ -175,7 +175,7 @@ export const EventMenu = ({
 
   // Add product to event menu mutation
   const addProductMutation = useMutation({
-    mutationFn: async ({ productId, qty }: { productId: number; qty: number }) => {
+    mutationFn: async ({ productId, qty }: { productId: string; qty: number }) => {
       const { data, error } = await supabase
         .from("event_menu")
         .insert([{ 
@@ -212,7 +212,7 @@ export const EventMenu = ({
 
   // Remove product from event menu mutation
   const removeProductMutation = useMutation({
-    mutationFn: async (productId: number) => {
+    mutationFn: async (productId: string) => {
       const { error } = await supabase
         .from("event_menu")
         .delete()
@@ -242,7 +242,7 @@ export const EventMenu = ({
 
   // Update product quantity mutation
   const updateProductMutation = useMutation({
-    mutationFn: async ({ productId, qty }: { productId: number; qty: number }) => {
+    mutationFn: async ({ productId, qty }: { productId: string; qty: number }) => {
       const { data, error } = await supabase
         .from("event_menu")
         .update({ qty: qty } as any)
@@ -294,10 +294,10 @@ export const EventMenu = ({
       return;
     }
     
-    addProductMutation.mutate({ productId: parseInt(selectedProductId), qty });
+    addProductMutation.mutate({ productId: selectedProductId, qty });
   };
 
-  const handleRemoveProduct = (productId: number) => {
+  const handleRemoveProduct = (productId: string) => {
     removeProductMutation.mutate(productId);
   };
 
@@ -324,7 +324,7 @@ export const EventMenu = ({
     }
   };
 
-  const getUnitDescription = (unitId: number) => {
+  const getUnitDescription = (unitId: string) => {
     const unit = units?.find(u => u.id === unitId);
     return unit?.description || "";
   };
@@ -370,7 +370,7 @@ export const EventMenu = ({
                 <Label htmlFor="product-select">Produto</Label>
                 <Combobox
                   options={availableProducts.map((product) => ({
-                    value: product.id.toString(),
+                    value: product.id,
                     label: product.description
                   }))}
                   value={selectedProductId}

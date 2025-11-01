@@ -26,7 +26,7 @@ const formatCurrencyBrazilian = (value: number): string => {
 };
 
 interface EventFormProps {
-  eventId?: number;
+  eventId?: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -235,7 +235,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
 
     const submitData = {
       title: formData.title,
-      customer: parseInt(formData.customer),
+      customer: formData.customer,
       date: formData.date ? format(formData.date, "yyyy-MM-dd") : null,
       time: formData.time || null,
       duration: timeFormatToMinutes(formData.duration),
@@ -278,7 +278,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           </SelectTrigger>
           <SelectContent>
             {customers?.map((customer) => (
-              <SelectItem key={customer.id} value={customer.id.toString()}>
+              <SelectItem key={customer.id} value={customer.id}>
                 {customer.name}
               </SelectItem>
             ))}

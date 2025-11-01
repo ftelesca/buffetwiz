@@ -37,7 +37,7 @@ export default function ProductItemForm({
   useEffect(() => {
     if (editingProductItem) {
       setNewProductItem({ 
-        item: editingProductItem.item.toString(), 
+        item: editingProductItem.item, 
         qty: editingProductItem.qty.toString() 
       })
       // Focus on quantity field when editing
@@ -62,7 +62,7 @@ export default function ProductItemForm({
   const saveProductItem = async () => {
     if (!selectedProduct || !newProductItem.item || !newProductItem.qty) return
 
-    const itemId = parseInt(newProductItem.item)
+    const itemId = newProductItem.item
     
     if (editingProductItem) {
       // Update existing product item
@@ -92,7 +92,7 @@ export default function ProductItemForm({
       }
     } else {
       // Check if item already exists in product (only for new items)
-      const itemAlreadyExists = productItems.some(productItem => productItem.item === itemId)
+      const itemAlreadyExists = productItems.some(productItem => productItem.item === newProductItem.item)
       
       if (itemAlreadyExists) {
         toast({ 
@@ -149,7 +149,7 @@ export default function ProductItemForm({
             <Label htmlFor="item-select">Item</Label>
             <Combobox
               options={items.map((item) => ({
-                value: item.id.toString(),
+                value: item.id,
                 label: item.description
               }))}
               value={newProductItem.item}

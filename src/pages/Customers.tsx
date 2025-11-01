@@ -21,7 +21,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ActionButtons } from "@/components/ui/action-buttons"
 
 interface Customer {
-  id: number;
+  id: string;
   name: string;
   email?: string;
   phone?: string;

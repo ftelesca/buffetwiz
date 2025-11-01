@@ -1,34 +1,34 @@
 export interface Product {
-  id: number
+  id: string
   description: string
   efficiency?: number
 }
 
 export interface Item {
-  id: number
+  id: string
   description: string
-  unit_purch: number
-  unit_use: number
+  unit_purch: string
+  unit_use: string
   cost: number
   factor: number
   isproduct?: boolean
 }
 
 export interface Unit {
-  id: number
+  id: string
   description: string
 }
 
 export interface ProductItem {
-  product: number
-  item: number
+  product: string
+  item: string
   qty: number
   item_detail?: Item
 }
 export interface EventWithProductCost {
-  id: number
+  id: string
   title: string
-  customer: number
+  customer: string
   date: string | null
   time: string | null
   duration: number | null

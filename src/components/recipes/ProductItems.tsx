@@ -44,7 +44,7 @@ export default function ProductItems({
       onProductItemsChange();
     }
   };
-  const getUnitDescription = (unitId: number) => {
+  const getUnitDescription = (unitId: string) => {
     const unit = units.find(u => u.id === unitId);
     return unit?.description || "";
   };

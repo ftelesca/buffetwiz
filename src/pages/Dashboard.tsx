@@ -325,7 +325,7 @@ export default function Dashboard() {
           </DialogHeader>
           {selectedEventForMenu && (
             <EventMenu
-              eventId={parseInt(selectedEventForMenu.id)}
+              eventId={selectedEventForMenu.id}
               eventTitle={selectedEventForMenu.title}
               eventDescription={selectedEventForMenu.description || undefined}
               customerName={selectedEventForMenu.customerName}
