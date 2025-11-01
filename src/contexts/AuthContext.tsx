@@ -44,20 +44,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (session?.user) {
         // Fetch profile asynchronously without blocking
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .maybeSingle()
-          .then(({ data, error }) => {
+        const fetchProfile = async () => {
+          try {
+            const { data, error } = await supabase.from("profiles").select("*").eq("id", session.user.id).maybeSingle();
+
             if (error) {
               console.error("Error fetching profile:", error);
             }
             setProfile(data || null);
-          })
-          .catch((err) => {
+          } catch (err) {
             console.error("Profile fetch error:", err);
-          });
+            setProfile(null);
+          }
+        };
+
+        fetchProfile();
       } else {
         setProfile(null);
       }
