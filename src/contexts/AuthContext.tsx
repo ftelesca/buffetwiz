@@ -39,18 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
-        
+
         if (session?.user) {
           // Fetch profile after state update
-          setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("*")
-              .eq("id", session.user.id)
-              .maybeSingle()
-            
-            setProfile(profileData)
-          }, 0)
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle()
+
+          setProfile(profileData)
         } else {
           setProfile(null)
         }
@@ -58,21 +56,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
-      
+
       if (session?.user) {
-        setTimeout(async () => {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", session.user.id)
-            .maybeSingle()
-          
-          setProfile(profileData)
-          setLoading(false)
-        }, 0)
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .maybeSingle()
+
+        setProfile(profileData)
+        setLoading(false)
       } else {
         setLoading(false)
       }
