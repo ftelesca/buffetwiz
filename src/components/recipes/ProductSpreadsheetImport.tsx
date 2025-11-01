@@ -338,7 +338,7 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
       ["Feijão Tropeiro", "1.2", "Bacon", "100"],
     ];
 
-    const csv = Papa.unparse(template);
+    const csv = Papa.unparse(template, { delimiter: ";" });
     const BOM = "\uFEFF";
     const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
