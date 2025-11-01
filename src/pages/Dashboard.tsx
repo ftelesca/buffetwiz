@@ -10,6 +10,7 @@ import { format, startOfMonth, endOfMonth, subMonths } from "date-fns"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { EventMenu } from "@/components/events/EventMenu"
 import { EventStatus, DEFAULT_EVENT_STATUS } from "@/constants/events"
+import { formatCurrency } from "@/lib/utils"
 
 interface Event {
   id: string
@@ -36,15 +37,6 @@ interface DashboardStats {
 }
 
 // Helper functions
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-
 const calculatePercentageChange = (current: number, previous: number) => {
   if (previous === 0) return current > 0 ? "+100%" : "0%"
   const change = ((current - previous) / previous) * 100

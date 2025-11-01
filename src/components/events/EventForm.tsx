@@ -11,20 +11,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { cn, formatCurrencyInput, parseCurrency } from "@/lib/utils";
+import { cn, formatCurrencyInput, parseCurrency, formatCurrencyWithCents } from "@/lib/utils";
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIntegration } from "./CalendarIntegration";
 import { getSupabaseErrorMessage } from "@/lib/errorHandler";
 import { EVENT_TYPES, EVENT_STATUSES, DEFAULT_EVENT_STATUS, DEFAULT_EVENT_DURATION, EVENT_STATUS_LABELS } from "@/constants/events";
-
-// Helper function to format currency with thousands separator
-const formatCurrencyBrazilian = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-};
 
 interface EventFormProps {
   eventId?: string;

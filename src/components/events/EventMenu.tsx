@@ -14,14 +14,7 @@ import { Plus, ChefHat, Eye } from "lucide-react";
 import { ActionButtons } from "@/components/ui/action-buttons";
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
 import { EventMenuItemForm } from "./EventMenuItemForm";
-
-// Helper function to format currency with thousands separator
-const formatCurrencyBrazilian = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-};
+import { formatCurrencyWithCents, formatCurrencySmall } from "@/lib/utils";
 
 interface EventMenuProps {
   eventId: string;
@@ -356,14 +349,6 @@ export const EventMenu = ({
     return qty.toString().replace('.', ',');
   };
 
-  const formatCurrency = (value: number) => {
-    if (value < 0.01) return "< 0,01";
-    return new Intl.NumberFormat('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
   // Filter out products that are already in the event menu
   const addedProductIds = eventMenuProducts?.map(item => item.product.id) || [];
   const availableProducts = allProducts?.filter(product => !addedProductIds.includes(product.id)) || [];
@@ -434,7 +419,7 @@ export const EventMenu = ({
       {eventMenuProducts && eventMenuProducts.length > 0 && (
         <div className="bg-muted/50 rounded-lg p-4 text-center">
           <p className="text-lg font-semibold">
-            Custo Total: {formatCurrencyBrazilian(
+            Custo Total: {formatCurrencyWithCents(
               eventMenuProducts.reduce(
                 (total, item) => total + (item.qty * (item.product.unit_cost || 0)), 
                 0
@@ -461,7 +446,7 @@ export const EventMenu = ({
                     {item.product.description}
                   </CardTitle>
                   <CardDescription>
-                    {item.qty} x {formatCurrency(item.product.unit_cost || 0)} = {formatCurrency((item.qty * (item.product.unit_cost || 0)))}
+                    {item.qty} x {formatCurrencySmall(item.product.unit_cost || 0)} = {formatCurrencySmall((item.qty * (item.product.unit_cost || 0)))}
                   </CardDescription>
                 </div>
               </CardHeader>
@@ -579,7 +564,7 @@ export const EventMenu = ({
                               <TableCell className="text-center">
                                 <Badge variant="outline">{unitDescription}</Badge>
                               </TableCell>
-                              <TableCell className="text-right font-medium text-xs">{formatCurrency(totalCost)}</TableCell>
+                              <TableCell className="text-right font-medium text-xs">{formatCurrencySmall(totalCost)}</TableCell>
                             </TableRow>
                           );
                         })}
@@ -593,7 +578,7 @@ export const EventMenu = ({
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Custo Unitário do Produto:</span>
                       <span className="text-lg font-semibold">
-                        {isLoadingCost ? "Calculando..." : formatCurrency(productUnitCost || 0)}
+                        {isLoadingCost ? "Calculando..." : formatCurrencySmall(productUnitCost || 0)}
                       </span>
                     </div>
                     {selectedProductForItems && (
@@ -602,7 +587,7 @@ export const EventMenu = ({
                           Custo Total ({selectedProductForItems.qty} unidades):
                         </span>
                         <span className="text-xl font-bold text-primary">
-                          {formatCurrency((productUnitCost || 0) * selectedProductForItems.qty)}
+                          {formatCurrencySmall((productUnitCost || 0) * selectedProductForItems.qty)}
                         </span>
                       </div>
                     )}
