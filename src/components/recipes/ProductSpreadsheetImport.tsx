@@ -334,8 +334,8 @@ export function ProductSpreadsheetImport({ isOpen, onClose, onImportComplete }: 
       ["Produto", "Rendimento", "Insumo", "Qtd"],
       ["Arroz de Festa", "1", "Arroz Branco", "500"],
       ["Arroz de Festa", "1", "Azeite de Oliva", "50"],
-      ["Feijão Tropeiro", "1.2", "Feijão Preto", "300"],
-      ["Feijão Tropeiro", "1.2", "Bacon", "100"],
+      ["Feijão Tropeiro", "1,2", "Feijão Preto", "300"],
+      ["Feijão Tropeiro", "1,2", "Bacon", "100"],
     ];
 
     const csv = Papa.unparse(template, { delimiter: ";" });

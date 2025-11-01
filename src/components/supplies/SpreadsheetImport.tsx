@@ -308,9 +308,9 @@ export function SpreadsheetImport({ isOpen, onClose, units, onImportComplete }: 
   const downloadTemplate = () => {
     const template = [
       ["Descrição", "Unidade Uso", "Fator", "Unidade Compra", "Custo", "É Produto"],
-      ["Arroz Branco", "g", "0.001", "kg", "5,99", "false"],
-      ["Feijão Preto", "g", "0.001", "kg", "8,50", "false"],
-      ["Azeite de Oliva", "ml", "0.001", "L", "15,90", "false"],
+      ["Arroz Branco", "g", "1000", "kg", "5,99", "false"],
+      ["Feijão Preto", "g", "1000", "kg", "8,50", "false"],
+      ["Azeite de Oliva", "ml", "1000", "L", "15,90", "false"],
     ];
 
     const csv = Papa.unparse(template, { delimiter: ";" });
