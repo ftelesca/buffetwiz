@@ -16,9 +16,9 @@ import { getDeletedMessage } from "@/lib/utils"
 import { getSupabaseErrorMessage } from "@/lib/errorHandler"
 
 interface Event {
-  id: number;
+  id: string;
   title: string;
-  customer: number;
+  customer: string;
   date: string | null;
   time: string | null;
   duration: number | null;
@@ -64,7 +64,7 @@ export default function Events() {
 
   // Delete event mutation
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       // First delete event_menu items in cascade
       const { error: menuError } = await supabase
         .from("event_menu")
@@ -129,7 +129,7 @@ export default function Events() {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteEvent = (id: number) => {
+  const handleDeleteEvent = (id: string) => {
     deleteMutation.mutate(id);
   };
 

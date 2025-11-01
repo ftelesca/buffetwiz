@@ -23,7 +23,8 @@ export interface ProductItem {
   product: string
   item: string
   qty: number
-  item_detail?: Item
+  recipe?: string
+  item_detail?: Item | null
 }
 export interface EventWithProductCost {
   id: string

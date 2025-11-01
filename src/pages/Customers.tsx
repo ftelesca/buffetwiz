@@ -119,7 +119,7 @@ const Customers = () => {
 
   // Delete customer mutation
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("customer")
         .delete()
@@ -195,7 +195,7 @@ const Customers = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     deleteMutation.mutate(id);
   };
 

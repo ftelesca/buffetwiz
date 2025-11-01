@@ -52,7 +52,7 @@ export default function ProductList({ products, selectedProduct, onSelectProduct
     }
   }
 
-  const deleteProduct = async (id: number) => {
+  const deleteProduct = async (id: string) => {
     const { error } = await supabase
       .from("recipe")
       .delete()

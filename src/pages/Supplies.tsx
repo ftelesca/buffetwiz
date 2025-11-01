@@ -23,15 +23,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ActionButtons } from "@/components/ui/action-buttons"
 
 interface Unit {
-  id: number
+  id: string
   description: string
 }
 
 interface Item {
-  id: number
+  id: string
   description: string
-  unit_purch: number
-  unit_use: number
+  unit_purch: string
+  unit_use: string
   cost: number
   factor?: number
   isproduct?: boolean
@@ -41,8 +41,8 @@ interface Item {
 
 interface ItemFormData {
   description?: string
-  unit_purch?: number
-  unit_use?: number
+  unit_purch?: string
+  unit_use?: string
   cost?: string // String for form input, number for database
   factor?: number
   isproduct?: boolean
@@ -63,8 +63,8 @@ export default function Insumos() {
 
   const [newItem, setNewItem] = useState<ItemFormData>({
     description: "",
-    unit_purch: 0,
-    unit_use: 0,
+    unit_purch: "",
+    unit_use: "",
     cost: "",
     factor: 1,
     isproduct: false
@@ -96,7 +96,7 @@ export default function Insumos() {
       const unitsMap = (unitsData || []).reduce((acc, unit) => {
         acc[unit.id] = unit.description
         return acc
-      }, {} as Record<number, string>)
+      }, {} as Record<string, string>)
       
       const itemsWithUnits = (itemsData || []).map(item => ({
         id: item.id,
@@ -176,7 +176,7 @@ export default function Insumos() {
 
       setIsItemDialogOpen(false)
       setEditingItem(null)
-      setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1, isproduct: false })
+      setNewItem({ description: "", unit_purch: "", unit_use: "", cost: "", factor: 1, isproduct: false })
       fetchItems()
       
       // Invalidate event queries to refresh costs when items change
@@ -228,7 +228,7 @@ export default function Insumos() {
     }
   }
 
-  const handleDeleteItem = async (id: number) => {
+  const handleDeleteItem = async (id: string) => {
     try {
       const { error } = await supabase
         .from('item')
@@ -250,7 +250,7 @@ export default function Insumos() {
     }
   }
 
-  const handleDeleteUnit = async (id: number) => {
+  const handleDeleteUnit = async (id: string) => {
     try {
       const { error } = await supabase
         .from('unit')
@@ -296,7 +296,7 @@ export default function Insumos() {
               <DialogTrigger asChild>
                 <Button variant="premium" onClick={() => {
                   setEditingItem(null)
-                  setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1 })
+                  setNewItem({ description: "", unit_purch: "", unit_use: "", cost: "", factor: 1 })
                 }}>
                   <Plus className="h-4 w-4" />
                   Novo Insumo
@@ -459,15 +459,15 @@ export default function Insumos() {
               <div>
                 <Label htmlFor="item-unit-use">Unidade de Uso</Label>
                 <Select
-                  value={newItem.unit_use?.toString() || ''}
-                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_use: parseInt(value) }))}
+                  value={newItem.unit_use || ''}
+                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_use: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma unidade" />
                   </SelectTrigger>
                   <SelectContent>
                     {units.map((unit) => (
-                      <SelectItem key={unit.id} value={unit.id.toString()}>
+                      <SelectItem key={unit.id} value={unit.id}>
                         {unit.description}
                       </SelectItem>
                     ))}
@@ -488,15 +488,15 @@ export default function Insumos() {
               <div>
                 <Label htmlFor="item-unit-purch">Unidade de Compra</Label>
                 <Select
-                  value={newItem.unit_purch?.toString() || ''}
-                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_purch: parseInt(value) }))}
+                  value={newItem.unit_purch || ''}
+                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_purch: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma unidade" />
                   </SelectTrigger>
                   <SelectContent>
                     {units.map((unit) => (
-                      <SelectItem key={unit.id} value={unit.id.toString()}>
+                      <SelectItem key={unit.id} value={unit.id}>
                         {unit.description}
                       </SelectItem>
                     ))}
@@ -530,7 +530,7 @@ export default function Insumos() {
                 onCancel={() => {
                   setIsItemDialogOpen(false)
                   setEditingItem(null)
-                  setNewItem({ description: "", unit_purch: 0, unit_use: 0, cost: "", factor: 1, isproduct: false })
+                  setNewItem({ description: "", unit_purch: "", unit_use: "", cost: "", factor: 1, isproduct: false })
                 }}
               />
             </div>

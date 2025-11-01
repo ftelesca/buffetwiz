@@ -13,7 +13,7 @@ import Papa from "papaparse"
 import * as XLSX from "xlsx"
 
 interface Unit {
-  id: number
+  id: string
   description: string
 }
 
@@ -24,11 +24,11 @@ interface ParsedItem {
   cost: number
   factor: number
   isproduct: boolean
-  unit_purch?: number
-  unit_use?: number
+  unit_purch?: string
+  unit_use?: string
   errors: string[]
   rowIndex: number
-  existingId?: number
+  existingId?: string
   isUpdate?: boolean
 }
 

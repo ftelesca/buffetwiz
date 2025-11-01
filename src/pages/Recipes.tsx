@@ -78,7 +78,7 @@ export default function Recipes() {
     }
   }
 
-  const fetchProductItems = async (productId: number) => {
+  const fetchProductItems = async (productId: string) => {
     const { data, error } = await supabase
       .from("recipe_item")
       .select(`
@@ -90,7 +90,21 @@ export default function Recipes() {
     if (error) {
       toast({ title: "Erro", description: "Erro ao carregar insumos do produto", variant: "destructive" })
     } else {
-      setProductItems(data?.map(item => ({ ...item, product: productId })) || [])
+      // Type-safe filtering of valid items  
+      const validItems = (data || []).filter(item => {
+        if (!item.item_detail) return false;
+        if (typeof item.item_detail !== 'object') return false;
+        const detail: any = item.item_detail;
+        if ('error' in detail) return false;
+        return true;
+      });
+      const mappedItems = validItems.map(item => ({ 
+        ...item, 
+        product: productId, 
+        recipe: productId,
+        item_detail: item.item_detail!
+      }));
+      setProductItems(mappedItems as unknown as ProductItem[])
     }
   }
 
@@ -98,7 +112,7 @@ export default function Recipes() {
     setSelectedProduct(product)
   }
 
-  const handleProductsChange = (newProductId?: number) => {
+  const handleProductsChange = (newProductId?: string) => {
     fetchProducts().then(() => {
       if (newProductId) {
         // Find and select the newly created product

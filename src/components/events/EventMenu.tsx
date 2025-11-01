@@ -48,6 +48,20 @@ interface Product {
   description: string;
 }
 
+interface ProductItem {
+  recipe: string;
+  item: string;
+  qty: number;
+  item_detail: {
+    id: string;
+    description: string;
+    unit_use: string;
+    unit_purch: string;
+    cost: number;
+    factor: number;
+  } | null;
+}
+
 export const EventMenu = ({ 
   eventId, 
   eventTitle, 
@@ -154,7 +168,16 @@ export const EventMenu = ({
         .eq("recipe", selectedProductForItems.product.id);
       
       if (error) throw error;
-      return data;
+      
+      // Filter and type-cast to ProductItem[]
+      const filtered = (data || []).filter(item => {
+        if (!item.item_detail) return false;
+        if (typeof item.item_detail !== 'object') return false;
+        const detail: any = item.item_detail;
+        if ('error' in detail) return false;
+        return true;
+      });
+      return filtered as unknown as ProductItem[];
     },
     enabled: !!selectedProductForItems
   });
@@ -533,7 +556,7 @@ export const EventMenu = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {productItems
+                      {(productItems || [])
                         .sort((a, b) => {
                           const itemA = a.item_detail?.description || '';
                           const itemB = b.item_detail?.description || '';
@@ -541,15 +564,17 @@ export const EventMenu = ({
                         })
                         .map((productItem) => {
                           const item = productItem.item_detail;
-                          const unitDescription = item?.unit_use ? getUnitDescription(item.unit_use) : item?.unit_purch ? getUnitDescription(item.unit_purch) : "";
-                          const unitCost = item?.cost || 0;
-                          const factor = item?.factor || 1;
+                          if (!item) return null;
+                          
+                          const unitDescription = item.unit_use ? getUnitDescription(item.unit_use) : item.unit_purch ? getUnitDescription(item.unit_purch) : "";
+                          const unitCost = item.cost || 0;
+                          const factor = item.factor || 1;
                           const adjustedUnitCost = unitCost / factor;
                           const totalCost = adjustedUnitCost * productItem.qty;
                           
                           return (
                             <TableRow key={`${productItem.recipe}-${productItem.item}`}>
-                              <TableCell className="font-medium">{item?.description}</TableCell>
+                              <TableCell className="font-medium">{item.description}</TableCell>
                               <TableCell className="text-right">{formatQuantity(productItem.qty)}</TableCell>
                               <TableCell className="text-center">
                                 <Badge variant="outline">{unitDescription}</Badge>

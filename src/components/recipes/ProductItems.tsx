@@ -29,7 +29,7 @@ export default function ProductItems({
   const {
     toast
   } = useToast();
-  const deleteProductItem = async (product: number, item: number) => {
+  const deleteProductItem = async (product: string, item: string) => {
     const {
       error
     } = await supabase.from("recipe_item").delete().eq("recipe", product).eq("item", item);
