@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.4"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           address: string | null
           email: string | null
-          id: number
+          id: string
           name: string
           phone: string | null
           user_id: string
@@ -26,7 +26,7 @@ export type Database = {
         Insert: {
           address?: string | null
           email?: string | null
-          id?: number
+          id?: string
           name: string
           phone?: string | null
           user_id: string
@@ -34,7 +34,7 @@ export type Database = {
         Update: {
           address?: string | null
           email?: string | null
-          id?: number
+          id?: string
           name?: string
           phone?: string | null
           user_id?: string
@@ -44,11 +44,11 @@ export type Database = {
       event: {
         Row: {
           cost: number | null
-          customer: number
+          customer: string
           date: string | null
           description: string | null
           duration: number | null
-          id: number
+          id: string
           location: string | null
           numguests: number | null
           price: number | null
@@ -60,11 +60,11 @@ export type Database = {
         }
         Insert: {
           cost?: number | null
-          customer: number
+          customer: string
           date?: string | null
           description?: string | null
           duration?: number | null
-          id?: number
+          id?: string
           location?: string | null
           numguests?: number | null
           price?: number | null
@@ -76,11 +76,11 @@ export type Database = {
         }
         Update: {
           cost?: number | null
-          customer?: number
+          customer?: string
           date?: string | null
           description?: string | null
           duration?: number | null
-          id?: number
+          id?: string
           location?: string | null
           numguests?: number | null
           price?: number | null
@@ -102,78 +102,66 @@ export type Database = {
       }
       event_menu: {
         Row: {
-          event: number
+          event: string
+          produced: boolean | null
           qty: number | null
-          recipe: number
+          recipe: string
         }
         Insert: {
-          event: number
+          event: string
+          produced?: boolean | null
           qty?: number | null
-          recipe: number
+          recipe: string
         }
         Update: {
-          event?: number
+          event?: string
+          produced?: boolean | null
           qty?: number | null
-          recipe?: number
+          recipe?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "menu_event_fkey"
-            columns: ["event"]
-            isOneToOne: false
-            referencedRelation: "event"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "menu_recipe_fkey"
-            columns: ["recipe"]
-            isOneToOne: false
-            referencedRelation: "recipe"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       item: {
         Row: {
           cost: number | null
           description: string
           factor: number | null
-          id: number
+          id: string
           isproduct: boolean
-          unit_purch: number
-          unit_use: number
+          unit_purch: string | null
+          unit_use: string | null
           user_id: string
         }
         Insert: {
           cost?: number | null
           description: string
           factor?: number | null
-          id?: number
+          id?: string
           isproduct?: boolean
-          unit_purch: number
-          unit_use: number
+          unit_purch?: string | null
+          unit_use?: string | null
           user_id: string
         }
         Update: {
           cost?: number | null
           description?: string
           factor?: number | null
-          id?: number
+          id?: string
           isproduct?: boolean
-          unit_purch?: number
-          unit_use?: number
+          unit_purch?: string | null
+          unit_use?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "item_unit_purch_fkey"
+            foreignKeyName: "item_unit_purch_uuid_fkey"
             columns: ["unit_purch"]
             isOneToOne: false
             referencedRelation: "unit"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "item_unit_use_fkey"
+            foreignKeyName: "item_unit_use_uuid_fkey"
             columns: ["unit_use"]
             isOneToOne: false
             referencedRelation: "unit"
@@ -212,70 +200,55 @@ export type Database = {
         Row: {
           description: string
           efficiency: number | null
-          id: number
+          id: string
           user_id: string
         }
         Insert: {
           description: string
           efficiency?: number | null
-          id?: number
+          id?: string
           user_id: string
         }
         Update: {
           description?: string
           efficiency?: number | null
-          id?: number
+          id?: string
           user_id?: string
         }
         Relationships: []
       }
       recipe_item: {
         Row: {
-          item: number
+          item: string
           qty: number | null
-          recipe: number
+          recipe: string
         }
         Insert: {
-          item: number
+          item: string
           qty?: number | null
-          recipe: number
+          recipe: string
         }
         Update: {
-          item?: number
+          item?: string
           qty?: number | null
-          recipe?: number
+          recipe?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "recipe_item_item_fkey"
-            columns: ["item"]
-            isOneToOne: false
-            referencedRelation: "item"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "recipe_item_recipe_fkey"
-            columns: ["recipe"]
-            isOneToOne: false
-            referencedRelation: "recipe"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       unit: {
         Row: {
           description: string
-          id: number
+          id: string
           user_id: string
         }
         Insert: {
           description: string
-          id?: number
+          id?: string
           user_id: string
         }
         Update: {
           description?: string
-          id?: number
+          id?: string
           user_id?: string
         }
         Relationships: []
@@ -371,22 +344,46 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      calculate_event_cost: {
-        Args: { event_id_param: number }
-        Returns: number
-      }
-      calculate_recipe_base_cost: {
-        Args: { recipe_id_param: number }
-        Returns: number
-      }
-      calculate_recipe_unit_cost: {
-        Args: { recipe_id_param: number }
-        Returns: number
-      }
-      cleanup_expired_wizard_cache: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      calculate_event_cost:
+        | {
+            Args: { event_id_param: number }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.calculate_event_cost(event_id_param => int8), public.calculate_event_cost(event_id_param => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { event_id_param: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.calculate_event_cost(event_id_param => int8), public.calculate_event_cost(event_id_param => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+      calculate_recipe_base_cost:
+        | {
+            Args: { recipe_id_param: number }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.calculate_recipe_base_cost(recipe_id_param => int8), public.calculate_recipe_base_cost(recipe_id_param => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { recipe_id_param: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.calculate_recipe_base_cost(recipe_id_param => int8), public.calculate_recipe_base_cost(recipe_id_param => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+      calculate_recipe_unit_cost:
+        | {
+            Args: { recipe_id_param: number }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.calculate_recipe_unit_cost(recipe_id_param => int8), public.calculate_recipe_unit_cost(recipe_id_param => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { recipe_id_param: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.calculate_recipe_unit_cost(recipe_id_param => int8), public.calculate_recipe_unit_cost(recipe_id_param => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+      cleanup_expired_wizard_cache: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
