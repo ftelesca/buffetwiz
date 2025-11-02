@@ -31,10 +31,34 @@ BuffetWiz is a React-based catering management system built with:
 - State management via React Context (Auth, Theme)
 
 ### Core Data Models
-- Events (events, event_menu)
-- Recipes (recipes, recipe_items) 
-- Supplies/Items (items, units)
-- Customers (customers)
+
+#### Customer Management
+- `customer` - Customer profiles (name, email, phone, address)
+- `profiles` - User profiles linked to Supabase Auth
+
+#### Event Management
+- `event` - Event details (title, date, location, cost, price)
+- `event_menu` - Links recipes to events with quantities
+  - References: event ↔ recipe
+
+#### Recipe/Product Management
+- `recipe` - Recipe definitions with efficiency factors
+- `recipe_item` - Recipe ingredients with quantities
+  - References: recipe ↔ item
+- `item` - Raw materials and finished products
+  - References: unit_purch, unit_use → unit
+- `unit` - Measurement units for items
+
+#### AI Chat System
+- `wizard_chats` - Chat sessions
+- `wizard_messages` - Individual chat messages
+- `wizard_cache` - Response caching system
+
+### Database Functions
+- `calculate_event_cost` - Computes total event cost
+- `calculate_recipe_base_cost` - Calculates recipe raw cost
+- `calculate_recipe_unit_cost` - Calculates per-unit recipe cost
+- `cleanup_expired_wizard_cache` - Cache maintenance
 
 ## Development Workflow
 
