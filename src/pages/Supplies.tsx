@@ -1,65 +1,88 @@
-import { useState, useEffect } from "react"
-import { Plus, Search, Edit, Trash2, Upload } from "lucide-react"
-import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { MainLayout } from "@/components/layout/MainLayout"
-import { PageHeader } from "@/components/ui/page-header"
-import { supabase } from "@/integrations/supabase/client"
-import { useToast } from "@/hooks/use-toast"
-import { getSupabaseErrorMessage } from "@/lib/errorHandler"
-import { useAuth } from "@/contexts/AuthContext"
-import { useQueryClient } from "@tanstack/react-query"
-import { formatCurrencyWithCents, formatCurrencyInput, parseCurrency, getCountText, getDeletedMessage } from "@/lib/utils"
-import { SpreadsheetImport } from "@/components/supplies/SpreadsheetImport"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { ActionButtons } from "@/components/ui/action-buttons"
+import { useState, useEffect } from "react";
+import { Plus, Search, Edit, Trash2, Upload } from "lucide-react";
+import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { PageHeader } from "@/components/ui/page-header";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { getSupabaseErrorMessage } from "@/lib/errorHandler";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  formatCurrencyWithCents,
+  formatCurrencyInput,
+  parseCurrency,
+  getCountText,
+  getDeletedMessage,
+} from "@/lib/utils";
+import { SpreadsheetImport } from "@/components/supplies/SpreadsheetImport";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { ActionButtons } from "@/components/ui/action-buttons";
 
 interface Unit {
-  id: string
-  description: string
+  id: string;
+  description: string;
 }
 
 interface Item {
-  id: string
-  description: string
-  unit_purch: string
-  unit_use: string
-  cost: number
-  factor?: number
-  isproduct?: boolean
-  unit_purch_desc?: string
-  unit_use_desc?: string
+  id: string;
+  description: string;
+  unit_purch: string;
+  unit_use: string;
+  cost: number;
+  factor?: number;
+  isproduct?: boolean;
+  unit_purch_desc?: string;
+  unit_use_desc?: string;
 }
 
 interface ItemFormData {
-  description?: string
-  unit_purch?: string
-  unit_use?: string
-  cost?: string // String for form input, number for database
-  factor?: number
-  isproduct?: boolean
+  description?: string;
+  unit_purch?: string;
+  unit_use?: string;
+  cost?: string; // String for form input, number for database
+  factor?: number;
+  isproduct?: boolean;
 }
 
 export default function Insumos() {
   const { user } = useAuth();
-  const queryClient = useQueryClient()
-  const [items, setItems] = useState<Item[]>([])
-  const [units, setUnits] = useState<Unit[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [editingItem, setEditingItem] = useState<Item | null>(null)
-  const [editingUnit, setEditingUnit] = useState<Unit | null>(null)
-  const [isItemDialogOpen, setIsItemDialogOpen] = useState(false)
-  const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false)
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
-  const { toast } = useToast()
+  const queryClient = useQueryClient();
+  const [items, setItems] = useState<Item[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
+  const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+  const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const [newItem, setNewItem] = useState<ItemFormData>({
     description: "",
@@ -67,38 +90,36 @@ export default function Insumos() {
     unit_use: "",
     cost: "",
     factor: 1,
-    isproduct: false
-  })
+    isproduct: false,
+  });
 
   const [newUnit, setNewUnit] = useState<Partial<Unit>>({
-    description: ""
-  })
+    description: "",
+  });
 
   useEffect(() => {
-    fetchItems()
-    fetchUnits()
-  }, [])
+    fetchItems();
+    fetchUnits();
+  }, []);
 
   const fetchItems = async () => {
     try {
-      const { data: itemsData, error } = await supabase
-        .from('item')
-        .select('*')
-        .order('description')
+      const { data: itemsData, error } = await supabase.from("item").select("*").order("description");
 
-      if (error) throw error
+      if (error) throw error;
 
       // Fetch units separately to get descriptions
-      const { data: unitsData } = await supabase
-        .from('unit')
-        .select('*')
+      const { data: unitsData } = await supabase.from("unit").select("*");
 
-      const unitsMap = (unitsData || []).reduce((acc, unit) => {
-        acc[unit.id] = unit.description
-        return acc
-      }, {} as Record<string, string>)
-      
-      const itemsWithUnits = (itemsData || []).map(item => ({
+      const unitsMap = (unitsData || []).reduce(
+        (acc, unit) => {
+          acc[unit.id] = unit.description;
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
+
+      const itemsWithUnits = (itemsData || []).map((item) => ({
         id: item.id,
         description: item.description,
         unit_purch: item.unit_purch,
@@ -107,197 +128,181 @@ export default function Insumos() {
         factor: item.factor || 1,
         isproduct: item.isproduct || false,
         unit_purch_desc: unitsMap[item.unit_purch],
-        unit_use_desc: item.unit_use ? unitsMap[item.unit_use] : undefined
-      }))
-      
-      setItems(itemsWithUnits)
+        unit_use_desc: item.unit_use ? unitsMap[item.unit_use] : undefined,
+      }));
+
+      setItems(itemsWithUnits);
     } catch (error) {
-      console.error('Erro ao carregar insumos:', error)
+      console.error("Erro ao carregar insumos:", error);
       toast({
         title: "Erro",
         description: "Erro ao carregar insumos",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const fetchUnits = async () => {
     try {
-      const { data, error } = await supabase
-        .from('unit')
-        .select('*')
-        .order('description')
+      const { data, error } = await supabase.from("unit").select("*").order("description");
 
-      if (error) throw error
-      setUnits(data || [])
+      if (error) throw error;
+      setUnits(data || []);
     } catch (error) {
-      console.error('Erro ao carregar unidades:', error)
+      console.error("Erro ao carregar unidades:", error);
       toast({
         title: "Erro",
         description: "Erro ao carregar unidades",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const handleSaveItem = async () => {
     try {
       if (editingItem) {
         const { error } = await supabase
-          .from('item')
+          .from("item")
           .update({
             description: newItem.description,
             unit_purch: newItem.unit_purch,
             unit_use: newItem.unit_use,
-            cost: typeof newItem.cost === 'string' ? parseCurrency(newItem.cost) : newItem.cost,
+            cost: typeof newItem.cost === "string" ? parseCurrency(newItem.cost) : newItem.cost,
             factor: newItem.factor || 1,
-            isproduct: newItem.isproduct ?? false
+            isproduct: newItem.isproduct ?? false,
           })
-          .eq('id', editingItem.id)
+          .eq("id", editingItem.id);
 
-        if (error) throw error
-        toast({ title: "Insumo atualizado com sucesso" })
+        if (error) throw error;
+        toast({ title: "Insumo atualizado com sucesso" });
       } else {
-        const { error } = await supabase
-          .from('item')
-          .insert([{
+        const { error } = await supabase.from("item").insert([
+          {
             description: newItem.description,
             unit_purch: newItem.unit_purch,
             unit_use: newItem.unit_use,
-            cost: typeof newItem.cost === 'string' ? parseCurrency(newItem.cost) : newItem.cost,
+            cost: typeof newItem.cost === "string" ? parseCurrency(newItem.cost) : newItem.cost,
             factor: newItem.factor || 1,
             isproduct: newItem.isproduct ?? false,
-            user_id: user?.id
-          }])
+            user_id: user?.id,
+          },
+        ]);
 
-        if (error) throw error
-        toast({ title: "Sucesso", description: "Insumo criado com sucesso!" })
+        if (error) throw error;
+        toast({ title: "Sucesso", description: "Insumo criado com sucesso!" });
       }
 
-      setIsItemDialogOpen(false)
-      setEditingItem(null)
-      setNewItem({ description: "", unit_purch: "", unit_use: "", cost: "", factor: 1, isproduct: false })
-      fetchItems()
-      
+      setIsItemDialogOpen(false);
+      setEditingItem(null);
+      setNewItem({ description: "", unit_purch: "", unit_use: "", cost: "", factor: 1, isproduct: false });
+      fetchItems();
+
       // Invalidate event queries to refresh costs when items change
-      queryClient.invalidateQueries({ queryKey: ["events"] })
-      queryClient.invalidateQueries({ queryKey: ["dashboard-events"] })
-      queryClient.invalidateQueries({ queryKey: ["event-menu"] })
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-events"] });
+      queryClient.invalidateQueries({ queryKey: ["event-menu"] });
     } catch (error) {
-      console.error('Erro ao salvar insumo:', error)
+      console.error("Erro ao salvar insumo:", error);
       toast({
         title: "Erro",
         description: "Erro ao salvar insumo",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const handleSaveUnit = async () => {
     try {
       if (editingUnit) {
         const { error } = await supabase
-          .from('unit')
+          .from("unit")
           .update({ description: newUnit.description })
-          .eq('id', editingUnit.id)
+          .eq("id", editingUnit.id);
 
-        if (error) throw error
-        toast({ title: "Sucesso", description: "Unidade atualizada com sucesso!" })
+        if (error) throw error;
+        toast({ title: "Sucesso", description: "Unidade atualizada com sucesso!" });
       } else {
-        const { error } = await supabase
-          .from('unit')
-          .insert([{ description: newUnit.description, user_id: user?.id }])
+        const { error } = await supabase.from("unit").insert([{ description: newUnit.description, user_id: user?.id }]);
 
-        if (error) throw error
-        toast({ title: "Sucesso", description: "Unidade criada com sucesso!" })
+        if (error) throw error;
+        toast({ title: "Sucesso", description: "Unidade criada com sucesso!" });
       }
 
-      setIsUnitDialogOpen(false)
-      setEditingUnit(null)
-      setNewUnit({ description: "" })
-      fetchUnits()
-      fetchItems() // Atualizar insumos para mostrar novas unidades
+      setIsUnitDialogOpen(false);
+      setEditingUnit(null);
+      setNewUnit({ description: "" });
+      fetchUnits();
+      fetchItems(); // Atualizar insumos para mostrar novas unidades
     } catch (error) {
-      console.error('Erro ao salvar unidade:', error)
+      console.error("Erro ao salvar unidade:", error);
       const friendlyError = getSupabaseErrorMessage(error);
       toast({
         title: friendlyError.title,
         description: friendlyError.description,
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const handleDeleteItem = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('item')
-        .delete()
-        .eq('id', id)
+      const { error } = await supabase.from("item").delete().eq("id", id);
 
-      if (error) throw error
-      
-      toast({ title: getDeletedMessage("insumo", "m") })
-      fetchItems()
+      if (error) throw error;
+
+      toast({ title: getDeletedMessage("insumo", "m") });
+      fetchItems();
     } catch (error) {
-      console.error('Erro ao excluir insumo:', error)
+      console.error("Erro ao excluir insumo:", error);
       const friendlyError = getSupabaseErrorMessage(error);
       toast({
         title: friendlyError.title,
         description: friendlyError.description,
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const handleDeleteUnit = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('unit')
-        .delete()
-        .eq('id', id)
+      const { error } = await supabase.from("unit").delete().eq("id", id);
 
-      if (error) throw error
-      
-      toast({ title: getDeletedMessage("unidade", "f") })
-      fetchUnits()
-      fetchItems()
+      if (error) throw error;
+
+      toast({ title: getDeletedMessage("unidade", "f") });
+      fetchUnits();
+      fetchItems();
     } catch (error) {
-      console.error('Erro ao excluir unidade:', error)
+      console.error("Erro ao excluir unidade:", error);
       toast({
         title: "Erro",
         description: "Erro ao excluir unidade",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
-  }
+  };
 
-  const filteredItems = items.filter(item =>
-    item.description.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredItems = items.filter((item) => item.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <MainLayout>
       <div className="space-y-6">
         {/* Header */}
-        <PageHeader
-          title="Insumos"
-          subtitle="Gerencie insumos e unidades"
-        >
+        <PageHeader title="Insumos" subtitle="Gerencie insumos e unidades">
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsImportDialogOpen(true)}
-            >
+            <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
               <Upload className="h-4 w-4" />
               Importar Planilha
             </Button>
             <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="premium" onClick={() => {
-                  setEditingItem(null)
-                  setNewItem({ description: "", unit_purch: "", unit_use: "", cost: "", factor: 1 })
-                }}>
+                <Button
+                  variant="premium"
+                  onClick={() => {
+                    setEditingItem(null);
+                    setNewItem({ description: "", unit_purch: "", unit_use: "", cost: "", factor: 1 });
+                  }}
+                >
                   <Plus className="h-4 w-4" />
                   Novo Insumo
                 </Button>
@@ -327,15 +332,21 @@ export default function Insumos() {
                 <div>
                   <CardTitle>Insumos</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {getCountText(items.length, filteredItems.length, !!searchTerm, "insumo", "insumos", "insumo cadastrado", "insumos cadastrados")}
+                    {getCountText(
+                      items.length,
+                      filteredItems.length,
+                      !!searchTerm,
+                      "insumo",
+                      "insumos",
+                      "insumo cadastrado",
+                      "insumos cadastrados",
+                    )}
                   </p>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 {/* Table container: 100vh minus header (64px) + padding (64px) + page title/search (120px) + card header (88px) + extra padding = 360px */}
-                <div 
-                  className="h-[calc(100vh-360px)] scrollbar-thin overflow-y-scroll"
-                >
+                <div className="h-[calc(100vh-360px)] scrollbar-thin overflow-y-scroll">
                   <Table>
                     <TableHeader className="sticky top-0 bg-background z-10 border-b">
                       <TableRow>
@@ -364,18 +375,18 @@ export default function Insumos() {
                             <input type="checkbox" checked={item.isproduct || false} disabled className="rounded" />
                           </TableCell>
                           <TableCell>
-                             <ActionButtons
+                            <ActionButtons
                               onEdit={() => {
-                                setEditingItem(item)
+                                setEditingItem(item);
                                 setNewItem({
                                   description: item.description,
                                   unit_purch: item.unit_purch,
                                   unit_use: item.unit_use,
                                   cost: formatCurrencyWithCents(item.cost || 0),
                                   factor: item.factor,
-                                  isproduct: item.isproduct
-                                })
-                                setIsItemDialogOpen(true)
+                                  isproduct: item.isproduct,
+                                });
+                                setIsItemDialogOpen(true);
                               }}
                               onDelete={() => handleDeleteItem(item.id)}
                               itemName={item.description}
@@ -390,7 +401,7 @@ export default function Insumos() {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Units */}
           <div>
             <Card>
@@ -401,9 +412,9 @@ export default function Insumos() {
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      setEditingUnit(null)
-                      setNewUnit({ description: "" })
-                      setIsUnitDialogOpen(true)
+                      setEditingUnit(null);
+                      setNewUnit({ description: "" });
+                      setIsUnitDialogOpen(true);
                     }}
                   >
                     <Plus className="h-3 w-3" />
@@ -419,9 +430,9 @@ export default function Insumos() {
                     <div className="flex gap-1">
                       <ActionButtons
                         onEdit={() => {
-                          setEditingUnit(unit)
-                          setNewUnit(unit)
-                          setIsUnitDialogOpen(true)
+                          setEditingUnit(unit);
+                          setNewUnit(unit);
+                          setIsUnitDialogOpen(true);
                         }}
                         onDelete={() => handleDeleteUnit(unit.id)}
                         itemName={unit.description}
@@ -439,11 +450,9 @@ export default function Insumos() {
         <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {editingItem ? 'Editar Insumo' : 'Novo Insumo'}
-              </DialogTitle>
+              <DialogTitle>{editingItem ? "Editar Insumo" : "Novo Insumo"}</DialogTitle>
               <DialogDescription>
-                {editingItem ? 'Edite as informações do insumo.' : 'Adicione um novo insumo ao sistema.'}
+                {editingItem ? "Edite as informações do insumo." : "Adicione um novo insumo ao sistema."}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -451,16 +460,16 @@ export default function Insumos() {
                 <Label htmlFor="item-description">Descrição</Label>
                 <Input
                   id="item-description"
-                  value={newItem.description || ''}
-                  onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
+                  value={newItem.description || ""}
+                  onChange={(e) => setNewItem((prev) => ({ ...prev, description: e.target.value }))}
                   placeholder="Digite a descrição do insumo"
                 />
               </div>
               <div>
                 <Label htmlFor="item-unit-use">Unidade de Uso</Label>
                 <Select
-                  value={newItem.unit_use || ''}
-                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_use: value }))}
+                  value={newItem.unit_use || null}
+                  onValueChange={(value) => setNewItem((prev) => ({ ...prev, unit_use: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma unidade" />
@@ -480,16 +489,16 @@ export default function Insumos() {
                   id="item-factor"
                   type="number"
                   step="0.001"
-                  value={newItem.factor || ''}
-                  onChange={(e) => setNewItem(prev => ({ ...prev, factor: parseFloat(e.target.value) }))}
+                  value={newItem.factor || ""}
+                  onChange={(e) => setNewItem((prev) => ({ ...prev, factor: parseFloat(e.target.value) }))}
                   placeholder="1.0"
                 />
               </div>
               <div>
                 <Label htmlFor="item-unit-purch">Unidade de Compra</Label>
                 <Select
-                  value={newItem.unit_purch || ''}
-                  onValueChange={(value) => setNewItem(prev => ({ ...prev, unit_purch: value }))}
+                  value={newItem.unit_purch || null}
+                  onValueChange={(value) => setNewItem((prev) => ({ ...prev, unit_purch: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma unidade" />
@@ -507,10 +516,10 @@ export default function Insumos() {
                 <Label htmlFor="item-cost">Custo</Label>
                 <Input
                   id="item-cost"
-                  value={newItem.cost?.toString() || ''}
+                  value={newItem.cost?.toString() || ""}
                   onChange={(e) => {
                     const formattedValue = formatCurrencyInput(e.target.value);
-                    setNewItem(prev => ({ ...prev, cost: formattedValue as any }));
+                    setNewItem((prev) => ({ ...prev, cost: formattedValue as any }));
                   }}
                   placeholder="R$ 0,00"
                 />
@@ -521,16 +530,16 @@ export default function Insumos() {
                   type="checkbox"
                   id="item-isproduct"
                   checked={newItem.isproduct || false}
-                  onChange={(e) => setNewItem(prev => ({ ...prev, isproduct: e.target.checked }))}
+                  onChange={(e) => setNewItem((prev) => ({ ...prev, isproduct: e.target.checked }))}
                   className="rounded"
                 />
               </div>
               <SaveCancelButtons
                 onSave={handleSaveItem}
                 onCancel={() => {
-                  setIsItemDialogOpen(false)
-                  setEditingItem(null)
-                  setNewItem({ description: "", unit_purch: "", unit_use: "", cost: "", factor: 1, isproduct: false })
+                  setIsItemDialogOpen(false);
+                  setEditingItem(null);
+                  setNewItem({ description: "", unit_purch: "", unit_use: "", cost: "", factor: 1, isproduct: false });
                 }}
               />
             </div>
@@ -541,11 +550,9 @@ export default function Insumos() {
         <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {editingUnit ? 'Editar Unidade' : 'Nova Unidade'}
-              </DialogTitle>
+              <DialogTitle>{editingUnit ? "Editar Unidade" : "Nova Unidade"}</DialogTitle>
               <DialogDescription>
-                {editingUnit ? 'Edite a descrição da unidade.' : 'Adicione uma nova unidade de medida.'}
+                {editingUnit ? "Edite a descrição da unidade." : "Adicione uma nova unidade de medida."}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -553,17 +560,17 @@ export default function Insumos() {
                 <Label htmlFor="unit-description">Descrição</Label>
                 <Input
                   id="unit-description"
-                  value={newUnit.description || ''}
-                  onChange={(e) => setNewUnit(prev => ({ ...prev, description: e.target.value }))}
+                  value={newUnit.description || ""}
+                  onChange={(e) => setNewUnit((prev) => ({ ...prev, description: e.target.value }))}
                   placeholder="Ex: kg, litro, unidade"
                 />
               </div>
               <SaveCancelButtons
                 onSave={handleSaveUnit}
                 onCancel={() => {
-                  setIsUnitDialogOpen(false)
-                  setEditingUnit(null)
-                  setNewUnit({ description: "" })
+                  setIsUnitDialogOpen(false);
+                  setEditingUnit(null);
+                  setNewUnit({ description: "" });
                 }}
               />
             </div>
@@ -579,5 +586,5 @@ export default function Insumos() {
         />
       </div>
     </MainLayout>
-  )
+  );
 }
