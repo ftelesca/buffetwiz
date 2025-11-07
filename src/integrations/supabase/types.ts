@@ -200,14 +200,14 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "item_unit_purch_uuid_fkey";
+            foreignKeyName: "item_unit_purch_fkey";
             columns: ["unit_purch"];
             isOneToOne: false;
             referencedRelation: "unit";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "item_unit_use_uuid_fkey";
+            foreignKeyName: "item_unit_use_fkey";
             columns: ["unit_use"];
             isOneToOne: false;
             referencedRelation: "unit";
@@ -362,14 +362,14 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "item_unit_purch_uuid_fkey";
+            foreignKeyName: "item_unit_purch_fkey";
             columns: ["id"]; // reverse reference note
             isOneToOne: false;
             referencedRelation: "item";
             referencedColumns: ["unit_purch"];
           },
           {
-            foreignKeyName: "item_unit_use_uuid_fkey";
+            foreignKeyName: "item_unit_use_fkey";
             columns: ["id"]; // reverse reference note
             isOneToOne: false;
             referencedRelation: "item";
