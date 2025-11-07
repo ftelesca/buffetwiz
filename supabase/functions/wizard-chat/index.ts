@@ -102,7 +102,7 @@ serve(async (req) => {
         
         supabase.from('customer').select('*').eq('user_id', userId).limit(50),
         
-        supabase.from('unit').select('description').eq('user_id', userId).limit(100)
+        supabase.from('unit').select('description').limit(100)
       ]);
 
       if (eventsResponse.error) throw eventsResponse.error;
