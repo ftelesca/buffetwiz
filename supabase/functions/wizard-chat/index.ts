@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,13 +10,54 @@ const corsHeaders = {
 
 const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
 
+// Define request schema with strict validation
+const requestSchema = z.object({
+  message: z.string()
+    .trim()
+    .min(1, "Message cannot be empty")
+    .max(4000, "Message must not exceed 4000 characters"),
+  chatId: z.string().uuid("Invalid chat ID format").optional(),
+  model: z.enum([
+    "gpt-5-2025-08-07",
+    "gpt-5-mini-2025-08-07",
+    "gpt-5-nano-2025-08-07",
+    "gpt-4.1-2025-04-14",
+    "gpt-4.1-mini-2025-04-14",
+    "o3-2025-04-16",
+    "o4-mini-2025-04-16",
+    "gpt-4o",
+    "gpt-4o-mini"
+  ]).optional()
+});
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { message, chatId, model } = await req.json();
+    // Parse and validate request body
+    const body = await req.json();
+    
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid input",
+          details: validationResult.error.errors.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+
+    const { message, chatId, model } = validationResult.data;
 
     // Get authorization header
     const authorization = req.headers.get("authorization");
