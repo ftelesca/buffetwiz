@@ -134,6 +134,7 @@ export async function handleExportClick(payload: string): Promise<void> {
         const { data: units } = await supabase
           .from('unit')
           .select('description')
+          .eq('user_id', userId)
           .limit(100);
         exportData = (units || []).map((u: any) => ({ 'Unidade de Medida': u.description }));
       } else if (target === 'clientes') {
