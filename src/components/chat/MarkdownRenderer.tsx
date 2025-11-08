@@ -5,6 +5,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import { cn } from "@/lib/utils";
 import { Copy, Check, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -248,7 +249,37 @@ export function MarkdownRenderer({
 
 
   const remarkPlugins = [remarkGfm];
-  const rehypePlugins: any[] = [rehypeHighlight, rehypeRaw];
+  const rehypePlugins: any[] = [
+    rehypeHighlight, 
+    rehypeRaw,
+    // Sanitize HTML to prevent XSS attacks while allowing safe markdown features
+    [rehypeSanitize, {
+      // Allow safe HTML elements from markdown
+      tagNames: [
+        'a', 'abbr', 'b', 'blockquote', 'br', 'code', 'dd', 'del', 'div', 'dl', 'dt', 
+        'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'i', 'img', 'input', 'ins',
+        'kbd', 'li', 'ol', 'p', 'pre', 'q', 's', 'span', 'strong', 'sub', 'sup', 
+        'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'u', 'ul'
+      ],
+      attributes: {
+        // Allow safe attributes
+        '*': ['className', 'id', 'aria-*', 'data-*'],
+        'a': ['href', 'target', 'rel'],
+        'img': ['src', 'alt', 'title', 'width', 'height'],
+        'code': ['className'],
+        'input': ['type', 'disabled', 'checked'],
+        'td': ['align', 'colSpan', 'rowSpan'],
+        'th': ['align', 'colSpan', 'rowSpan', 'scope']
+      },
+      // Prevent javascript: and data: URLs except data:image
+      protocols: {
+        href: ['http', 'https', 'mailto', 'export'],
+        src: ['http', 'https', 'data']
+      },
+      // Strip all style attributes to prevent CSS injection
+      strip: ['style']
+    }]
+  ];
 
   if (enableMath) {
     remarkPlugins.push(remarkMath as any);
