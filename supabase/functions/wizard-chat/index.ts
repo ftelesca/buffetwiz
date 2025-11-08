@@ -30,6 +30,78 @@ const requestSchema = z.object({
   ]).optional()
 });
 
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
+const RATE_LIMIT_MAX_REQUESTS = 30; // 30 requests per minute
+
+// Check and enforce rate limiting
+async function checkRateLimit(userId: string, endpoint: string): Promise<{ allowed: boolean; retryAfter?: number }> {
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW_MS);
+
+  // Get current request count in the window
+  const { data: rateLimitRecord, error: fetchError } = await supabase
+    .from('api_rate_limits')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('endpoint', endpoint)
+    .gte('window_start', windowStart.toISOString())
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error('Rate limit check error:', fetchError);
+    // On error, allow the request but log it
+    return { allowed: true };
+  }
+
+  if (!rateLimitRecord) {
+    // First request in this window - create new record
+    const { error: insertError } = await supabase
+      .from('api_rate_limits')
+      .insert({
+        user_id: userId,
+        endpoint: endpoint,
+        request_count: 1,
+        window_start: now.toISOString()
+      });
+
+    if (insertError) {
+      console.error('Rate limit insert error:', insertError);
+    }
+    return { allowed: true };
+  }
+
+  // Check if limit exceeded
+  if (rateLimitRecord.request_count >= RATE_LIMIT_MAX_REQUESTS) {
+    const recordTime = new Date(rateLimitRecord.window_start);
+    const resetTime = new Date(recordTime.getTime() + RATE_LIMIT_WINDOW_MS);
+    const retryAfter = Math.ceil((resetTime.getTime() - now.getTime()) / 1000);
+    
+    console.log(`Rate limit exceeded for user ${userId} on ${endpoint}`);
+    return { allowed: false, retryAfter };
+  }
+
+  // Increment request count
+  const { error: updateError } = await supabase
+    .from('api_rate_limits')
+    .update({ request_count: rateLimitRecord.request_count + 1 })
+    .eq('id', rateLimitRecord.id);
+
+  if (updateError) {
+    console.error('Rate limit update error:', updateError);
+  }
+
+  return { allowed: true };
+}
+
+// Cleanup old rate limit entries periodically
+async function cleanupRateLimits() {
+  const { error } = await supabase.rpc('cleanup_old_rate_limits');
+  if (error) {
+    console.error('Rate limit cleanup error:', error);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -77,6 +149,32 @@ serve(async (req) => {
     }
 
     const userId = user.user.id;
+
+    // Check rate limit
+    const rateLimitCheck = await checkRateLimit(userId, 'wizard-chat');
+    if (!rateLimitCheck.allowed) {
+      console.log(`Rate limit exceeded for user ${userId}`);
+      return new Response(
+        JSON.stringify({ 
+          error: "Rate limit exceeded",
+          message: "Too many requests. Please try again later.",
+          retryAfter: rateLimitCheck.retryAfter
+        }),
+        { 
+          status: 429,
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "Retry-After": String(rateLimitCheck.retryAfter || 60)
+          } 
+        }
+      );
+    }
+
+    // Periodically cleanup old rate limit entries (1% chance per request)
+    if (Math.random() < 0.01) {
+      cleanupRateLimits().catch(err => console.error('Cleanup failed:', err));
+    }
 
     // Create query hash for cache
     const queryHash = await crypto.subtle.digest(
