@@ -24,40 +24,44 @@ export function LoginForm({ onSwitchToSignUp, onSwitchToForgot }: LoginFormProps
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      await signIn(email, password)
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo de volta!"
-      })
+      await signIn(email, password, rememberMe);
+      // On success, AuthContext navigates to /navegador
     } catch (error: any) {
-      toast({
-        title: "Erro no login",
-        description: error.message || "Credenciais inválidas",
-        variant: "destructive"
-      })
+      // Handle unconfirmed email
+      if (error.message.includes("Email not confirmed")) {
+        setShowResendVerification(true);
+        toast.error("Confirme seu email antes de fazer login");
+      }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true)
+	setIsLoadingGoogle(true);
+	
+	try {
+		await signInWithGoogle();  // From AuthContext
+	} catch (error: any) {
+		toast.error(error.message || "Erro ao fazer login com Google");
+	} finally {
+		setIsLoadingGoogle(false);
+	}
+  };
+
+  const handleResendVerification = async () => {
+    setIsLoadingResend(true);
     try {
-      await signInWithGoogle()
-      // Don't reset loading here - let the auth state change handle it
-    } catch (error: any) {
-      toast({
-        title: "Erro no login",
-        description: error.message || "Erro ao fazer login com Google",
-        variant: "destructive"
-      })
-      setIsGoogleLoading(false)
+      await resendVerificationEmail(email);
+      toast.success("Email de verificação reenviado!");
+    } finally {
+      setIsLoadingResend(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">

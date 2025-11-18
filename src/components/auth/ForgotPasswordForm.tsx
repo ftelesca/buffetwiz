@@ -11,30 +11,24 @@ interface ForgotPasswordFormProps {
 }
 
 export function ForgotPasswordForm({ onSwitchToLogin }: ForgotPasswordFormProps) {
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [emailSent, setEmailSent] = useState(false)
-  
-  const { resetPassword } = useAuth()
-  const { toast } = useToast()
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const { resetPassword } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      await resetPassword(email)
-      setEmailSent(true)
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao enviar email de recuperação",
-        variant: "destructive"
-      })
+      await resetPassword(email);
+      setEmailSent(true);
+    } catch (error) {
+      // Error handled by AuthContext
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (emailSent) {
     return (

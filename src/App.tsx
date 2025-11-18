@@ -2,14 +2,15 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ResetPasswordPage } from "@/components/auth/ResetPasswordPage";
 
 // Regular imports for immediate loading
 import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
 import Events from "./pages/Events";
 import Customers from "./pages/Customers";
 import Recipes from "./pages/Recipes";
@@ -17,6 +18,10 @@ import Supplies from "./pages/Supplies";
 import NotFound from "./pages/NotFound";
 import React, { useEffect } from "react";
 import { handleExportClick } from "@/lib/export-handler";
+
+// Auth components
+import LoginForm from "./components/auth/LoginForm";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +33,35 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  // Detect Supabase email link redirects and force password setup/reset flow
+  const params = new URLSearchParams(location.search);
+  const hasAccessToken = params.has("access_token");
+  const linkType = params.get("type");
+  const mustReset = hasAccessToken && (linkType === "signup" || linkType === "recovery" || linkType === "invite");
+
+  if (mustReset) {
+    return <Navigate to={`/reset-password${location.search}`} replace />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
 
 const App = () => {
   useEffect(() => {
@@ -80,10 +114,50 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route path="/" element={
+                {/* Public auth routes - redirect to app if already logged in */}
+                <Route 
+                  path="/" 
+                  element={
+                    <AuthenticatedRoute>
+                      <LoginForm />
+                    </AuthenticatedRoute>
+                  } 
+                />
+                <Route 
+                  path="/auth" 
+                  element={
+                    <AuthenticatedRoute>
+                      <LoginForm />
+                    </AuthenticatedRoute>
+                  } 
+                />
+                
+                {/* Password reset - accessible to all */}
+                <Route 
+                  path="/reset-password" 
+                  element={<ResetPasswordPage />} 
+                />
+                
+                {/* OAuth callback routes */}
+                <Route 
+                  path="/auth/callback" 
+                  element={
+                    /* <AuthCallback /> - You need to create this page */
+                    <div>Auth Callback - Create at src/pages/AuthCallback.tsx</div>
+                  } 
+                />
+                <Route 
+                  path="/auth/google/callback" 
+                  element={
+                    /* <AuthCallback /> - Same component handles Google callback */
+                    <div>Auth Callback - Create at src/pages/AuthCallback.tsx</div>
+                  } 
+                />
+
+                {/* Protected routes - require authentication */}
+                <Route path="/dashboard" element={
                   <ProtectedRoute>
-                    <Index />
+                    <Dashboard />
                   </ProtectedRoute>
                 } />
                 <Route path="/eventos" element={
@@ -106,7 +180,8 @@ const App = () => {
                     <Supplies />
                   </ProtectedRoute>
                 } />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                
+                {/* Catch-all 404 */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
