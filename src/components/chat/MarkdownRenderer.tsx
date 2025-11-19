@@ -19,7 +19,6 @@ import "katex/dist/katex.min.css";
 // Função de exportação integrada (caso o arquivo externo não esteja disponível)
 async function exportToFile(payload: string) {
   try {
-    
     // Decodifica o payload se estiver em URL encoding
     let decodedPayload;
     try {
@@ -28,69 +27,64 @@ async function exportToFile(payload: string) {
       // Se falhar a decodificação, usar o payload original
       decodedPayload = payload;
     }
-    
+
     const exportData = JSON.parse(decodedPayload);
-    
-    const { filename, content, type = 'text/plain' } = exportData;
-    
+
+    const { filename, content, type = "text/plain" } = exportData;
+
     if (!filename || content === undefined) {
-      throw new Error('Dados de exportação inválidos: filename e content são obrigatórios');
+      throw new Error("Dados de exportação inválidos: filename e content são obrigatórios");
     }
 
     // Cria o blob com base no tipo
     let blob: Blob;
     let finalContent: string;
-    
-    if (typeof content === 'object') {
+
+    if (typeof content === "object") {
       finalContent = JSON.stringify(content, null, 2);
-      blob = new Blob([finalContent], { type: 'application/json' });
-    } else if (type === 'application/json') {
-      finalContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
-      blob = new Blob([finalContent], { type: 'application/json' });
-    } else if (type === 'text/csv') {
+      blob = new Blob([finalContent], { type: "application/json" });
+    } else if (type === "application/json") {
+      finalContent = typeof content === "string" ? content : JSON.stringify(content, null, 2);
+      blob = new Blob([finalContent], { type: "application/json" });
+    } else if (type === "text/csv") {
       finalContent = String(content);
-      blob = new Blob([finalContent], { type: 'text/csv;charset=utf-8' });
-    } else if (type === 'text/html') {
+      blob = new Blob([finalContent], { type: "text/csv;charset=utf-8" });
+    } else if (type === "text/html") {
       finalContent = String(content);
-      blob = new Blob([finalContent], { type: 'text/html;charset=utf-8' });
+      blob = new Blob([finalContent], { type: "text/html;charset=utf-8" });
     } else {
       // Padrão para texto simples
       finalContent = String(content);
-      blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
+      blob = new Blob([finalContent], { type: "text/plain;charset=utf-8" });
     }
-
-    
 
     // Método mais confiável para forçar download
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    
+    const link = document.createElement("a");
+
     // Configurar o link
     link.href = url;
     link.download = filename;
-    link.style.display = 'none';
-    link.style.position = 'absolute';
-    link.style.left = '-9999px';
-    
+    link.style.display = "none";
+    link.style.position = "absolute";
+    link.style.left = "-9999px";
+
     // Adicionar ao DOM
     document.body.appendChild(link);
-    
-    
-    
+
     // Forçar o clique
     link.click();
-    
+
     // Cleanup
     setTimeout(() => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     }, 100);
-    
+
     return true;
-    
   } catch (error) {
-    console.error('Erro ao exportar arquivo:', error);
-    throw new Error(`Falha ao exportar arquivo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    console.error("Erro ao exportar arquivo:", error);
+    throw new Error(`Falha ao exportar arquivo: ${error instanceof Error ? error.message : "Erro desconhecido"}`);
   }
 }
 
@@ -99,16 +93,16 @@ async function exportToFile(payload: string) {
 
 // Process export links: robustly convert raw occurrences like "export:{...}" or "export:%7B...%7D" into markdown links, skipping code blocks
 function processExportLinks(md: string): string {
-  if (!md) return '';
+  if (!md) return "";
 
   const wrapPercentEncoded = (segment: string) =>
     segment.replace(/(?<!\])\bexport:%7B[^\s)]+%7D\b/gi, (match) => `[📥 Baixar arquivo](${match})`);
 
   const wrapRawJson = (segment: string) => {
-    let out = '';
+    let out = "";
     let i = 0;
     while (i < segment.length) {
-      const idx = segment.indexOf('export:', i);
+      const idx = segment.indexOf("export:", i);
       if (idx === -1) {
         out += segment.slice(i);
         break;
@@ -117,8 +111,8 @@ function processExportLinks(md: string): string {
       out += segment.slice(i, idx);
 
       // Avoid wrapping if part of an existing markdown link like "](export:...)"
-      if (idx > 0 && segment[idx - 1] === ']') {
-        out += 'export:';
+      if (idx > 0 && segment[idx - 1] === "]") {
+        out += "export:";
         i = idx + 7;
         continue;
       }
@@ -126,9 +120,9 @@ function processExportLinks(md: string): string {
       let j = idx + 7; // after 'export:'
       // skip whitespace
       while (j < segment.length && /\s/.test(segment[j])) j++;
-      if (segment[j] !== '{') {
+      if (segment[j] !== "{") {
         // not a raw JSON payload; just copy 'export:' and continue
-        out += 'export:';
+        out += "export:";
         i = idx + 7;
         continue;
       }
@@ -139,10 +133,14 @@ function processExportLinks(md: string): string {
       let found = false;
       while (k < segment.length) {
         const ch = segment[k];
-        if (ch === '{') brace++;
-        else if (ch === '}') {
+        if (ch === "{") brace++;
+        else if (ch === "}") {
           brace--;
-          if (brace === 0) { k++; found = true; break; }
+          if (brace === 0) {
+            k++;
+            found = true;
+            break;
+          }
         }
         k++;
       }
@@ -165,11 +163,11 @@ function processExportLinks(md: string): string {
   for (let p = 0; p < parts.length; p++) {
     const part = parts[p];
     if (!part) continue;
-    if (part.startsWith('```') || part.startsWith('`')) continue; // skip code
+    if (part.startsWith("```") || part.startsWith("`")) continue; // skip code
 
     let processed = part;
     // keep existing markdown export links as-is
-    processed = processed.replace(/(\[[^\]]+\]\(export:[^)]*\))/g, '$1');
+    processed = processed.replace(/(\[[^\]]+\]\(export:[^)]*\))/g, "$1");
     processed = wrapPercentEncoded(processed);
     processed = wrapRawJson(processed);
 
@@ -190,7 +188,7 @@ function processExportLinks(md: string): string {
     parts[p] = processed;
   }
 
-  return parts.join('');
+  return parts.join("");
 }
 
 interface MarkdownRendererProps {
@@ -201,12 +199,12 @@ interface MarkdownRendererProps {
   enableExports?: boolean;
 }
 
-export function MarkdownRenderer({ 
-  content, 
+export function MarkdownRenderer({
+  content,
   className = "",
   enableCodeCopy = true,
   enableMath = true,
-  enableExports = true
+  enableExports = true,
 }: MarkdownRendererProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const { toast } = useToast();
@@ -221,7 +219,7 @@ export function MarkdownRenderer({
         description: "Código copiado para a área de transferência",
       });
     } catch (error) {
-      console.error('Error copying to clipboard:', error);
+      console.error("Error copying to clipboard:", error);
       toast({
         title: "Erro",
         description: "Falha ao copiar código",
@@ -232,53 +230,83 @@ export function MarkdownRenderer({
 
   const handleExportClickLocal = async (payload: string) => {
     if (!enableExports) return;
-    
-    // BLOQUEIO: Prevenir chamadas ao endpoint antigo wizard-export-pdf
-    if (payload.includes('wizard-export-pdf')) {
-      
-      toast({
-        title: "Exportação descontinuada",
-        description: "Use os botões de exportação do app",
-        variant: "destructive"
-      });
-      return;
-    }
-    
+
     await handleExportClick(payload);
   };
 
-
   const remarkPlugins = [remarkGfm];
   const rehypePlugins: any[] = [
-    rehypeHighlight, 
+    rehypeHighlight,
     rehypeRaw,
     // Sanitize HTML to prevent XSS attacks while allowing safe markdown features
-    [rehypeSanitize, {
-      // Allow safe HTML elements from markdown
-      tagNames: [
-        'a', 'abbr', 'b', 'blockquote', 'br', 'code', 'dd', 'del', 'div', 'dl', 'dt', 
-        'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'i', 'img', 'input', 'ins',
-        'kbd', 'li', 'ol', 'p', 'pre', 'q', 's', 'span', 'strong', 'sub', 'sup', 
-        'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'u', 'ul'
-      ],
-      attributes: {
-        // Allow safe attributes
-        '*': ['className', 'id', 'aria-*', 'data-*'],
-        'a': ['href', 'target', 'rel'],
-        'img': ['src', 'alt', 'title', 'width', 'height'],
-        'code': ['className'],
-        'input': ['type', 'disabled', 'checked'],
-        'td': ['align', 'colSpan', 'rowSpan'],
-        'th': ['align', 'colSpan', 'rowSpan', 'scope']
+    [
+      rehypeSanitize,
+      {
+        // Allow safe HTML elements from markdown
+        tagNames: [
+          "a",
+          "abbr",
+          "b",
+          "blockquote",
+          "br",
+          "code",
+          "dd",
+          "del",
+          "div",
+          "dl",
+          "dt",
+          "em",
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "h6",
+          "hr",
+          "i",
+          "img",
+          "input",
+          "ins",
+          "kbd",
+          "li",
+          "ol",
+          "p",
+          "pre",
+          "q",
+          "s",
+          "span",
+          "strong",
+          "sub",
+          "sup",
+          "table",
+          "tbody",
+          "td",
+          "tfoot",
+          "th",
+          "thead",
+          "tr",
+          "u",
+          "ul",
+        ],
+        attributes: {
+          // Allow safe attributes
+          "*": ["className", "id", "aria-*", "data-*"],
+          a: ["href", "target", "rel"],
+          img: ["src", "alt", "title", "width", "height"],
+          code: ["className"],
+          input: ["type", "disabled", "checked"],
+          td: ["align", "colSpan", "rowSpan"],
+          th: ["align", "colSpan", "rowSpan", "scope"],
+        },
+        // Prevent javascript: and data: URLs except data:image
+        protocols: {
+          href: ["http", "https", "mailto", "export"],
+          src: ["http", "https", "data"],
+        },
+        // Strip all style attributes to prevent CSS injection
+        strip: ["style"],
       },
-      // Prevent javascript: and data: URLs except data:image
-      protocols: {
-        href: ['http', 'https', 'mailto', 'export'],
-        src: ['http', 'https', 'data']
-      },
-      // Strip all style attributes to prevent CSS injection
-      strip: ['style']
-    }]
+    ],
   ];
 
   if (enableMath) {
@@ -292,23 +320,29 @@ export function MarkdownRenderer({
   const extractTableDataFromMarkdown = (md: string): any[] => {
     try {
       if (!md) return [];
-      const clean = (s: string) => s.replace(/\*\*|__/g, '').trim();
-      const text = md.replace(/```[\s\S]*?```/g, '').trim();
+      const clean = (s: string) => s.replace(/\*\*|__/g, "").trim();
+      const text = md.replace(/```[\s\S]*?```/g, "").trim();
       const lines = text.split(/\r?\n/);
 
       // Tenta detectar a última tabela em formato pipe (GFM)
       let i = 0;
       let lastTable: { headers: string[]; rows: string[][] } | null = null;
       while (i < lines.length) {
-        if (/^\s*\|/.test(lines[i]) && ((lines[i].match(/\|/g)?.length || 0) >= 2)) {
+        if (/^\s*\|/.test(lines[i]) && (lines[i].match(/\|/g)?.length || 0) >= 2) {
           const headerLine = lines[i].trim();
-          const sepLine = lines[i + 1] || '';
+          const sepLine = lines[i + 1] || "";
           if (/\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?/.test(sepLine)) {
             i += 2;
-            const headers = headerLine.split('|').map((s) => clean(s)).filter(Boolean);
+            const headers = headerLine
+              .split("|")
+              .map((s) => clean(s))
+              .filter(Boolean);
             const rowsArr: string[][] = [];
             while (i < lines.length && /^\s*\|/.test(lines[i])) {
-              const row = lines[i].split('|').map((s) => clean(s)).filter(Boolean);
+              const row = lines[i]
+                .split("|")
+                .map((s) => clean(s))
+                .filter(Boolean);
               if (row.length) rowsArr.push(row);
               i++;
             }
@@ -322,7 +356,7 @@ export function MarkdownRenderer({
         const headers = lastTable.headers;
         return lastTable.rows.map((r) => {
           const obj: any = {};
-          headers.forEach((h, idx) => (obj[h] = r[idx] ?? ''));
+          headers.forEach((h, idx) => (obj[h] = r[idx] ?? ""));
           return obj;
         });
       }
@@ -333,9 +367,12 @@ export function MarkdownRenderer({
         headerIdx = lines.findIndex((l) => /\S+\s{2,}\S+/.test(l));
       }
       if (headerIdx !== -1) {
-        const headerParts = lines[headerIdx].split(/\t+| {2,}/).map((s) => clean(s)).filter(Boolean);
-        const h1 = headerParts[0] || 'Coluna 1';
-        const h2 = headerParts[1] || 'Coluna 2';
+        const headerParts = lines[headerIdx]
+          .split(/\t+| {2,}/)
+          .map((s) => clean(s))
+          .filter(Boolean);
+        const h1 = headerParts[0] || "Coluna 1";
+        const h2 = headerParts[1] || "Coluna 2";
         const rows: any[] = [];
         for (let j = headerIdx + 1; j < lines.length; j++) {
           const line = lines[j].trim();
@@ -344,8 +381,8 @@ export function MarkdownRenderer({
           if (m) {
             rows.push({ [h1]: clean(m[1]), [h2]: m[2] });
           } else if (/^total/i.test(line)) {
-            const totalNum = line.match(/([\d.,]+)$/)?.[1] || '';
-            rows.push({ [h1]: 'TOTAL', [h2]: totalNum });
+            const totalNum = line.match(/([\d.,]+)$/)?.[1] || "";
+            rows.push({ [h1]: "TOTAL", [h2]: totalNum });
           } else {
             if (rows.length > 0) break;
           }
@@ -359,11 +396,11 @@ export function MarkdownRenderer({
     }
   };
 
-  const inferTypeFromFilename = (file: string): 'xlsx' | 'csv' | 'json' => {
-    const f = (file || '').toLowerCase();
-    if (f.endsWith('.csv')) return 'csv';
-    if (f.endsWith('.json')) return 'json';
-    return 'xlsx';
+  const inferTypeFromFilename = (file: string): "xlsx" | "csv" | "json" => {
+    const f = (file || "").toLowerCase();
+    if (f.endsWith(".csv")) return "csv";
+    if (f.endsWith(".json")) return "json";
+    return "xlsx";
   };
 
   return (
@@ -374,81 +411,60 @@ export function MarkdownRenderer({
         components={{
           // Headers with better styling
           h1: ({ className, ...props }) => (
-            <h1 
+            <h1
               className={cn(
-                "text-3xl font-bold tracking-tight mb-6 pb-3 border-b border-border/50 text-foreground", 
-                className
-              )} 
-              {...props} 
+                "text-3xl font-bold tracking-tight mb-6 pb-3 border-b border-border/50 text-foreground",
+                className,
+              )}
+              {...props}
             />
           ),
           h2: ({ className, ...props }) => (
-            <h2 
+            <h2
               className={cn(
-                "text-2xl font-semibold tracking-tight mt-8 mb-4 pb-2 border-b border-border/30 text-foreground", 
-                className
-              )} 
-              {...props} 
+                "text-2xl font-semibold tracking-tight mt-8 mb-4 pb-2 border-b border-border/30 text-foreground",
+                className,
+              )}
+              {...props}
             />
           ),
           h3: ({ className, ...props }) => (
-            <h3 
-              className={cn(
-                "text-xl font-semibold tracking-tight mt-6 mb-3 text-foreground", 
-                className
-              )} 
-              {...props} 
+            <h3
+              className={cn("text-xl font-semibold tracking-tight mt-6 mb-3 text-foreground", className)}
+              {...props}
             />
           ),
           h4: ({ className, ...props }) => (
-            <h4 
-              className={cn(
-                "text-lg font-semibold mt-4 mb-2 text-foreground", 
-                className
-              )} 
-              {...props} 
-            />
+            <h4 className={cn("text-lg font-semibold mt-4 mb-2 text-foreground", className)} {...props} />
           ),
 
           // Improved paragraphs and text
           p: ({ className, ...props }) => (
-            <p 
-              className={cn(
-                "leading-relaxed mb-4 text-foreground/90 [&:not(:first-child)]:mt-4", 
-                className
-              )} 
-              {...props} 
+            <p
+              className={cn("leading-relaxed mb-4 text-foreground/90 [&:not(:first-child)]:mt-4", className)}
+              {...props}
             />
           ),
 
           // Enhanced lists
           ul: ({ className, ...props }) => (
-            <ul 
-              className={cn(
-                "my-4 ml-6 list-disc space-y-2 [&>li]:mt-1 text-foreground/90", 
-                className
-              )} 
-              {...props} 
-            />
+            <ul className={cn("my-4 ml-6 list-disc space-y-2 [&>li]:mt-1 text-foreground/90", className)} {...props} />
           ),
           ol: ({ className, ...props }) => (
-            <ol 
-              className={cn(
-                "my-4 ml-6 list-decimal space-y-2 [&>li]:mt-1 text-foreground/90", 
-                className
-              )} 
-              {...props} 
+            <ol
+              className={cn("my-4 ml-6 list-decimal space-y-2 [&>li]:mt-1 text-foreground/90", className)}
+              {...props}
             />
           ),
 
           // Better blockquotes
           blockquote: ({ className, ...props }) => (
-            <blockquote 
+            <blockquote
               className={cn(
-                "mt-6 border-l-4 border-primary/40 bg-muted/40 pl-6 py-4 italic text-foreground/80 rounded-r-lg my-6", 
-                className
-              )} 
-              {...props} 
+                "mt-6 border-l-4 border-primary/40 bg-muted/40 pl-6 py-4 italic text-foreground/80 rounded-r-lg my-6",
+                className,
+              )}
+              {...props}
             />
           ),
 
@@ -458,45 +474,38 @@ export function MarkdownRenderer({
               <table className={cn("w-full border-collapse", className)} {...props} />
             </div>
           ),
-          thead: ({ className, ...props }) => (
-            <thead className={cn("bg-muted/60", className)} {...props} />
-          ),
-          tbody: ({ className, ...props }) => (
-            <tbody className={cn("bg-background", className)} {...props} />
-          ),
+          thead: ({ className, ...props }) => <thead className={cn("bg-muted/60", className)} {...props} />,
+          tbody: ({ className, ...props }) => <tbody className={cn("bg-background", className)} {...props} />,
           tr: ({ className, ...props }) => (
             <tr className={cn("border-b border-border/40 hover:bg-muted/20 transition-colors", className)} {...props} />
           ),
           th: ({ className, ...props }) => (
-            <th 
+            <th
               className={cn(
-                "h-12 px-4 text-left align-middle font-semibold text-foreground [&:has([role=checkbox])]:pr-0", 
-                className
-              )} 
-              {...props} 
+                "h-12 px-4 text-left align-middle font-semibold text-foreground [&:has([role=checkbox])]:pr-0",
+                className,
+              )}
+              {...props}
             />
           ),
           td: ({ className, ...props }) => (
-            <td 
-              className={cn(
-                "p-4 align-middle text-foreground/90 [&:has([role=checkbox])]:pr-0", 
-                className
-              )} 
-              {...props} 
+            <td
+              className={cn("p-4 align-middle text-foreground/90 [&:has([role=checkbox])]:pr-0", className)}
+              {...props}
             />
           ),
 
           // Advanced code blocks with syntax highlighting
           code: ({ className, children, ...props }: any) => {
             const inline = props.inline;
-            const match = /language-(\w+)/.exec(className || '');
-            const language = match ? match[1] : '';
-            const code = String(children).replace(/\n$/, '');
+            const match = /language-(\w+)/.exec(className || "");
+            const language = match ? match[1] : "";
+            const code = String(children).replace(/\n$/, "");
 
             if (inline) {
               return (
-                <code 
-                  className="relative rounded bg-muted/60 px-[0.3rem] py-[0.2rem] font-mono text-sm font-medium text-foreground border border-border/30" 
+                <code
+                  className="relative rounded bg-muted/60 px-[0.3rem] py-[0.2rem] font-mono text-sm font-medium text-foreground border border-border/30"
                   {...props}
                 >
                   {children}
@@ -513,12 +522,7 @@ export function MarkdownRenderer({
                     </Badge>
                   )}
                   {enableCodeCopy && (
-                    <Button
-                      onClick={() => copyToClipboard(code)}
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2"
-                    >
+                    <Button onClick={() => copyToClipboard(code)} variant="ghost" size="sm" className="h-8 px-2">
                       {copiedCode === code ? (
                         <>
                           <Check className="h-3 w-3 mr-1 text-green-600" />
@@ -544,8 +548,8 @@ export function MarkdownRenderer({
 
           // Enhanced links and export buttons
           a: ({ className, href, children, ...props }) => {
-            if (href && href.startsWith('export:')) {
-              const payload = href.replace(/^export:/, '');
+            if (href && href.startsWith("export:")) {
+              const payload = href.replace(/^export:/, "");
               return (
                 <button
                   type="button"
@@ -555,8 +559,8 @@ export function MarkdownRenderer({
                     handleExportClickLocal(payload);
                   }}
                   className={cn(
-                    "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground cursor-pointer", 
-                    className
+                    "inline-flex items-center px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 rounded-md transition-all duration-200 shadow-sm hover:shadow-md text-primary-foreground cursor-pointer",
+                    className,
                   )}
                 >
                   <Download className="h-4 w-4 mr-2" />
@@ -565,26 +569,26 @@ export function MarkdownRenderer({
               );
             }
 
-            if (href && (href.startsWith('http') || href.startsWith('https'))) {
+            if (href && (href.startsWith("http") || href.startsWith("https"))) {
               const onSmartDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
                 try {
-                  const text = (e.currentTarget.textContent || '').toLowerCase();
+                  const text = (e.currentTarget.textContent || "").toLowerCase();
                   // More flexible patterns for download detection
                   const patterns = [
                     /\bbaixar\s+([\w\-\s\.]+\.(xlsx|csv|json|pdf))\b/i,
                     /\bdownload\s+([\w\-\s\.]+\.(xlsx|csv|json|pdf))\b/i,
-                    /([\w\-\s\.]+\.(xlsx|csv|json|pdf))/i // Just filename with extension
+                    /([\w\-\s\.]+\.(xlsx|csv|json|pdf))/i, // Just filename with extension
                   ];
-                  
+
                   for (const pattern of patterns) {
                     const match = text.match(pattern);
                     if (match) {
                       e.preventDefault();
                       e.stopPropagation();
                       const file = match[1].trim();
-                      const ext = file.split('.').pop()?.toLowerCase();
-                      if (ext === 'pdf') {
-                         toast({ title: "Exportação de PDF", description: "Use o botão Exportar Conversa (PDF)." });
+                      const ext = file.split(".").pop()?.toLowerCase();
+                      if (ext === "pdf") {
+                        toast({ title: "Exportação de PDF", description: "Use o botão Exportar Conversa (PDF)." });
                       } else {
                         const rows = extractTableDataFromMarkdown(content);
                         if (rows && rows.length) {
@@ -601,11 +605,11 @@ export function MarkdownRenderer({
                 } catch {}
               };
               return (
-                <a 
+                <a
                   className={cn(
-                    "inline-flex items-center font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors", 
-                    className
-                  )} 
+                    "inline-flex items-center font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors",
+                    className,
+                  )}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -621,22 +625,22 @@ export function MarkdownRenderer({
             // Default links: still support smart download by text
             const onSmartDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
               try {
-                const text = (e.currentTarget.textContent || '').toLowerCase();
+                const text = (e.currentTarget.textContent || "").toLowerCase();
                 // More flexible patterns for download detection
                 const patterns = [
                   /\bbaixar\s+([\w\-\s\.]+\.(xlsx|csv|json|pdf))\b/i,
                   /\bdownload\s+([\w\-\s\.]+\.(xlsx|csv|json|pdf))\b/i,
-                  /([\w\-\s\.]+\.(xlsx|csv|json|pdf))/i // Just filename with extension
+                  /([\w\-\s\.]+\.(xlsx|csv|json|pdf))/i, // Just filename with extension
                 ];
-                
+
                 for (const pattern of patterns) {
                   const match = text.match(pattern);
                   if (match) {
                     e.preventDefault();
                     e.stopPropagation();
                     const file = match[1].trim();
-                    const ext = file.split('.').pop()?.toLowerCase();
-                    if (ext === 'pdf') {
+                    const ext = file.split(".").pop()?.toLowerCase();
+                    if (ext === "pdf") {
                       toast({ title: "Exportação de PDF", description: "Use o botão Exportar Conversa (PDF)." });
                     } else {
                       const rows = extractTableDataFromMarkdown(content);
@@ -654,12 +658,12 @@ export function MarkdownRenderer({
               } catch {}
             };
             return (
-              <a 
+              <a
                 className={cn(
-                  "font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors", 
-                  className
-                )} 
-                href={href} 
+                  "font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors",
+                  className,
+                )}
+                href={href}
                 onClick={onSmartDownload}
                 {...props}
               >
@@ -669,17 +673,13 @@ export function MarkdownRenderer({
           },
 
           // Horizontal rules
-          hr: ({ className, ...props }) => (
-            <hr className={cn("my-8 border-border/60", className)} {...props} />
-          ),
+          hr: ({ className, ...props }) => <hr className={cn("my-8 border-border/60", className)} {...props} />,
 
           // Text formatting
           strong: ({ className, ...props }) => (
             <strong className={cn("font-semibold text-foreground", className)} {...props} />
           ),
-          em: ({ className, ...props }) => (
-            <em className={cn("italic text-foreground/90", className)} {...props} />
-          ),
+          em: ({ className, ...props }) => <em className={cn("italic text-foreground/90", className)} {...props} />,
         }}
       >
         {processedContent}
