@@ -2,6 +2,7 @@ import { useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { AuthPage } from "./AuthPage"
 import { Loader2 } from "lucide-react"
+import { MainLayout } from "@/components/layout/MainLayout"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -25,5 +26,5 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <AuthPage />
   }
 
-  return <>{children}</>
+  return <MainLayout>{children}</MainLayout>
 }
