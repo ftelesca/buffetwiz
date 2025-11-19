@@ -17,7 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MainLayout } from "@/components/layout/MainLayout";
+
 import { PageHeader } from "@/components/ui/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -285,8 +285,7 @@ export default function Insumos() {
   const filteredItems = items.filter((item) => item.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <PageHeader title="Insumos" subtitle="Gerencie insumos e unidades">
           <div className="flex gap-2">
@@ -584,7 +583,6 @@ export default function Insumos() {
           units={units}
           onImportComplete={fetchItems}
         />
-      </div>
-    </MainLayout>
+    </div>
   );
 }
