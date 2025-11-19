@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { MainLayout } from "@/components/layout/MainLayout"
+
 import { PageHeader } from "@/components/ui/page-header"
 import { EventForm } from "@/components/events/EventForm"
 import { EventMenu } from "@/components/events/EventMenu"
@@ -147,22 +147,19 @@ export default function Events() {
 
   if (isLoading) {
     return (
-      <MainLayout>
-        <div className="space-y-6">
-          <div className="h-8 bg-muted animate-pulse rounded" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-muted animate-pulse rounded" />
-            ))}
-          </div>
+      <div className="space-y-6">
+        <div className="h-8 bg-muted animate-pulse rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-64 bg-muted animate-pulse rounded" />
+          ))}
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <PageHeader
           title="Eventos"
           subtitle="Gerencie eventos gastronômicos"
@@ -259,7 +256,6 @@ export default function Events() {
             )}
           </DialogContent>
         </Dialog>
-      </div>
-    </MainLayout>
+    </div>
   )
 }

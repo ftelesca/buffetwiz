@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Plus, Search, Upload } from "lucide-react"
-import { MainLayout } from "@/components/layout/MainLayout"
+
 import { PageHeader } from "@/components/ui/page-header"
 import ProductList from "@/components/recipes/ProductList"
 import ProductItems from "@/components/recipes/ProductItems"
@@ -180,8 +180,7 @@ export default function Recipes() {
   )
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <PageHeader
           title="Produtos"
           subtitle="Gerencie produtos e seus insumos"
@@ -263,7 +262,6 @@ export default function Recipes() {
             }
           }}
         />
-      </div>
-    </MainLayout>
+    </div>
   )
 }
