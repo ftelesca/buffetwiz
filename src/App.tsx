@@ -67,30 +67,22 @@ const App = () => {
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const anchor = (target && (target as any).closest) ? (target.closest('a') as HTMLAnchorElement | null) : null;
+      const anchor = target && (target as any).closest ? (target.closest("a") as HTMLAnchorElement | null) : null;
       if (!anchor) return;
 
-      const href = anchor.getAttribute('href') || '';
-      
-      // BLOQUEIO: Prevenir chamadas ao endpoint antigo wizard-export-pdf
-      if (href.includes('/functions/v1/wizard-export-pdf') || href.includes('wizard-export-pdf')) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        return;
-      }
+      const href = anchor.getAttribute("href") || "";
 
       // Case 1: explicit export: links
-      if (href.startsWith('export:')) {
+      if (href.startsWith("export:")) {
         e.preventDefault();
         e.stopPropagation();
-        const payload = href.replace(/^export:/, '');
+        const payload = href.replace(/^export:/, "");
         handleExportClick(payload);
         return;
       }
 
       // Case 2: ChatGPT-like text links: "Baixar arquivo.ext" pointing to a page URL
-      const text = (anchor.textContent || '').toLowerCase();
+      const text = (anchor.textContent || "").toLowerCase();
       const fileMatch = text.match(/\bbaixar\s+([\w\-\s]+\.(xlsx|csv|json))\b/i);
       if (fileMatch) {
         e.preventDefault();
@@ -101,8 +93,8 @@ const App = () => {
         return;
       }
     };
-    document.addEventListener('click', onDocClick, true);
-    return () => document.removeEventListener('click', onDocClick, true);
+    document.addEventListener("click", onDocClick, true);
+    return () => document.removeEventListener("click", onDocClick, true);
   }, []);
 
   return (
@@ -115,66 +107,72 @@ const App = () => {
               <Sonner />
               <Routes>
                 {/* Public auth routes - redirect to app if already logged in */}
-                <Route 
-                  path="/" 
+                <Route
+                  path="/"
                   element={
                     <AuthenticatedRoute>
                       <AuthPage />
                     </AuthenticatedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/auth" 
+                <Route
+                  path="/auth"
                   element={
                     <AuthenticatedRoute>
                       <AuthPage />
                     </AuthenticatedRoute>
-                  } 
-                />
-                
-                {/* Password reset - accessible to all */}
-                <Route 
-                  path="/reset-password" 
-                  element={<ResetPasswordPage />} 
-                />
-                
-                {/* OAuth callback routes */}
-                <Route 
-                  path="/auth/callback" 
-                  element={<AuthCallback />} 
-                />
-                <Route 
-                  path="/auth/google/callback" 
-                  element={<AuthCallback />} 
+                  }
                 />
 
+                {/* Password reset - accessible to all */}
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+                {/* OAuth callback routes */}
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/auth/google/callback" element={<AuthCallback />} />
+
                 {/* Protected routes - require authentication */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/eventos" element={
-                  <ProtectedRoute>
-                    <Events />
-                  </ProtectedRoute>
-                } />
-                <Route path="/clientes" element={
-                  <ProtectedRoute>
-                    <Customers />
-                  </ProtectedRoute>
-                } />
-                <Route path="/cardapios" element={
-                  <ProtectedRoute>
-                    <Recipes />
-                  </ProtectedRoute>
-                } />
-                <Route path="/insumos" element={
-                  <ProtectedRoute>
-                    <Supplies />
-                  </ProtectedRoute>
-                } />
-                
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/eventos"
+                  element={
+                    <ProtectedRoute>
+                      <Events />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/clientes"
+                  element={
+                    <ProtectedRoute>
+                      <Customers />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/cardapios"
+                  element={
+                    <ProtectedRoute>
+                      <Recipes />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/insumos"
+                  element={
+                    <ProtectedRoute>
+                      <Supplies />
+                    </ProtectedRoute>
+                  }
+                />
+
                 {/* Catch-all 404 */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

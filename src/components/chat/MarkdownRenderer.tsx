@@ -232,17 +232,7 @@ export function MarkdownRenderer({
 
   const handleExportClickLocal = async (payload: string) => {
     if (!enableExports) return;
-    
-    // BLOQUEIO: Prevenir chamadas ao endpoint antigo wizard-export-pdf
-    if (payload.includes('wizard-export-pdf')) {
-      
-      toast({
-        title: "Exportação descontinuada",
-        description: "Use os botões de exportação do app",
-        variant: "destructive"
-      });
-      return;
-    }
+  }
     
     await handleExportClick(payload);
   };
