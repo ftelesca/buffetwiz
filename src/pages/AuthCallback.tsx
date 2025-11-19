@@ -1,6 +1,11 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
 export default function AuthCallback() {
   const navigate = useNavigate();
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -65,7 +70,7 @@ export default function AuthCallback() {
         // 7. Success!
         toast.success('Login realizado com sucesso!');
         window.history.replaceState({}, '', '/auth/callback');
-        navigate('/navegador');
+        navigate('/dashboard');
 
       } catch (error: any) {
         console.error('Error in auth callback:', error);
@@ -102,4 +107,3 @@ export default function AuthCallback() {
     </div>
   );
 }
-

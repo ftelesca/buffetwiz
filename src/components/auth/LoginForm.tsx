@@ -28,40 +28,35 @@ export function LoginForm({ onSwitchToSignUp, onSwitchToForgot }: LoginFormProps
     setIsLoading(true);
 
     try {
-      await signIn(email, password, rememberMe);
-      // On success, AuthContext navigates to /navegador
+      await signIn(email, password);
+      // On success, AuthContext navigates to /dashboard
     } catch (error: any) {
-      // Handle unconfirmed email
-      if (error.message.includes("Email not confirmed")) {
-        setShowResendVerification(true);
-        toast.error("Confirme seu email antes de fazer login");
-      }
+      toast({
+        title: "Erro ao entrar",
+        description: error.message || "Erro ao fazer login",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-	setIsLoadingGoogle(true);
-	
-	try {
-		await signInWithGoogle();  // From AuthContext
-	} catch (error: any) {
-		toast.error(error.message || "Erro ao fazer login com Google");
-	} finally {
-		setIsLoadingGoogle(false);
-	}
-  };
-
-  const handleResendVerification = async () => {
-    setIsLoadingResend(true);
+    setIsGoogleLoading(true);
+    
     try {
-      await resendVerificationEmail(email);
-      toast.success("Email de verificação reenviado!");
+      await signInWithGoogle();  // From AuthContext
+    } catch (error: any) {
+      toast({
+        title: "Erro no login",
+        description: error.message || "Erro ao fazer login com Google",
+        variant: "destructive"
+      });
     } finally {
-      setIsLoadingResend(false);
+      setIsGoogleLoading(false);
     }
   };
+
 
   return (
     <div className="space-y-6">

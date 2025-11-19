@@ -44,29 +44,42 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
   const passwordValidation = validatePassword(formData.password)
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
+    e.preventDefault();
+    setIsLoading(true);
 
-  // Validate password
-  const validation = validatePassword(password);
-  if (!validation.isValid) {
-    toast.error("Senha fraca...");
-    setIsLoading(false);
-    return;
-  }
+    // Validate password
+    const validation = validatePassword(formData.password);
+    if (!validation.isValid) {
+      toast({
+        title: "Senha fraca",
+        description: "A senha deve ter pelo menos 8 caracteres, uma letra maiúscula e um número",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+      return;
+    }
 
-  // Check password confirmation
-  if (password !== confirmPassword) {
-    toast.error("Senhas não coincidem");
-    setIsLoading(false);
-    return;
-  }
+    // Check password confirmation
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "Senhas não coincidem",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+      return;
+    }
 
-  // Call AuthContext signUp
-  await signUp(email, password, fullName);
-  setEmailSent(true);
-  setIsLoading(false);
-};
+    try {
+      // Call AuthContext signUp
+      await signUp(formData.email, formData.password, formData.fullName);
+      setEmailSent(true);
+    } catch (error) {
+      // Error already handled in AuthContext
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true)

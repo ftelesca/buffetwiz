@@ -20,7 +20,7 @@ import React, { useEffect } from "react";
 import { handleExportClick } from "@/lib/export-handler";
 
 // Auth components
-import LoginForm from "./components/auth/LoginForm";
+import { AuthPage } from "./components/auth/AuthPage";
 import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient({
@@ -119,7 +119,7 @@ const App = () => {
                   path="/" 
                   element={
                     <AuthenticatedRoute>
-                      <LoginForm />
+                      <AuthPage />
                     </AuthenticatedRoute>
                   } 
                 />
@@ -127,7 +127,7 @@ const App = () => {
                   path="/auth" 
                   element={
                     <AuthenticatedRoute>
-                      <LoginForm />
+                      <AuthPage />
                     </AuthenticatedRoute>
                   } 
                 />
@@ -141,17 +141,11 @@ const App = () => {
                 {/* OAuth callback routes */}
                 <Route 
                   path="/auth/callback" 
-                  element={
-                    /* <AuthCallback /> - You need to create this page */
-                    <div>Auth Callback - Create at src/pages/AuthCallback.tsx</div>
-                  } 
+                  element={<AuthCallback />} 
                 />
                 <Route 
                   path="/auth/google/callback" 
-                  element={
-                    /* <AuthCallback /> - Same component handles Google callback */
-                    <div>Auth Callback - Create at src/pages/AuthCallback.tsx</div>
-                  } 
+                  element={<AuthCallback />} 
                 />
 
                 {/* Protected routes - require authentication */}
