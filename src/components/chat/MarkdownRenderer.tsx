@@ -232,7 +232,7 @@ export function MarkdownRenderer({
 
   const handleExportClickLocal = async (payload: string) => {
     if (!enableExports) return;
-  }
+  };
     
     await handleExportClick(payload);
   };
