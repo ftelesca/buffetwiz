@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -48,7 +48,7 @@ const minutesToTimeFormat = (minutes: number): string => {
 
 // Helper function to convert HH:MM format to minutes
 const timeFormatToMinutes = (timeString: string): number => {
-  if (!timeString) return 120; // Default 2 hours
+  if (!timeString) return 0;
   const [hours, minutes] = timeString.split(':').map(Number);
   return (hours * 60) + minutes;
 };
@@ -70,7 +70,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     customer: "",
     date: undefined,
     time: "",
-    duration: DEFAULT_EVENT_DURATION,
+    duration: "",
     location: "",
     type: "",
     status: DEFAULT_EVENT_STATUS,
@@ -81,30 +81,10 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   });
   
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-
-  const customerInputRef = useRef<HTMLInputElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
-  const typeInputRef = useRef<HTMLInputElement>(null);
-  const statusInputRef = useRef<HTMLInputElement>(null);
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    customerInputRef.current?.setCustomValidity("");
-  }, [formData.customer]);
-
-  useEffect(() => {
-    dateInputRef.current?.setCustomValidity("");
-  }, [formData.date]);
-
-  useEffect(() => {
-    typeInputRef.current?.setCustomValidity("");
-  }, [formData.type]);
-
-  useEffect(() => {
-    statusInputRef.current?.setCustomValidity("");
-  }, [formData.status]);
 
   // Fetch customers for dropdown
   const { data: customers } = useQuery({
@@ -147,7 +127,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         customer: (eventData as any).customer?.toString() || "",
         date: eventData.date ? new Date(eventData.date + 'T00:00:00') : undefined,
         time: eventData.time || "",
-        duration: (eventData as any).duration ? minutesToTimeFormat((eventData as any).duration) : "02:00",
+        duration: (eventData as any).duration ? minutesToTimeFormat((eventData as any).duration) : "",
         location: eventData.location || "",
         type: eventData.type || "",
         status: eventData.status || "planejamento",
@@ -223,6 +203,22 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Manual validation for Select/Calendar fields
+    const newErrors: Record<string, boolean> = {};
+    if (!formData.customer) newErrors.customer = true;
+    if (!formData.date) newErrors.date = true;
+    if (!formData.type) newErrors.type = true;
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor preencha todos os campos obrigatórios.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const submitData = {
       title: formData.title,
       customer: formData.customer,
@@ -264,17 +260,11 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
 
       <div>
         <Label htmlFor="customer">Cliente *</Label>
-        <input
-          ref={customerInputRef}
-          type="text"
-          value={formData.customer}
-          required
-          className="sr-only"
-          tabIndex={-1}
-          onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
-        />
-        <Select value={formData.customer} onValueChange={(value) => setFormData({ ...formData, customer: value })}>
-          <SelectTrigger>
+        <Select value={formData.customer} onValueChange={(value) => {
+          setFormData({ ...formData, customer: value });
+          setErrors({ ...errors, customer: false });
+        }}>
+          <SelectTrigger className={cn(errors.customer && "border-destructive")}>
             <SelectValue placeholder="Selecione um cliente" />
           </SelectTrigger>
           <SelectContent>
@@ -290,22 +280,14 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Label>Data *</Label>
-          <input
-            ref={dateInputRef}
-            type="text"
-            value={formData.date ? format(formData.date, "yyyy-MM-dd") : ""}
-            required
-            className="sr-only"
-            tabIndex={-1}
-            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
-          />
           <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal",
-                  !formData.date && "text-muted-foreground"
+                  !formData.date && "text-muted-foreground",
+                  errors.date && "border-destructive"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -318,6 +300,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
                 selected={formData.date}
                 onSelect={(date) => {
                   setFormData({ ...formData, date });
+                  setErrors({ ...errors, date: false });
                   setIsDatePickerOpen(false);
                 }}
                 initialFocus
@@ -372,17 +355,11 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="type">Tipo *</Label>
-          <input
-            ref={typeInputRef}
-            type="text"
-            value={formData.type}
-            required
-            className="sr-only"
-            tabIndex={-1}
-            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
-          />
-          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-            <SelectTrigger>
+          <Select value={formData.type} onValueChange={(value) => {
+            setFormData({ ...formData, type: value });
+            setErrors({ ...errors, type: false });
+          }}>
+            <SelectTrigger className={cn(errors.type && "border-destructive")}>
               <SelectValue placeholder="Tipo de evento" />
             </SelectTrigger>
             <SelectContent>
@@ -397,15 +374,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
 
         <div>
           <Label htmlFor="status">Status *</Label>
-          <input
-            ref={statusInputRef}
-            type="text"
-            value={formData.status}
-            required
-            className="sr-only"
-            tabIndex={-1}
-            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
-          />
           <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
             <SelectTrigger>
               <SelectValue placeholder="Status do evento" />

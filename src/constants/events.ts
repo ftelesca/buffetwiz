@@ -26,7 +26,7 @@ export type EventStatus = typeof EVENT_STATUSES[number];
 
 // Default values
 export const DEFAULT_EVENT_STATUS: EventStatus = "planejamento";
-export const DEFAULT_EVENT_DURATION = "02:00"; // 2 hours in HH:MM format
+export const DEFAULT_EVENT_DURATION = ""; // No default duration
 
 // Status labels for display (Portuguese)
 export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
