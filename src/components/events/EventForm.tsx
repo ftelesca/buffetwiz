@@ -53,6 +53,16 @@ const timeFormatToMinutes = (timeString: string): number => {
   return (hours * 60) + minutes;
 };
 
+// Helper function to format time input as HH:MM
+const formatTimeInput = (value: string): string => {
+  const digits = value.replace(/\D/g, '');
+  const limited = digits.slice(0, 4);
+  if (limited.length > 2) {
+    return `${limited.slice(0, 2)}:${limited.slice(2)}`;
+  }
+  return limited;
+};
+
 export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   const { user } = useAuth();
   const [formData, setFormData] = useState<EventFormData>({
@@ -298,20 +308,23 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           <Label htmlFor="time">Horário</Label>
           <Input
             id="time"
-            type="time"
+            type="text"
             value={formData.time}
-            onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, time: formatTimeInput(e.target.value) })}
+            placeholder="14:00"
+            maxLength={5}
           />
         </div>
 
         <div>
-          <Label htmlFor="duration">Duração</Label>
+          <Label htmlFor="duration">Duração (hh:mm)</Label>
           <Input
             id="duration"
-            type="time"
+            type="text"
             value={formData.duration}
-            onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-            placeholder="02:00"
+            onChange={(e) => setFormData({ ...formData, duration: formatTimeInput(e.target.value) })}
+            placeholder="02:30"
+            maxLength={5}
           />
         </div>
       </div>
