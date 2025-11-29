@@ -27,7 +27,7 @@ export const EventMenuItemForm = ({
   };
 
   return (
-    <div className="space-y-4">
+    <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="product-name">Produto</Label>
         <Input 
@@ -58,6 +58,6 @@ export const EventMenuItemForm = ({
         isLoading={isLoading}
         disabled={!qty || parseFloat(qty) <= 0}
       />
-    </div>
+    </form>
   );
 };
