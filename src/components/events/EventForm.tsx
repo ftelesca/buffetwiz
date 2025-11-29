@@ -81,6 +81,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   });
   
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -202,23 +203,43 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate mandatory fields
+    const newErrors: Record<string, string> = {};
+    
     if (!formData.title.trim()) {
-      toast({
-        title: "Erro",
-        description: "Título é obrigatório.",
-        variant: "destructive"
-      });
+      newErrors.title = "Título é obrigatório";
+    }
+    if (!formData.customer) {
+      newErrors.customer = "Cliente é obrigatório";
+    }
+    if (!formData.date) {
+      newErrors.date = "Data é obrigatória";
+    }
+    if (!formData.time.trim()) {
+      newErrors.time = "Horário é obrigatório";
+    }
+    if (!formData.duration.trim()) {
+      newErrors.duration = "Duração é obrigatória";
+    }
+    if (!formData.location.trim()) {
+      newErrors.location = "Local é obrigatório";
+    }
+    if (!formData.type) {
+      newErrors.type = "Tipo é obrigatório";
+    }
+    if (!formData.status) {
+      newErrors.status = "Status é obrigatório";
+    }
+    if (!formData.numguests.trim()) {
+      newErrors.numguests = "Número de convidados é obrigatório";
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    if (!formData.customer) {
-      toast({
-        title: "Erro",
-        description: "Cliente é obrigatório.",
-        variant: "destructive"
-      });
-      return;
-    }
+    setErrors({});
 
     const submitData = {
       title: formData.title,
@@ -251,15 +272,21 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         <Input
           id="title"
           value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          onChange={(e) => {
+            setFormData({ ...formData, title: e.target.value });
+            setErrors({ ...errors, title: "" });
+          }}
           placeholder="Nome do evento"
-          required
         />
+        {errors.title && <p className="text-sm text-destructive mt-1">{errors.title}</p>}
       </div>
 
       <div>
         <Label htmlFor="customer">Cliente *</Label>
-        <Select value={formData.customer} onValueChange={(value) => setFormData({ ...formData, customer: value })}>
+        <Select value={formData.customer} onValueChange={(value) => {
+          setFormData({ ...formData, customer: value });
+          setErrors({ ...errors, customer: "" });
+        }}>
           <SelectTrigger>
             <SelectValue placeholder="Selecione um cliente" />
           </SelectTrigger>
@@ -271,11 +298,12 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             ))}
           </SelectContent>
         </Select>
+        {errors.customer && <p className="text-sm text-destructive mt-1">{errors.customer}</p>}
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label>Data</Label>
+          <Label>Data *</Label>
           <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -295,6 +323,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
                 selected={formData.date}
                 onSelect={(date) => {
                   setFormData({ ...formData, date });
+                  setErrors({ ...errors, date: "" });
                   setIsDatePickerOpen(false);
                 }}
                 initialFocus
@@ -302,45 +331,61 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               />
             </PopoverContent>
           </Popover>
+          {errors.date && <p className="text-sm text-destructive mt-1">{errors.date}</p>}
         </div>
 
         <div>
-          <Label htmlFor="time">Horário</Label>
+          <Label htmlFor="time">Horário *</Label>
           <Input
             id="time"
             type="text"
             value={formData.time}
-            onChange={(e) => setFormData({ ...formData, time: formatTimeInput(e.target.value) })}
+            onChange={(e) => {
+              setFormData({ ...formData, time: formatTimeInput(e.target.value) });
+              setErrors({ ...errors, time: "" });
+            }}
             maxLength={5}
           />
+          {errors.time && <p className="text-sm text-destructive mt-1">{errors.time}</p>}
         </div>
 
         <div>
-          <Label htmlFor="duration">Duração (hh:mm)</Label>
+          <Label htmlFor="duration">Duração (hh:mm) *</Label>
           <Input
             id="duration"
             type="text"
             value={formData.duration}
-            onChange={(e) => setFormData({ ...formData, duration: formatTimeInput(e.target.value) })}
+            onChange={(e) => {
+              setFormData({ ...formData, duration: formatTimeInput(e.target.value) });
+              setErrors({ ...errors, duration: "" });
+            }}
             maxLength={5}
           />
+          {errors.duration && <p className="text-sm text-destructive mt-1">{errors.duration}</p>}
         </div>
       </div>
       
       <div>
-        <Label htmlFor="location">Local</Label>
+        <Label htmlFor="location">Local *</Label>
         <Input
           id="location"
           value={formData.location}
-          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+          onChange={(e) => {
+            setFormData({ ...formData, location: e.target.value });
+            setErrors({ ...errors, location: "" });
+          }}
           placeholder="Local do evento"
         />
+        {errors.location && <p className="text-sm text-destructive mt-1">{errors.location}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="type">Tipo</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+          <Label htmlFor="type">Tipo *</Label>
+          <Select value={formData.type} onValueChange={(value) => {
+            setFormData({ ...formData, type: value });
+            setErrors({ ...errors, type: "" });
+          }}>
             <SelectTrigger>
               <SelectValue placeholder="Tipo de evento" />
             </SelectTrigger>
@@ -352,11 +397,15 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               ))}
             </SelectContent>
           </Select>
+          {errors.type && <p className="text-sm text-destructive mt-1">{errors.type}</p>}
         </div>
 
         <div>
-          <Label htmlFor="status">Status</Label>
-          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+          <Label htmlFor="status">Status *</Label>
+          <Select value={formData.status} onValueChange={(value) => {
+            setFormData({ ...formData, status: value });
+            setErrors({ ...errors, status: "" });
+          }}>
             <SelectTrigger>
               <SelectValue placeholder="Status do evento" />
             </SelectTrigger>
@@ -368,20 +417,25 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               ))}
             </SelectContent>
           </Select>
+          {errors.status && <p className="text-sm text-destructive mt-1">{errors.status}</p>}
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label htmlFor="numguests">Número de Convidados</Label>
+          <Label htmlFor="numguests">Número de Convidados *</Label>
           <Input
             id="numguests"
             type="number"
             value={formData.numguests}
-            onChange={(e) => setFormData({ ...formData, numguests: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, numguests: e.target.value });
+              setErrors({ ...errors, numguests: "" });
+            }}
             placeholder="Quantidade"
             min="1"
           />
+          {errors.numguests && <p className="text-sm text-destructive mt-1">{errors.numguests}</p>}
         </div>
 
         <div>
