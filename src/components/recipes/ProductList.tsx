@@ -104,7 +104,7 @@ export default function ProductList({ products, selectedProduct, onSelectProduct
             >
               <div className="flex justify-between items-center">
                 {editingProduct?.id === product.id ? (
-                  <div className="flex-1 flex gap-2">
+                  <form onSubmit={(e) => { e.preventDefault(); saveProduct(); }} className="flex-1 flex gap-2">
                     <div className="flex-1 space-y-2">
                       <Input
                         value={editingProduct.description}
@@ -137,7 +137,7 @@ export default function ProductList({ products, selectedProduct, onSelectProduct
                          setEditingEfficiency("")
                        }}
                      />
-                  </div>
+                  </form>
                 ) : (
                   <>
                     <div className="flex-1">
