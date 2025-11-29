@@ -144,7 +144,7 @@ export default function ProductItemForm({
         <DialogHeader>
           <DialogTitle>{editingProductItem ? 'Editar Insumo do Produto' : 'Adicionar Insumo ao Produto'}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); saveProductItem(); }} className="space-y-4">
           <div>
             <Label htmlFor="item-select">Item</Label>
             <Combobox
@@ -177,7 +177,7 @@ export default function ProductItemForm({
             onCancel={handleClose}
             disabled={!isFormValid}
           />
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   )
