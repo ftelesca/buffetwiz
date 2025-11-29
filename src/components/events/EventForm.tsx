@@ -311,7 +311,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             type="text"
             value={formData.time}
             onChange={(e) => setFormData({ ...formData, time: formatTimeInput(e.target.value) })}
-            placeholder="14:00"
             maxLength={5}
           />
         </div>
@@ -323,7 +322,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             type="text"
             value={formData.duration}
             onChange={(e) => setFormData({ ...formData, duration: formatTimeInput(e.target.value) })}
-            placeholder="02:30"
             maxLength={5}
           />
         </div>
