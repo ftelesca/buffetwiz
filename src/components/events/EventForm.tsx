@@ -49,6 +49,13 @@ const timeFormatToMinutes = (timeString: string): number => {
   return (hours * 60) + minutes;
 };
 
+// Helper function to format time from database (HH:MM:SS -> HH:MM)
+const formatTimeFromDatabase = (timeString: string | null): string => {
+  if (!timeString) return '';
+  // Time from database comes as "HH:MM:SS", we need "HH:MM"
+  return timeString.substring(0, 5);
+};
+
 // Helper function to format time input as HH:MM
 const formatTimeInput = (value: string): string => {
   // Remove all non-digit characters
@@ -125,7 +132,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         title: eventData.title || "",
         customer: (eventData as any).customer?.toString() || "",
         date: eventData.date ? new Date(eventData.date + 'T00:00:00') : undefined,
-        time: eventData.time || "",
+        time: formatTimeFromDatabase(eventData.time),
         duration: (eventData as any).duration ? minutesToTimeFormat((eventData as any).duration) : "",
         location: eventData.location || "",
         type: eventData.type || "",
@@ -286,9 +293,17 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             value={formData.time}
             onChange={(e) => setFormData({ ...formData, time: formatTimeInput(e.target.value) })}
             placeholder="HH:MM"
+            pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+            title="Formato válido: HH:MM (ex: 14:30)"
             maxLength={5}
             required
-            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+            onInvalid={(e) => {
+              if (e.currentTarget.validity.patternMismatch) {
+                e.currentTarget.setCustomValidity("Formato inválido. Use HH:MM (ex: 14:30)");
+              } else {
+                e.currentTarget.setCustomValidity("Por favor preencha este campo");
+              }
+            }}
             onInput={(e) => e.currentTarget.setCustomValidity("")}
           />
         </div>
@@ -301,9 +316,17 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             value={formData.duration}
             onChange={(e) => setFormData({ ...formData, duration: formatTimeInput(e.target.value) })}
             placeholder="HH:MM"
+            pattern="^[0-9]{2}:[0-5][0-9]$"
+            title="Formato válido: HH:MM (ex: 02:30)"
             maxLength={5}
             required
-            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+            onInvalid={(e) => {
+              if (e.currentTarget.validity.patternMismatch) {
+                e.currentTarget.setCustomValidity("Formato inválido. Use HH:MM (ex: 02:30)");
+              } else {
+                e.currentTarget.setCustomValidity("Por favor preencha este campo");
+              }
+            }}
             onInput={(e) => e.currentTarget.setCustomValidity("")}
           />
         </div>
