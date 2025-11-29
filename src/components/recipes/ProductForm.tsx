@@ -51,7 +51,7 @@ export default function ProductForm({ isOpen, onOpenChange, onSuccess }: Product
         <DialogHeader>
           <DialogTitle>Novo Produto</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); addProduct(); }} className="space-y-4">
           <div>
             <Label htmlFor="product-description">Descrição</Label>
             <Textarea
@@ -80,7 +80,7 @@ export default function ProductForm({ isOpen, onOpenChange, onSuccess }: Product
             onSave={addProduct}
             onCancel={handleClose}
           />
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   )
