@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Save, X } from "lucide-react"
 
@@ -23,27 +22,10 @@ export function SaveCancelButtons({
   saveIcon = <Save className="h-4 w-4" />,
   cancelIcon = <X className="h-4 w-4" />
 }: SaveCancelButtonsProps) {
-  
-  // Handle Enter key for save action
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Enter") {
-        event.preventDefault()
-        if (!disabled && !isLoading) {
-          onSave()
-        }
-      }
-    }
-
-    document.addEventListener("keydown", handleKeyDown)
-    return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [onSave, disabled, isLoading])
-
   return (
     <div className="flex justify-end gap-2">
       <Button 
         type="submit"
-        onClick={onSave}
         disabled={isLoading || disabled}
         className="order-1"
       >
