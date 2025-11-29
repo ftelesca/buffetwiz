@@ -51,12 +51,17 @@ const timeFormatToMinutes = (timeString: string): number => {
 
 // Helper function to format time input as HH:MM
 const formatTimeInput = (value: string): string => {
+  // Remove all non-digit characters
   const digits = value.replace(/\D/g, '');
+  
+  // Limit to 4 digits max
   const limited = digits.slice(0, 4);
-  if (limited.length > 2) {
-    return `${limited.slice(0, 2)}:${limited.slice(2)}`;
-  }
-  return limited;
+  
+  if (limited.length === 0) return '';
+  if (limited.length <= 2) return limited;
+  
+  // Format as HH:MM
+  return `${limited.slice(0, 2)}:${limited.slice(2)}`;
 };
 
 export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
@@ -280,6 +285,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             type="text"
             value={formData.time}
             onChange={(e) => setFormData({ ...formData, time: formatTimeInput(e.target.value) })}
+            placeholder="HH:MM"
             maxLength={5}
             required
             onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
@@ -294,6 +300,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             type="text"
             value={formData.duration}
             onChange={(e) => setFormData({ ...formData, duration: formatTimeInput(e.target.value) })}
+            placeholder="HH:MM"
             maxLength={5}
             required
             onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
