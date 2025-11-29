@@ -6,10 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn, formatCurrencyInput, parseCurrency, formatCurrencyWithCents } from "@/lib/utils";
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons";
@@ -80,8 +76,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
     description: ""
   });
   
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [errors, setErrors] = useState<Record<string, boolean>>({});
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -203,22 +197,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Manual validation for Select/Calendar fields
-    const newErrors: Record<string, boolean> = {};
-    if (!formData.customer) newErrors.customer = true;
-    if (!formData.date) newErrors.date = true;
-    if (!formData.type) newErrors.type = true;
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      toast({
-        title: "Campos obrigatórios",
-        description: "Por favor preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     const submitData = {
       title: formData.title,
       customer: formData.customer,
@@ -260,54 +238,39 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
 
       <div>
         <Label htmlFor="customer">Cliente *</Label>
-        <Select value={formData.customer} onValueChange={(value) => {
-          setFormData({ ...formData, customer: value });
-          setErrors({ ...errors, customer: false });
-        }}>
-          <SelectTrigger className={cn(errors.customer && "border-destructive")}>
-            <SelectValue placeholder="Selecione um cliente" />
-          </SelectTrigger>
-          <SelectContent>
-            {customers?.map((customer) => (
-              <SelectItem key={customer.id} value={customer.id}>
-                {customer.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <select
+          id="customer"
+          value={formData.customer}
+          onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
+          required
+          onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+          onInput={(e) => e.currentTarget.setCustomValidity("")}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+        >
+          <option value="">Selecione um cliente</option>
+          {customers?.map((customer) => (
+            <option key={customer.id} value={customer.id}>
+              {customer.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label>Data *</Label>
-          <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !formData.date && "text-muted-foreground",
-                  errors.date && "border-destructive"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.date ? format(formData.date, "dd/MM/yyyy") : "Selecionar data"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={formData.date}
-                onSelect={(date) => {
-                  setFormData({ ...formData, date });
-                  setErrors({ ...errors, date: false });
-                  setIsDatePickerOpen(false);
-                }}
-                initialFocus
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
+          <Label htmlFor="date">Data *</Label>
+          <Input
+            id="date"
+            type="date"
+            value={formData.date ? format(formData.date, "yyyy-MM-dd") : ""}
+            onChange={(e) => setFormData({ 
+              ...formData, 
+              date: e.target.value ? new Date(e.target.value + 'T00:00:00') : undefined 
+            })}
+            required
+            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+            onInput={(e) => e.currentTarget.setCustomValidity("")}
+          />
         </div>
 
         <div>
@@ -355,37 +318,41 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="type">Tipo *</Label>
-          <Select value={formData.type} onValueChange={(value) => {
-            setFormData({ ...formData, type: value });
-            setErrors({ ...errors, type: false });
-          }}>
-            <SelectTrigger className={cn(errors.type && "border-destructive")}>
-              <SelectValue placeholder="Tipo de evento" />
-            </SelectTrigger>
-            <SelectContent>
-              {EVENT_TYPES.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            id="type"
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+            required
+            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+            onInput={(e) => e.currentTarget.setCustomValidity("")}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+          >
+            <option value="">Tipo de evento</option>
+            {EVENT_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
           <Label htmlFor="status">Status *</Label>
-          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Status do evento" />
-            </SelectTrigger>
-            <SelectContent>
-              {EVENT_STATUSES.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {EVENT_STATUS_LABELS[status]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            id="status"
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            required
+            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+            onInput={(e) => e.currentTarget.setCustomValidity("")}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+          >
+            {EVENT_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {EVENT_STATUS_LABELS[status]}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
