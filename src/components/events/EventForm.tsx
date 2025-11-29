@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -82,8 +82,29 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
+  const customerInputRef = useRef<HTMLInputElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const typeInputRef = useRef<HTMLInputElement>(null);
+  const statusInputRef = useRef<HTMLInputElement>(null);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    customerInputRef.current?.setCustomValidity("");
+  }, [formData.customer]);
+
+  useEffect(() => {
+    dateInputRef.current?.setCustomValidity("");
+  }, [formData.date]);
+
+  useEffect(() => {
+    typeInputRef.current?.setCustomValidity("");
+  }, [formData.type]);
+
+  useEffect(() => {
+    statusInputRef.current?.setCustomValidity("");
+  }, [formData.status]);
 
   // Fetch customers for dropdown
   const { data: customers } = useQuery({
@@ -244,6 +265,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
       <div>
         <Label htmlFor="customer">Cliente *</Label>
         <input
+          ref={customerInputRef}
           type="text"
           value={formData.customer}
           required
@@ -269,6 +291,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         <div>
           <Label>Data *</Label>
           <input
+            ref={dateInputRef}
             type="text"
             value={formData.date ? format(formData.date, "yyyy-MM-dd") : ""}
             required
@@ -350,6 +373,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         <div>
           <Label htmlFor="type">Tipo *</Label>
           <input
+            ref={typeInputRef}
             type="text"
             value={formData.type}
             required
@@ -374,6 +398,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         <div>
           <Label htmlFor="status">Status *</Label>
           <input
+            ref={statusInputRef}
             type="text"
             value={formData.status}
             required
