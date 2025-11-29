@@ -81,7 +81,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   });
   
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -202,44 +201,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate mandatory fields
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.title.trim()) {
-      newErrors.title = "Título é obrigatório";
-    }
-    if (!formData.customer) {
-      newErrors.customer = "Cliente é obrigatório";
-    }
-    if (!formData.date) {
-      newErrors.date = "Data é obrigatória";
-    }
-    if (!formData.time.trim()) {
-      newErrors.time = "Horário é obrigatório";
-    }
-    if (!formData.duration.trim()) {
-      newErrors.duration = "Duração é obrigatória";
-    }
-    if (!formData.location.trim()) {
-      newErrors.location = "Local é obrigatório";
-    }
-    if (!formData.type) {
-      newErrors.type = "Tipo é obrigatório";
-    }
-    if (!formData.status) {
-      newErrors.status = "Status é obrigatório";
-    }
-    if (!formData.numguests.trim()) {
-      newErrors.numguests = "Número de convidados é obrigatório";
-    }
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setErrors({});
 
     const submitData = {
       title: formData.title,
@@ -272,21 +233,25 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         <Input
           id="title"
           value={formData.title}
-          onChange={(e) => {
-            setFormData({ ...formData, title: e.target.value });
-            setErrors({ ...errors, title: "" });
-          }}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           placeholder="Nome do evento"
+          required
+          onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+          onInput={(e) => e.currentTarget.setCustomValidity("")}
         />
-        {errors.title && <p className="text-sm text-destructive mt-1">{errors.title}</p>}
       </div>
 
       <div>
         <Label htmlFor="customer">Cliente *</Label>
-        <Select value={formData.customer} onValueChange={(value) => {
-          setFormData({ ...formData, customer: value });
-          setErrors({ ...errors, customer: "" });
-        }}>
+        <input
+          type="text"
+          value={formData.customer}
+          required
+          className="sr-only"
+          tabIndex={-1}
+          onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+        />
+        <Select value={formData.customer} onValueChange={(value) => setFormData({ ...formData, customer: value })}>
           <SelectTrigger>
             <SelectValue placeholder="Selecione um cliente" />
           </SelectTrigger>
@@ -298,12 +263,19 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             ))}
           </SelectContent>
         </Select>
-        {errors.customer && <p className="text-sm text-destructive mt-1">{errors.customer}</p>}
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Label>Data *</Label>
+          <input
+            type="text"
+            value={formData.date ? format(formData.date, "yyyy-MM-dd") : ""}
+            required
+            className="sr-only"
+            tabIndex={-1}
+            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+          />
           <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -323,7 +295,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
                 selected={formData.date}
                 onSelect={(date) => {
                   setFormData({ ...formData, date });
-                  setErrors({ ...errors, date: "" });
                   setIsDatePickerOpen(false);
                 }}
                 initialFocus
@@ -331,7 +302,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               />
             </PopoverContent>
           </Popover>
-          {errors.date && <p className="text-sm text-destructive mt-1">{errors.date}</p>}
         </div>
 
         <div>
@@ -340,13 +310,12 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             id="time"
             type="text"
             value={formData.time}
-            onChange={(e) => {
-              setFormData({ ...formData, time: formatTimeInput(e.target.value) });
-              setErrors({ ...errors, time: "" });
-            }}
+            onChange={(e) => setFormData({ ...formData, time: formatTimeInput(e.target.value) })}
             maxLength={5}
+            required
+            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+            onInput={(e) => e.currentTarget.setCustomValidity("")}
           />
-          {errors.time && <p className="text-sm text-destructive mt-1">{errors.time}</p>}
         </div>
 
         <div>
@@ -355,13 +324,12 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             id="duration"
             type="text"
             value={formData.duration}
-            onChange={(e) => {
-              setFormData({ ...formData, duration: formatTimeInput(e.target.value) });
-              setErrors({ ...errors, duration: "" });
-            }}
+            onChange={(e) => setFormData({ ...formData, duration: formatTimeInput(e.target.value) })}
             maxLength={5}
+            required
+            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+            onInput={(e) => e.currentTarget.setCustomValidity("")}
           />
-          {errors.duration && <p className="text-sm text-destructive mt-1">{errors.duration}</p>}
         </div>
       </div>
       
@@ -370,22 +338,26 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         <Input
           id="location"
           value={formData.location}
-          onChange={(e) => {
-            setFormData({ ...formData, location: e.target.value });
-            setErrors({ ...errors, location: "" });
-          }}
+          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
           placeholder="Local do evento"
+          required
+          onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+          onInput={(e) => e.currentTarget.setCustomValidity("")}
         />
-        {errors.location && <p className="text-sm text-destructive mt-1">{errors.location}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="type">Tipo *</Label>
-          <Select value={formData.type} onValueChange={(value) => {
-            setFormData({ ...formData, type: value });
-            setErrors({ ...errors, type: "" });
-          }}>
+          <input
+            type="text"
+            value={formData.type}
+            required
+            className="sr-only"
+            tabIndex={-1}
+            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+          />
+          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
             <SelectTrigger>
               <SelectValue placeholder="Tipo de evento" />
             </SelectTrigger>
@@ -397,15 +369,19 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               ))}
             </SelectContent>
           </Select>
-          {errors.type && <p className="text-sm text-destructive mt-1">{errors.type}</p>}
         </div>
 
         <div>
           <Label htmlFor="status">Status *</Label>
-          <Select value={formData.status} onValueChange={(value) => {
-            setFormData({ ...formData, status: value });
-            setErrors({ ...errors, status: "" });
-          }}>
+          <input
+            type="text"
+            value={formData.status}
+            required
+            className="sr-only"
+            tabIndex={-1}
+            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+          />
+          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
             <SelectTrigger>
               <SelectValue placeholder="Status do evento" />
             </SelectTrigger>
@@ -417,7 +393,6 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               ))}
             </SelectContent>
           </Select>
-          {errors.status && <p className="text-sm text-destructive mt-1">{errors.status}</p>}
         </div>
       </div>
 
@@ -428,14 +403,13 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             id="numguests"
             type="number"
             value={formData.numguests}
-            onChange={(e) => {
-              setFormData({ ...formData, numguests: e.target.value });
-              setErrors({ ...errors, numguests: "" });
-            }}
+            onChange={(e) => setFormData({ ...formData, numguests: e.target.value })}
             placeholder="Quantidade"
             min="1"
+            required
+            onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
+            onInput={(e) => e.currentTarget.setCustomValidity("")}
           />
-          {errors.numguests && <p className="text-sm text-destructive mt-1">{errors.numguests}</p>}
         </div>
 
         <div>
