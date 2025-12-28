@@ -37,22 +37,23 @@ export function generateEmail<T extends keyof AllTranslations>(
       htmlContent = generateShareHtmlContent(processedTranslations as any, allVariables);
       break;
     case 'email-validation':
-        <div style="text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 3px solid #2563eb;">
+      textContent = generateValidationTextContent(processedTranslations as any, allVariables);
       htmlContent = generateValidationHtmlContent(processedTranslations as any, allVariables);
-          <h1 style="color: #2563eb; font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.5px; display: inline-block; vertical-align: middle;">${vars.appName}</h1>
+      break;
     case 'email-change':
       textContent = generateChangeTextContent(processedTranslations as any, allVariables);
       htmlContent = generateChangeHtmlContent(processedTranslations as any, allVariables);
       break;
     case 'email-change-verify':
-          <a href="${vars.verificationUrl}" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">${t.button}</a>
+      textContent = generateChangeVerifyTextContent(processedTranslations as any, allVariables);
       htmlContent = generateChangeVerifyHtmlContent(processedTranslations as any, allVariables);
       break;
     case 'email-resetpwd':
       textContent = generateResetPwdTextContent(processedTranslations as any, allVariables);
       htmlContent = generateResetPwdHtmlContent(processedTranslations as any, allVariables);
       break;
-          <p style="margin: 5px 0; font-weight: 600; color: #2563eb;">${vars.appName}</p>
+    default:
+      break;
 
   return {
     subject: processedTranslations.subject,
@@ -106,7 +107,7 @@ function generateShareHtmlContent(t: any, vars: Record<string, string>): string 
       <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #f0f0f0; color: #94a3b8; font-size: 12px;">
         <p style="margin: 5px 0; font-weight: 600; color: #2563eb;">${vars.appName}</p>
         <p style="margin: 5px 0; color: #6b7280;">${vars.appDesc}</p>
-        <p style="margin: 10px 0 5px 0;"><a href="${vars.appUrl}/auth" style="color: #10b981; text-decoration: none;">${vars.appName}</a></p>
+        <p style="margin: 10px 0 5px 0;"><a href="${vars.appUrl}/auth" style="color: #2563eb; text-decoration: none;">${vars.appName}</a></p>
       </div>
     </div>
   `;
