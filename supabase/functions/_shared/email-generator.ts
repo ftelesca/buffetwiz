@@ -221,23 +221,23 @@ ${vars.appUrl}`;
 function generateChangeVerifyHtmlContent(t: any, vars: Record<string, string>): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 3px solid #10b981;">
+      <div style="text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 3px solid #2563eb;">
         <img src="${vars.appLogoUrl}" alt="${vars.appName}" style="height: 32px; vertical-align: middle; margin-right: 10px;">
-        <h1 style="color: #10b981; font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.5px; display: inline-block; vertical-align: middle;">${vars.appName}</h1>
+        <h1 style="color: #2563eb; font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.5px; display: inline-block; vertical-align: middle;">${vars.appName}</h1>
       </div>
 
       <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 600;">${t.greeting}</h2>
       <p style="color: #333; line-height: 1.6;">${t.body}</p>
       
       <div style="text-align: center; margin: 35px 0;">
-        <a href="${vars.verificationUrl}" style="background-color: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">${t.button}</a>
+        <a href="${vars.verificationUrl}" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">${t.button}</a>
       </div>
 
       <p style="color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #f0f0f0;">${t.securityNote}</p>
       <p style="color: #999; font-size: 0.85em; font-style: italic;">${t.footer}</p>
 
       <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #f0f0f0; color: #94a3b8; font-size: 12px;">
-        <p style="margin: 5px 0; font-weight: 600; color: #10b981;">${vars.appName}</p>
+        <p style="margin: 5px 0; font-weight: 600; color: #2563eb;">${vars.appName}</p>
         <p style="margin: 5px 0; color: #6b7280;">${vars.appDesc}</p>
       </div>
     </div>
@@ -267,9 +267,9 @@ ${vars.appUrl}`;
 function generateResetPwdHtmlContent(t: any, vars: Record<string, string>): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 3px solid #10b981;">
+      <div style="text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 3px solid #2563eb;">
         <img src="${vars.appLogoUrl}" alt="${vars.appName}" style="height: 32px; vertical-align: middle; margin-right: 10px;">
-        <h1 style="color: #10b981; font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.5px; display: inline-block; vertical-align: middle;">${vars.appName}</h1>
+        <h1 style="color: #2563eb; font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.5px; display: inline-block; vertical-align: middle;">${vars.appName}</h1>
       </div>
 
       <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; font-weight: 600;">${t.greeting}</h2>
@@ -277,7 +277,7 @@ function generateResetPwdHtmlContent(t: any, vars: Record<string, string>): stri
       <p style="color: #333; line-height: 1.6;">${t.instructions}</p>
       
       <div style="text-align: center; margin: 35px 0;">
-        <a href="${vars.resetUrl}" style="background-color: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">${t.button}</a>
+        <a href="${vars.resetUrl}" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">${t.button}</a>
       </div>
 
       <p style="color: #999; font-size: 0.85em; font-style: italic;">${t.expirationNote}</p>
@@ -285,7 +285,7 @@ function generateResetPwdHtmlContent(t: any, vars: Record<string, string>): stri
       <p style="color: #999; font-size: 0.85em; font-style: italic;">${t.footer}</p>
 
       <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #f0f0f0; color: #94a3b8; font-size: 12px;">
-        <p style="margin: 5px 0; font-weight: 600; color: #10b981;">${vars.appName}</p>
+        <p style="margin: 5px 0; font-weight: 600; color: #2563eb;">${vars.appName}</p>
         <p style="margin: 5px 0; color: #6b7280;">${vars.appDesc}</p>
       </div>
     </div>
