@@ -98,7 +98,8 @@ const signUp = async (email: string, password: string, fullName: string) => {
       options: {
         emailRedirectTo: redirectUrl,  // ⚠️ MUST include this
         data: {
-          full_name: fullName,  // Stored in raw_user_meta_data
+          full_name: fullName?.trim() || null,  // Stored in raw_user_meta_data
+          email: normalizedEmail,               // Some triggers read email from metadata
         },
       },
     });
