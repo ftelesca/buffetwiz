@@ -18,6 +18,9 @@ export default function AuthCallback() {
         const type = params.get('type');
         const tokenHash = params.get('token_hash');
         const token = params.get('token');
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        const redirectTo = params.get('redirect_to');
 
         if (errorParam) {
           const errorMessage = errorParam === 'access_denied'
@@ -29,11 +32,12 @@ export default function AuthCallback() {
         }
 
         // Supabase email link flows (signup/recovery/email_change)
-        if (tokenHash && type) {
+        if ((tokenHash || token) && type) {
+          const otpToken = tokenHash || token;
           const verifyType = type === 'recovery' ? 'recovery' : type === 'email_change' ? 'email_change' : 'signup';
           const { error: verifyError } = await supabase.auth.verifyOtp({
             type: verifyType as any,
-            token_hash: tokenHash,
+            token_hash: otpToken!,
           });
 
           if (verifyError) {
@@ -44,7 +48,17 @@ export default function AuthCallback() {
 
           if (verifyType === 'recovery') {
             toast.success('Sessão restaurada, defina sua nova senha');
-            navigate('/reset-password');
+            // If Supabase sent access/refresh tokens, set session to allow password change
+            if (accessToken && refreshToken) {
+              await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).catch(() => {});
+            }
+            const target = redirectTo || '/reset-password';
+            const url = new URL(target, window.location.origin);
+            if (accessToken && refreshToken) {
+              url.searchParams.set('access_token', accessToken);
+              url.searchParams.set('refresh_token', refreshToken);
+            }
+            navigate(url.pathname + url.search);
             return;
           }
 
