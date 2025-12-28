@@ -20,7 +20,7 @@ export function LoginForm({ onSwitchToSignUp, onSwitchToForgot }: LoginFormProps
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   
-  const { signIn, signInWithGoogle } = useAuth()
+  const { signIn, signInWithGoogle, resendVerificationEmail } = useAuth()
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,11 +31,28 @@ export function LoginForm({ onSwitchToSignUp, onSwitchToForgot }: LoginFormProps
       await signIn(email, password);
       // On success, AuthContext navigates to /dashboard
     } catch (error: any) {
-      toast({
-        title: "Erro ao entrar",
-        description: error.message || "Erro ao fazer login",
-        variant: "destructive"
-      });
+      if (error?.code === "email_not_confirmed") {
+        try {
+          await resendVerificationEmail(email);
+          toast({
+            title: "Email não confirmado",
+            description: "Reenviamos o link de verificação para o seu email.",
+            variant: "default"
+          });
+        } catch (resendError: any) {
+          toast({
+            title: "Email não confirmado",
+            description: resendError?.message || "Erro ao reenviar verificação.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "Erro ao entrar",
+          description: error?.message || "Erro ao fazer login",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false);
     }

@@ -3,25 +3,29 @@ import { useNavigate } from "react-router-dom";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getAppConfig, getNormalizedLanguage } from "@/lib/appConfig";
 
 interface Profile {
   id: string;
-  email: string;
+  email?: string;
   full_name?: string;
   avatar_url?: string;
-  created_at: string;
-  updated_at: string;
+  preferred_language?: string;
+  display_mode?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  profile: Profile | null;
   session: Session | null;
+  profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  resendVerificationEmail: (email: string, fullName?: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
@@ -31,38 +35,35 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  // Set up auth state listener FIRST
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      setSession(session);  // ⚠️ Store FULL session, not just user
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
 
       if (session?.user) {
-        // Fetch profile asynchronously (deferred with setTimeout to avoid deadlock)
         const fetchProfile = async () => {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", session.user.id)
-            .maybeSingle();
-
-          // Update avatar from Google if needed
-          const googleAvatarUrl = session.user.user_metadata?.avatar_url;
-          if (googleAvatarUrl && profileData && profileData.avatar_url !== googleAvatarUrl) {
-            await supabase
+          try {
+            const { data: profileData } = await supabase
               .from("profiles")
-              .update({ avatar_url: googleAvatarUrl })
-              .eq("id", session.user.id);
+              .select("*")
+              .eq("id", session.user.id)
+              .maybeSingle();
 
-            setProfile({ ...profileData, avatar_url: googleAvatarUrl });
-          } else {
-            setProfile(profileData);
+            const googleAvatarUrl = session.user.user_metadata?.avatar_url;
+            if (googleAvatarUrl && profileData && profileData.avatar_url !== googleAvatarUrl) {
+              await supabase.from("profiles").update({ avatar_url: googleAvatarUrl }).eq("id", session.user.id);
+              setProfile({ ...profileData, avatar_url: googleAvatarUrl });
+            } else {
+              setProfile(profileData);
+            }
+          } catch (err) {
+            console.error("Profile fetch error:", err);
+            setProfile(null);
           }
         };
 
@@ -70,176 +71,171 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(null);
       }
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signIn = async (email: string, password: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
+
+      if (error) {
+        if (error.message.toLowerCase().includes("email not confirmed")) {
+          const customError = new Error("Email não confirmado");
+          (customError as any).code = "email_not_confirmed";
+          (customError as any).email = normalizedEmail;
+          throw customError;
+        }
+        throw error;
+      }
+
+      toast.success("Login realizado com sucesso!");
+      navigate("/dashboard");
+    } catch (error: any) {
+      if (error.code === "email_not_confirmed") {
+        throw error;
+      }
+      toast.error(error.message || "Erro ao fazer login");
+      throw error;
     }
-  );
+  };
 
-  // THEN check for existing session
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (!session) {
-      setLoading(false);
-    }
-  });
+  const signUp = async (email: string, password: string, fullName: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const config = getAppConfig();
 
-  return () => subscription.unsubscribe();
-}, []);
-
-const signUp = async (email: string, password: string, fullName: string) => {
-  try {
-    const redirectUrl = `${window.location.origin}/`;  // ⚠️ CRITICAL: Email redirect
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,  // ⚠️ MUST include this
-        data: {
-          full_name: fullName,  // Stored in raw_user_meta_data
+    try {
+      const { error } = await supabase.functions.invoke("email-validation", {
+        body: {
+          email: normalizedEmail,
+          password,
+          fullName,
+          isResend: false,
+          ...config,
         },
-      },
-    });
+      });
 
-    if (error) {
-      // Handle specific errors
-      if (error.message.includes("already registered")) {
-        toast.error("Email já cadastrado");
-      } else {
-        toast.error(error.message);
+      if (error) throw error;
+
+      toast.success("Verifique seu email para confirmar o cadastro");
+      navigate("/auth");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao criar conta");
+      throw error;
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const { appUrl, language } = getAppConfig();
+      const { data, error } = await supabase.functions.invoke("google-oauth-initiate", {
+        body: {
+          appUrl,
+          language,
+        },
+      });
+
+      if (error) throw error;
+
+      if (!data?.authUrl || !data?.state) {
+        throw new Error("Resposta inválida do servidor de OAuth");
       }
+
+      sessionStorage.setItem("oauth_state", data.state);
+      sessionStorage.setItem("oauth_language", language);
+
+      window.location.href = data.authUrl;
+    } catch (error: any) {
+      console.error("Google sign in error:", error);
+      toast.error(error.message || "Erro ao fazer login com Google");
       throw error;
     }
+  };
 
-    toast.success("Verifique seu email para confirmar o cadastro");
-  } catch (error: any) {
-    console.error("Signup error:", error);
-    throw error;
-  }
-};
-
-const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
-  try {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    // Store rememberMe preference
-    if (rememberMe) {
-      localStorage.setItem('auth-remember-me', 'true');
-    } else {
-      localStorage.removeItem('auth-remember-me');
-      sessionStorage.setItem('auth-session-only', 'true');  // Session-only
-    }
-
-    if (error) {
-      if (error.message.includes("Email not confirmed")) {
-        throw new Error("Email not confirmed");
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error && error.message !== "Session not found") {
+        throw error;
       }
-      if (error.message.includes("Invalid login credentials")) {
-        toast.error("Email ou senha incorretos");
-      } else {
-        toast.error(error.message);
-      }
+    } catch (error: any) {
+      console.error("Logout error:", error);
+    } finally {
+      await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+      navigate("/");
+    }
+  };
+
+  const resendVerificationEmail = async (email: string, fullName?: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const config = getAppConfig();
+    try {
+      const { error } = await supabase.functions.invoke("email-validation", {
+        body: {
+          email: normalizedEmail,
+          fullName: fullName || normalizedEmail.split("@")[0],
+          isResend: true,
+          ...config,
+        },
+      });
+
+      if (error) throw error;
+      toast.success("Email de verificação reenviado");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao reenviar verificação");
       throw error;
     }
-
-    toast.success("Login realizado com sucesso!");
-    navigate("/navegador");
-  } catch (error: any) {
-    console.error("Login error:", error);
-    throw error;
-  }
-};
-
-const signInWithGoogle = async () => {
-  try {
-    // Call edge function to get Google OAuth URL
-    const { data, error } = await supabase.functions.invoke('google-oauth-initiate');
-
-    if (error) {
-      console.error('Error getting Google auth URL:', error);
-      toast.error('Erro ao iniciar login com Google');
-      throw error;
-    }
-
-    if (!data?.authUrl) {
-      throw new Error('No auth URL returned from server');
-    }
-
-    // Store state for CSRF protection
-    if (data.state) {
-      sessionStorage.setItem('oauth_state', data.state);
-    }
-
-    console.log('Redirecting to Google OAuth...');
-
-    // Redirect to Google
-    window.location.href = data.authUrl;
-  } catch (error: any) {
-    console.error('Google sign in error:', error);
-    toast.error(error.message || 'Erro ao fazer login com Google');
-    throw error;
-  }
-};
-
-const signOut = async () => {
-  try {
-    // Sign out from Supabase (invalidates server-side session)
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      toast.error(error.message);
-      throw error;
-    }
-
-    // Clear local state
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-
-    // Clear local storage
-    localStorage.removeItem('auth-remember-me');
-    sessionStorage.removeItem('auth-session-only');
-
-    toast.success("Logout realizado");
-    navigate("/");  // Redirect to landing
-  } catch (error: any) {
-    console.error("Signout error:", error);
-    throw error;
-  }
-};
+  };
 
   const resetPassword = async (email: string) => {
-  try {
-    const redirectUrl = `${window.location.origin}/reset-password`;  // ⚠️ CRITICAL
+    const normalizedEmail = email.trim().toLowerCase();
+    const config = getAppConfig();
+    try {
+      const { error } = await supabase.functions.invoke("email-resetpwd", {
+        body: {
+          email: normalizedEmail,
+          ...config,
+        },
+      });
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
-    });
-
-    if (error) {
-      toast.error(error.message);
+      if (error) throw error;
+      toast.success("Email de recuperação enviado");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao enviar recuperação");
       throw error;
     }
-
-    toast.success("Email de recuperação enviado!");
-  } catch (error: any) {
-    console.error("Reset password error:", error);
-    throw error;
-  }
-};
+  };
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) throw new Error("Usuário não autenticado");
 
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq("id", user.id);
+      const now = new Date().toISOString();
+      const upsertData = {
+        id: user.id,
+        full_name: updates.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+        ...updates,
+        updated_at: now,
+        created_at: now,
+      };
 
+      const { error } = await supabase.from("profiles").upsert(upsertData, { onConflict: "id" });
       if (error) throw error;
 
-      // Fetch updated profile
       const { data: profileData, error: fetchError } = await supabase
         .from("profiles")
         .select("*")
@@ -247,7 +243,6 @@ const signOut = async () => {
         .maybeSingle();
 
       if (fetchError) throw fetchError;
-
       setProfile(profileData);
       toast.success("Perfil atualizado com sucesso!");
     } catch (error: any) {
@@ -258,13 +253,14 @@ const signOut = async () => {
 
   const value = {
     user,
-    profile,
     session,
+    profile,
     loading,
-    signUp,
     signIn,
+    signUp,
     signInWithGoogle,
     signOut,
+    resendVerificationEmail,
     resetPassword,
     updateProfile,
   };
@@ -274,7 +270,7 @@ const signOut = async () => {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
