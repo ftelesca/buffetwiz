@@ -32,10 +32,11 @@ export default function AuthCallback() {
         }
 
         // Supabase email link flows (signup/recovery/email_change)
+        // If Supabase did not embed tokens in URL, attempt to exchange token_hash for a session
         if ((tokenHash || token) && type) {
           const otpToken = tokenHash || token;
           const verifyType = type === 'recovery' ? 'recovery' : type === 'email_change' ? 'email_change' : 'signup';
-          const { error: verifyError } = await supabase.auth.verifyOtp({
+          const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
             type: verifyType as any,
             token_hash: otpToken!,
           });
@@ -49,14 +50,16 @@ export default function AuthCallback() {
           if (verifyType === 'recovery') {
             toast.success('Sessão restaurada, defina sua nova senha');
             // If Supabase sent access/refresh tokens, set session to allow password change
-            if (accessToken && refreshToken) {
-              await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).catch(() => {});
+            const acc = accessToken || params.get('access_token') || (verifyData as any)?.session?.access_token;
+            const ref = refreshToken || params.get('refresh_token') || (verifyData as any)?.session?.refresh_token;
+            if (acc && ref) {
+              await supabase.auth.setSession({ access_token: acc, refresh_token: ref }).catch(() => {});
             }
             const target = redirectTo || '/reset-password';
             const url = new URL(target, window.location.origin);
-            if (accessToken && refreshToken) {
-              url.searchParams.set('access_token', accessToken);
-              url.searchParams.set('refresh_token', refreshToken);
+            if (acc && ref) {
+              url.searchParams.set('access_token', acc);
+              url.searchParams.set('refresh_token', ref);
             }
             navigate(url.pathname + url.search);
             return;
