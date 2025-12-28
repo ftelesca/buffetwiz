@@ -72,7 +72,8 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
 
     try {
       // Call AuthContext signUp
-      await signUp(formData.email, formData.password, formData.fullName);
+      const normalizedEmail = formData.email.trim().toLowerCase();
+      await signUp(normalizedEmail, formData.password, formData.fullName);
       setEmailSent(true);
     } catch (error) {
       // Error already handled in AuthContext
