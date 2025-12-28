@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getAppConfig } from "@/lib/appConfig";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -24,6 +25,9 @@ export default function AuthCallback() {
           setError(errorMessage);
           setTimeout(() => navigate('/auth'), 3000);
           return;
+              const type = params.get('type');
+              const tokenHash = params.get('token_hash');
+              const token = params.get('token');
         }
 
         // 3. Validate authorization code
@@ -35,6 +39,7 @@ export default function AuthCallback() {
 
         // 4. CSRF protection: Validate state
         const storedState = sessionStorage.getItem('oauth_state');
+              // Supabase email link flows (token_hash)
         if (storedState && state !== storedState) {
           setError('Estado de segurança inválido');
           sessionStorage.removeItem('oauth_state');
