@@ -11,35 +11,92 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // 1. Parse URL parameters
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
         const state = params.get('state');
         const errorParam = params.get('error');
+        const type = params.get('type');
+        const tokenHash = params.get('token_hash');
+        const token = params.get('token');
 
-        // 2. Handle Google errors
         if (errorParam) {
-          const errorMessage = errorParam === 'access_denied' 
-            ? 'Acesso negado' 
+          const errorMessage = errorParam === 'access_denied'
+            ? 'Acesso negado'
             : 'Erro ao fazer login com Google';
           setError(errorMessage);
           setTimeout(() => navigate('/auth'), 3000);
           return;
-              const type = params.get('type');
-              const tokenHash = params.get('token_hash');
-              const token = params.get('token');
         }
 
-        // 3. Validate authorization code
+        // Supabase email link flows (signup/recovery/email_change)
+        if (tokenHash && type) {
+          const verifyType = type === 'recovery' ? 'recovery' : type === 'email_change' ? 'email_change' : 'signup';
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            type: verifyType as any,
+            token_hash: tokenHash,
+          });
+
+          if (verifyError) {
+            setError(verifyError.message || 'Falha ao validar link');
+            setTimeout(() => navigate('/auth'), 3000);
+            return;
+          }
+
+          if (verifyType === 'recovery') {
+            toast.success('Sessão restaurada, defina sua nova senha');
+            navigate('/reset-password');
+            return;
+          }
+
+          toast.success('Email confirmado com sucesso');
+          navigate('/dashboard');
+          return;
+        }
+
+        // Email change flow: old email authorization
+        if (type === 'email_change_auth' && token) {
+          const config = getAppConfig();
+          const { error: fnError } = await supabase.functions.invoke('email-change-verify', {
+            body: { tokenId: token, ...config },
+          });
+
+          if (fnError) {
+            setError(fnError.message || 'Erro ao enviar verificação do novo email');
+            setTimeout(() => navigate('/profile'), 3000);
+            return;
+          }
+
+          toast.success('Autorização recebida. Verifique o novo email para confirmar.');
+          navigate('/profile');
+          return;
+        }
+
+        // Email change flow: new email confirmation
+        if (type === 'email_change_verify' && token) {
+          const { error: fnError } = await supabase.functions.invoke('email-change-complete', {
+            body: { tokenId: token },
+          });
+
+          if (fnError) {
+            setError(fnError.message || 'Erro ao concluir alteração de email');
+            setTimeout(() => navigate('/profile'), 3000);
+            return;
+          }
+
+          toast.success('Email alterado com sucesso. Faça login novamente.');
+          await supabase.auth.signOut();
+          navigate('/auth');
+          return;
+        }
+
+        // Google OAuth flow
         if (!code) {
           setError('Código de autorização não recebido');
           setTimeout(() => navigate('/auth'), 3000);
           return;
         }
 
-        // 4. CSRF protection: Validate state
         const storedState = sessionStorage.getItem('oauth_state');
-              // Supabase email link flows (token_hash)
         if (storedState && state !== storedState) {
           setError('Estado de segurança inválido');
           sessionStorage.removeItem('oauth_state');
@@ -48,7 +105,6 @@ export default function AuthCallback() {
         }
         sessionStorage.removeItem('oauth_state');
 
-        // 5. Exchange code for tokens via edge function
         const { data: exchangeData, error: exchangeError } = await supabase.functions.invoke(
           'google-oauth-callback',
           { body: { code, state } }
@@ -60,7 +116,6 @@ export default function AuthCallback() {
           return;
         }
 
-        // 6. Set Supabase session
         const { error: sessionError } = await supabase.auth.setSession({
           access_token: exchangeData.access_token,
           refresh_token: exchangeData.refresh_token,
@@ -72,7 +127,6 @@ export default function AuthCallback() {
           return;
         }
 
-        // 7. Success!
         toast.success('Login realizado com sucesso!');
         window.history.replaceState({}, '', '/auth/callback');
         navigate('/dashboard');
