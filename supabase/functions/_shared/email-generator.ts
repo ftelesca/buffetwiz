@@ -54,6 +54,7 @@ export function generateEmail<T extends keyof AllTranslations>(
       break;
     default:
       break;
+  }
 
   return {
     subject: processedTranslations.subject,
