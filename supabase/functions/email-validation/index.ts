@@ -47,6 +47,8 @@ const handler = async (req: Request): Promise<Response> => {
       appDomain,
     } = validation.data;
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
       return new Response(JSON.stringify({ success: false, error: "Email service not configured" }), {
@@ -73,13 +75,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!isResend) {
       const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: email,
+        email: normalizedEmail,
         password: password!,
         email_confirm: false,
         user_metadata: {
-          full_name: fullName || email.split("@")[0],
+          full_name: fullName || normalizedEmail.split("@")[0],
           preferred_language: normalizedLanguage,
-          email,
+          email: normalizedEmail,
         },
       });
 
@@ -90,8 +92,8 @@ const handler = async (req: Request): Promise<Response> => {
       if (userData?.user) {
         await supabaseAdmin.from('profiles').upsert({
           id: userData.user.id,
-          email,
-          full_name: fullName || email.split("@")[0],
+          email: normalizedEmail,
+          full_name: fullName || normalizedEmail.split("@")[0],
           preferred_language: normalizedLanguage,
         }, { onConflict: 'id' });
 
@@ -116,7 +118,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       const { data: userData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
       if (userData?.users) {
-        const existingUser = userData.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+        const existingUser = userData.users.find((u) => u.email?.toLowerCase() === normalizedEmail);
         if (existingUser) {
           foundUserId = existingUser.id;
           foundName = existingUser.user_metadata?.full_name || existingUser.user_metadata?.name;
@@ -134,12 +136,12 @@ const handler = async (req: Request): Promise<Response> => {
         }
       }
 
-      displayFullName = foundName || fullName || email.split("@")[0];
+      displayFullName = foundName || fullName || normalizedEmail.split("@")[0];
     }
 
     const { data: tokenData, error: tokenError } = await supabaseAdmin.auth.admin.generateLink({
       type: "signup",
-      email: email,
+      email: normalizedEmail,
       password: crypto.randomUUID(),
     });
 
@@ -156,7 +158,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const verificationUrl = `${appUrl}/auth/callback?type=signup&token_hash=${tokenHash}`;
-    const displayName = displayFullName || email.split("@")[0];
+    const displayName = displayFullName || normalizedEmail.split("@")[0];
 
     const emailContent = generateEmail({
       language: language || 'en',
