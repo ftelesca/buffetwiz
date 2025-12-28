@@ -47,17 +47,6 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
     e.preventDefault();
     setIsLoading(true);
 
-    const normalizedEmail = formData.email.trim().toLowerCase();
-    if (!normalizedEmail) {
-      toast({
-        title: "Erro",
-        description: "Email é obrigatório",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-      return;
-    }
-
     // Validate password
     const validation = validatePassword(formData.password);
     if (!validation.isValid) {
@@ -83,7 +72,7 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
 
     try {
       // Call AuthContext signUp
-      await signUp(normalizedEmail, formData.password, formData.fullName);
+      await signUp(formData.email, formData.password, formData.fullName);
       setEmailSent(true);
     } catch (error) {
       // Error already handled in AuthContext

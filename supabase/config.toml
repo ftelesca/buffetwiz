@@ -56,9 +56,3 @@ policy = "oneshot"
 
 [functions.wizard-chat]
 verify_jwt = true
-
-[functions.google-oauth-initiate]
-verify_jwt = false
-
-[functions.google-oauth-callback]
-verify_jwt = false

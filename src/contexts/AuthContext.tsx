@@ -85,21 +85,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 const signUp = async (email: string, password: string, fullName: string) => {
   try {
-    const normalizedEmail = email?.trim().toLowerCase();
-    if (!normalizedEmail) {
-      throw new Error("Email é obrigatório");
-    }
-
     const redirectUrl = `${window.location.origin}/`;  // ⚠️ CRITICAL: Email redirect
 
     const { error } = await supabase.auth.signUp({
-      email: normalizedEmail,
+      email,
       password,
       options: {
         emailRedirectTo: redirectUrl,  // ⚠️ MUST include this
         data: {
-          full_name: fullName?.trim() || null,  // Stored in raw_user_meta_data
-          email: normalizedEmail,               // Some triggers read email from metadata
+          full_name: fullName,  // Stored in raw_user_meta_data
         },
       },
     });

@@ -131,7 +131,7 @@ export function WizardChat({ open, onOpenChange }: WizardChatProps) {
 
     try {
       const { data, error } = await supabase.functions.invoke('wizard-chat', {
-        body: { message: userText, chatId: currentChatId || undefined }
+        body: { message: userText, chatId: currentChatId }
       });
       
       if (error) throw error;
