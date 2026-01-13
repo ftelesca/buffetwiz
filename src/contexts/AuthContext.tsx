@@ -227,13 +227,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const now = new Date().toISOString();
       const upsertData = {
         id: user.id,
+        email: profile?.email || user.email || "",
         full_name: updates.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
         ...updates,
         updated_at: now,
         created_at: now,
       };
 
-      const { error } = await supabase.from("profiles").upsert(upsertData, { onConflict: "id" });
+      const { error } = await supabase.from("profiles").upsert(upsertData);
       if (error) throw error;
 
       const { data: profileData, error: fetchError } = await supabase

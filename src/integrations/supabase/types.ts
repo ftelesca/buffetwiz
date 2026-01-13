@@ -71,6 +71,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_change_tokens: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          new_email: string
+          old_email: string
+          status: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          new_email: string
+          old_email: string
+          status?: string
+          token?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          new_email?: string
+          old_email?: string
+          status?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       event: {
         Row: {
           cost: number | null
@@ -218,26 +257,62 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          display_mode: string | null
           email: string
           full_name: string | null
           id: string
+          preferred_language: string | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          display_mode?: string | null
           email: string
           full_name?: string | null
           id: string
+          preferred_language?: string | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          display_mode?: string | null
           email?: string
           full_name?: string | null
           id?: string
+          preferred_language?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          identifier: string
+          request_count: number
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          identifier: string
+          request_count?: number
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          identifier?: string
+          request_count?: number
+          updated_at?: string
+          window_start?: string
         }
         Relationships: []
       }
@@ -425,6 +500,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_increment_rate_limit: {
+        Args: { target_endpoint: string; target_user: string }
+        Returns: undefined
+      }
       calculate_event_cost: {
         Args: { event_id_param: string }
         Returns: number
@@ -436,6 +515,32 @@ export type Database = {
       calculate_recipe_unit_cost: {
         Args: { recipe_id_param: string }
         Returns: number
+      }
+      check_rate_limit: {
+        Args: {
+          p_endpoint: string
+          p_identifier: string
+          p_max_requests: number
+          p_window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          current_count: number
+          reset_at: string
+        }[]
+      }
+      check_rate_limits: {
+        Args: {
+          p_endpoint: string
+          p_identifier: string
+          p_max_requests: number
+          p_window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          current_count: number
+          reset_at: string
+        }[]
       }
       cleanup_expired_wizard_cache: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
