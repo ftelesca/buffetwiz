@@ -82,7 +82,7 @@ export default function Dashboard() {
         location: (event as any).location || 'Local não definido',
         guests: (event as any).numguests || 0,
         budget: (event as any).price || 0,
-        cost: (event as any).cost || 0, // Exibindo diretamente event.cost
+        cost: (event as any).cost || 0,
         status: ((event as any).status as EventStatus) || DEFAULT_EVENT_STATUS,
         description: (event as any).description || '',
         duration: (event as any).duration || null,
@@ -116,7 +116,7 @@ export default function Dashboard() {
         .gte('date', format(lastMonthStart, 'yyyy-MM-dd'))
         .lte('date', format(lastMonthEnd, 'yyyy-MM-dd'))
 
-      // Total guests for events this month (entire month)
+      // Total guests for events this month
       const { data: guestsThisMonth } = await supabase
         .from('event')
         .select('numguests')
@@ -130,7 +130,7 @@ export default function Dashboard() {
         .gte('date', format(lastMonthStart, 'yyyy-MM-dd'))
         .lte('date', format(lastMonthEnd, 'yyyy-MM-dd'))
 
-      // Revenue this month (completed events)
+      // Revenue this month
       const { data: revenueThisMonth } = await supabase
         .from('event')
         .select('price')
@@ -188,7 +188,7 @@ export default function Dashboard() {
     navigate('/eventos')
   }
 
-  // Calculate growth rate (overall business growth)
+  // Calculate growth rate
   const growthRate = stats ? 
     calculatePercentageChange(
       stats.eventsThisMonth + stats.totalRevenue / 1000, 
@@ -201,54 +201,58 @@ export default function Dashboard() {
       value: stats.eventsThisMonth.toString(),
       change: calculatePercentageChange(stats.eventsThisMonth, stats.eventsLastMonth),
       icon: Calendar,
-      color: "text-primary"
+      glowClass: "hover-glow"
     },
     {
       title: "Total de Convidados",
       value: stats.totalGuests.toLocaleString('pt-BR'),
       change: calculatePercentageChange(stats.totalGuests, stats.previousGuests),
       icon: Users,
-      color: "text-secondary"
+      glowClass: "hover-glow-cyan"
     },
     {
       title: "Receita este Mês",
       value: formatCurrency(stats.totalRevenue),
       change: calculatePercentageChange(stats.totalRevenue, stats.previousRevenue),
       icon: DollarSign,
-      color: "text-success"
+      glowClass: "hover-glow-purple"
     },
     {
       title: "Taxa de Crescimento",
       value: growthRate.replace('+', '').replace('%', '') + '%',
       change: growthRate,
       icon: TrendingUp,
-      color: "text-warning"
+      glowClass: "hover-glow"
     }
   ] : []
 
   return (
-    <div className="space-y-12 page-fade-in">
+    <div className="space-y-16 page-fade-in">
       {/* Hero Section with Enhanced Styling */}
       <div className="relative overflow-hidden">
         <div 
-          className="h-64 rounded-2xl bg-cover bg-center relative overflow-hidden shadow-elegant"
+          className="h-72 lg:h-80 rounded-lg bg-cover bg-center relative overflow-hidden"
           style={{ backgroundImage: `url(https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2)` }}
         >
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="relative h-full flex items-center justify-between p-8">
-            <div className="text-primary-foreground space-y-3">
-              <h1 className="text-4xl font-bold mb-2 tracking-tight">
-                Bem-vindo ao <span className="text-white">BuffetWiz</span>
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          
+          <div className="relative h-full flex items-center justify-between p-8 lg:p-12">
+            <div className="space-y-4 max-w-xl">
+              <h1 className="text-5xl lg:text-6xl font-bold tracking-tight">
+                <span className="text-foreground">Bem-vindo ao </span>
+                <span className="text-gradient-hero">BuffetWiz</span>
               </h1>
-              <p className="text-xl font-medium">
+              <p className="text-xl lg:text-2xl text-muted-foreground font-medium tracking-wide">
                 Produza seus eventos gastronômicos sem complicação
               </p>
             </div>
             <Button 
-              variant="secondary" 
-              size="lg"
+              variant="hero" 
+              size="xl"
               onClick={handleCreateEvent}
-              className="shadow-button hover-glow bg-primary/20 backdrop-blur-sm border-primary/30 text-primary-foreground hover:bg-primary/30"
+              className="hidden md:flex"
             >
               <Plus className="h-5 w-5 mr-2" />
               Novo Evento
@@ -257,22 +261,28 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Enhanced Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 stagger-children">
+      {/* Bento Grid Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 stagger-children">
         {dashboardStats.map((stat, index) => (
-          <Card key={index} className="gradient-card hover-lift shadow-card border-0 group">
+          <Card 
+            key={index} 
+            variant="glass"
+            className={`hover-lift ${stat.glowClass} group`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                 {stat.title}
               </CardTitle>
-              <div className="p-2 rounded-lg bg-accent/50 group-hover:bg-primary/10 transition-colors">
-                <stat.icon className={`h-5 w-5 ${stat.color} group-hover:scale-110 transition-transform`} />
+              <div className="p-2.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <stat.icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="text-3xl font-bold tracking-tight">{stat.value}</div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm text-success font-medium">{stat.change}</span>
+              <div className="text-4xl font-bold tracking-tight">{stat.value}</div>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-semibold ${stat.change.startsWith('+') ? 'text-success' : stat.change.startsWith('-') ? 'text-destructive' : 'text-muted-foreground'}`}>
+                  {stat.change}
+                </span>
                 <span className="text-xs text-muted-foreground">vs mês anterior</span>
               </div>
             </CardContent>
@@ -280,23 +290,23 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Enhanced Events Section */}
-      <div className="space-y-6">
+      {/* Events Section */}
+      <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Próximos Eventos</h2>
-            <p className="text-muted-foreground mt-1">Acompanhe seus eventos mais importantes</p>
+            <h2 className="text-4xl font-bold tracking-tight">Próximos Eventos</h2>
+            <p className="text-muted-foreground mt-2 text-lg tracking-wide">Acompanhe seus eventos mais importantes</p>
           </div>
           <Button 
             variant="outline" 
-            className="hover-lift shadow-button"
+            className="hover-lift"
             onClick={handleViewAllEvents}
           >
             Ver Todos
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 stagger-children">
           {events.map((event) => (
             <div key={event.id} className="hover-lift">
               <EventCard
@@ -312,9 +322,9 @@ export default function Dashboard() {
 
       {/* Menu Dialog */}
       <Dialog open={isMenuDialogOpen} onOpenChange={setIsMenuDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto glass-effect">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Menu do Evento</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">Menu do Evento</DialogTitle>
           </DialogHeader>
           {selectedEventForMenu && (
             <EventMenu
