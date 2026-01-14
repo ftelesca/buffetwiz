@@ -16,7 +16,6 @@ export function AppSidebar() {
   const location = useLocation()
   const currentPath = location.pathname
 
-  // Stable mini rail + unified hover area (one clickable container for icon+caption)
   const [hovered, setHovered] = React.useState(false)
   const closeTimer = React.useRef<number | null>(null)
 
@@ -35,7 +34,6 @@ export function AppSidebar() {
 
   const onLeave = () => {
     if (closeTimer.current) window.clearTimeout(closeTimer.current)
-    // small delay to avoid flicker when moving between rail and overlay
     closeTimer.current = window.setTimeout(() => setHovered(false), 120)
   }
 
@@ -48,29 +46,29 @@ export function AppSidebar() {
     setHovered(false)
   }
 
-  // Collapsed icon button (equal left/right padding, stable size)
+  // Collapsed icon button with glass effect
   const collapsedBtnCls = (path: string) => {
-    const base = "group w-full h-10 px-2 flex items-center rounded-md transition-colors"
+    const base = "group w-full h-11 px-2 flex items-center rounded-lg transition-all duration-300"
     if (hovered) return `${base} text-muted-foreground`
-    const active = "text-primary bg-primary/10 ring-1 ring-primary/40"
-    const inactive = "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+    const active = "text-primary bg-primary/15 shadow-[0_0_20px_hsl(217_91%_60%/0.2)] border border-primary/30"
+    const inactive = "text-muted-foreground hover:bg-accent/50 hover:text-foreground hover:shadow-[0_0_15px_hsl(217_91%_60%/0.1)]"
     return `${base} ${isActive(path) ? active : inactive}`
   }
 
-  // Overlay link that covers both icon area (rail) and caption area
+  // Overlay link with enhanced styling
   const overlayBtnCls = (path: string) => {
-    const base = "h-10 flex items-center rounded-md pr-3 transition-colors select-none"
-    const active = "bg-primary/10 text-primary ring-1 ring-primary/40"
-    const inactive = "text-foreground/80 hover:bg-accent/50"
+    const base = "h-11 flex items-center rounded-lg pr-4 transition-all duration-300 select-none"
+    const active = "bg-primary/15 text-primary shadow-[0_0_20px_hsl(217_91%_60%/0.2)] border border-primary/30"
+    const inactive = "text-foreground/80 hover:bg-accent/50 hover:text-foreground"
     return `${base} ${isActive(path) ? active : inactive}`
   }
 
   return (
     <div className="relative" onMouseEnter={onEnter} onMouseLeave={onLeave}>
-      {/* Mini rail - fixed width, icons centered with equal padding */}
-      <aside className="w-14 border-r sticky top-20 h-[calc(100vh-5rem)]">
-        <nav className="pt-3 pb-4 px-2">
-          <ul className="space-y-1">
+      {/* Mini rail - glass effect sidebar */}
+      <aside className="w-14 border-r border-border/30 sticky top-20 h-[calc(100vh-5rem)] bg-sidebar/50 backdrop-blur-sm">
+        <nav className="pt-4 pb-4 px-2">
+          <ul className="space-y-2">
             {navigationItems.map((item) => (
               <li key={item.title}>
                 <NavLink
@@ -80,7 +78,7 @@ export function AppSidebar() {
                   end={item.url === "/"}
                 >
                   <span className="h-10 w-10 flex items-center justify-center">
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <item.icon className="h-5 w-5 flex-shrink-0 transition-all group-hover:scale-110" />
                   </span>
                 </NavLink>
               </li>
@@ -89,12 +87,12 @@ export function AppSidebar() {
         </nav>
       </aside>
 
-      {/* Hover overlay - extends from rail with background and border */}
+      {/* Hover overlay - glass effect with gradient border */}
       {hovered && !isMobile && (
         <div className="fixed top-20 bottom-0 left-0 z-50" onMouseEnter={onEnter} onMouseLeave={onLeave}>
           <div className="inline-block h-full">
-            <div className="h-full border-r pl-0 pr-2 pt-3 pb-4 whitespace-nowrap text-foreground bg-background">
-              <nav className="flex flex-col gap-1 px-2">
+            <div className="h-full border-r border-border/30 pl-0 pr-3 pt-4 pb-4 whitespace-nowrap text-foreground glass-card">
+              <nav className="flex flex-col gap-2 px-2">
                 {navigationItems.map((item) => (
                   <NavLink
                     key={item.title}
@@ -106,7 +104,7 @@ export function AppSidebar() {
                     <span className="h-10 w-10 flex items-center justify-center">
                       <item.icon className="h-5 w-5 flex-shrink-0" />
                     </span>
-                    <span>{item.title}</span>
+                    <span className="font-medium tracking-wide">{item.title}</span>
                   </NavLink>
                 ))}
               </nav>
