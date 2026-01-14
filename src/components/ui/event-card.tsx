@@ -68,14 +68,11 @@ export function EventCard({
   };
 
   return (
-    <Card variant="glass" className="h-full relative overflow-hidden group">
-      {/* Gradient accent line at top */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-cyan to-purple opacity-60 group-hover:opacity-100 transition-opacity" />
-      
-      <CardHeader className="pb-4 pt-5">
+    <Card className="h-full">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-lg font-semibold tracking-tight">
+            <CardTitle className="text-lg">
               {title}
             </CardTitle>
             <CardDescription className="font-medium truncate">
@@ -84,7 +81,6 @@ export function EventCard({
           </div>
           <Badge
             variant={getStatusBadgeVariant(status)}
-            className="shadow-sm"
           >
             {EVENT_STATUS_LABELS[status || DEFAULT_EVENT_STATUS]}
           </Badge>
@@ -99,7 +95,7 @@ export function EventCard({
               {formatDateWithoutTimezone(date)}
               {time && ` às ${formatTimeWithoutSeconds(time)}`}
               {duration && (
-                <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-md">
+                <span className="ml-2 text-xs bg-accent/50 px-2 py-1 rounded">
                   {formatDuration(duration)}
                 </span>
               )}
@@ -109,8 +105,8 @@ export function EventCard({
         
         {location && (
           <div className="flex items-center gap-2 text-sm">
-            <div className="h-4 w-4 rounded-full bg-cyan/20 flex items-center justify-center">
-              <div className="h-2 w-2 rounded-full bg-cyan" />
+            <div className="h-4 w-4 rounded-full bg-accent flex items-center justify-center">
+              <div className="h-2 w-2 rounded-full bg-primary" />
             </div>
             <span>{location}</span>
           </div>
@@ -142,7 +138,7 @@ export function EventCard({
         </div>
         
         {description && (
-          <div className="text-sm text-muted-foreground bg-accent/30 p-3 rounded-lg border border-border/30">
+          <div className="text-sm text-muted-foreground bg-accent/30 p-3 rounded-lg">
             {description}
           </div>
         )}
@@ -151,7 +147,6 @@ export function EventCard({
           {onMenu && (
             <Button
               size="sm"
-              variant="glow"
               onClick={() => onMenu(id)}
               className="min-w-20"
             >
