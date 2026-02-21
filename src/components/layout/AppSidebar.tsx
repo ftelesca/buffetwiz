@@ -50,26 +50,26 @@ export function AppSidebar() {
 
   // Collapsed icon button (equal left/right padding, stable size)
   const collapsedBtnCls = (path: string) => {
-    const base = "group w-full h-10 px-2 flex items-center rounded-md transition-colors"
+    const base = "group w-full h-11 px-2 flex items-center rounded-xl transition-colors"
     if (hovered) return `${base} text-muted-foreground`
-    const active = "text-primary bg-primary/10 ring-1 ring-primary/40"
-    const inactive = "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+    const active = "text-primary bg-primary/12 ring-1 ring-primary/40 shadow-sm"
+    const inactive = "text-muted-foreground hover:bg-accent/70 hover:text-foreground"
     return `${base} ${isActive(path) ? active : inactive}`
   }
 
   // Overlay link that covers both icon area (rail) and caption area
   const overlayBtnCls = (path: string) => {
-    const base = "h-10 flex items-center rounded-md pr-3 transition-colors select-none"
-    const active = "bg-primary/10 text-primary ring-1 ring-primary/40"
-    const inactive = "text-foreground/80 hover:bg-accent/50"
+    const base = "h-11 flex items-center rounded-xl pr-3 transition-colors select-none"
+    const active = "bg-primary/12 text-primary ring-1 ring-primary/40 shadow-sm"
+    const inactive = "text-foreground/80 hover:bg-accent/70"
     return `${base} ${isActive(path) ? active : inactive}`
   }
 
   return (
     <div className="relative" onMouseEnter={onEnter} onMouseLeave={onLeave}>
       {/* Mini rail - fixed width, icons centered with equal padding */}
-      <aside className="w-14 border-r sticky top-20 h-[calc(100vh-5rem)]">
-        <nav className="pt-3 pb-4 px-2">
+      <aside className="w-16 border-r border-border/60 sticky top-20 h-[calc(100vh-5rem)] bg-sidebar/35 backdrop-blur-sm">
+        <nav className="pt-4 pb-4 px-2">
           <ul className="space-y-1">
             {navigationItems.map((item) => (
               <li key={item.title}>
@@ -106,7 +106,7 @@ export function AppSidebar() {
                     <span className="h-10 w-10 flex items-center justify-center">
                       <item.icon className="h-5 w-5 flex-shrink-0" />
                     </span>
-                    <span>{item.title}</span>
+                    <span className="text-sm font-medium">{item.title}</span>
                   </NavLink>
                 ))}
               </nav>

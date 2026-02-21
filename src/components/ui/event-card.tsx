@@ -68,11 +68,11 @@ export function EventCard({
   };
 
   return (
-    <Card className="h-full">
+    <Card className="h-full rounded-2xl border-border/60 bg-card/90 shadow-card">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-lg">
+            <CardTitle className="text-lg leading-tight">
               {title}
             </CardTitle>
             <CardDescription className="font-medium truncate">
@@ -112,7 +112,7 @@ export function EventCard({
           </div>
         )}
         
-        <div className="grid grid-cols-3 gap-3 text-sm">
+        <div className="grid grid-cols-3 gap-3 rounded-xl bg-accent/40 p-3 text-sm">
           {guests && (
             <div className="flex items-center gap-1">
               <Users className="h-3 w-3 text-primary" />
@@ -138,7 +138,7 @@ export function EventCard({
         </div>
         
         {description && (
-          <div className="text-sm text-muted-foreground bg-accent/30 p-3 rounded-lg">
+          <div className="text-sm text-muted-foreground bg-accent/45 p-3 rounded-lg">
             {description}
           </div>
         )}

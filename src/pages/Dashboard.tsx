@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Plus, Calendar, Users, DollarSign, TrendingUp } from "lucide-react"
+import { Plus, Calendar, Users, DollarSign, TrendingUp, ChefHat, ShoppingCart, UserRound, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { EventCard } from "@/components/ui/event-card"
@@ -187,6 +187,26 @@ export default function Dashboard() {
   const handleViewAllEvents = () => {
     navigate('/eventos')
   }
+  const quickActions = [
+    {
+      title: "Novo Cliente",
+      subtitle: "Cadastre contatos e histórico",
+      icon: UserRound,
+      onClick: () => navigate("/clientes"),
+    },
+    {
+      title: "Novo Produto",
+      subtitle: "Monte cardápios e rendimentos",
+      icon: ChefHat,
+      onClick: () => navigate("/cardapios"),
+    },
+    {
+      title: "Gerir Insumos",
+      subtitle: "Atualize custo e estoque base",
+      icon: ShoppingCart,
+      onClick: () => navigate("/insumos"),
+    },
+  ]
 
   // Calculate growth rate (overall business growth)
   const growthRate = stats ? 
@@ -228,27 +248,24 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-12 page-fade-in">
-      {/* Hero Section with Enhanced Styling */}
-      <div className="relative overflow-hidden">
-        <div 
-          className="h-64 rounded-2xl bg-cover bg-center relative overflow-hidden shadow-elegant"
-          style={{ backgroundImage: `url(https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2)` }}
-        >
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="relative h-full flex items-center justify-between p-8">
-            <div className="text-primary-foreground space-y-3">
-              <h1 className="text-4xl font-bold mb-2 tracking-tight">
-                Bem-vindo ao <span className="text-white">BuffetWiz</span>
-              </h1>
-              <p className="text-xl font-medium">
-                Produza seus eventos gastronômicos sem complicação
-              </p>
-            </div>
-            <Button 
-              variant="secondary" 
+      <div className="relative overflow-hidden rounded-3xl border border-border/50 p-8 md:p-10 gradient-hero shadow-elegant">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,hsl(var(--background)/0.25),transparent_45%)]" />
+        <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="text-primary-foreground space-y-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-primary-foreground/80">Cockpit</p>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+              Bem-vindo ao BuffetWiz
+            </h1>
+            <p className="text-lg font-medium text-primary-foreground/90">
+              Planeje, precifique e acompanhe seus eventos com clareza.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="secondary"
               size="lg"
               onClick={handleCreateEvent}
-              className="shadow-button hover-glow bg-primary/20 backdrop-blur-sm border-primary/30 text-primary-foreground hover:bg-primary/30"
+              className="bg-background/15 border border-background/40 text-primary-foreground hover:bg-background/25"
             >
               <Plus className="h-5 w-5 mr-2" />
               Novo Evento
@@ -257,15 +274,33 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Enhanced Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {quickActions.map((action) => (
+          <button
+            key={action.title}
+            onClick={action.onClick}
+            className="text-left rounded-2xl border border-border/60 bg-card/90 p-5 shadow-card transition-smooth hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card"
+          >
+            <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-accent/70">
+              <action.icon className="h-5 w-5 text-primary" />
+            </div>
+            <h3 className="text-base font-semibold">{action.title}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{action.subtitle}</p>
+            <div className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
+              Abrir <ArrowRight className="h-4 w-4" />
+            </div>
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 stagger-children">
         {dashboardStats.map((stat, index) => (
-          <Card key={index} className="gradient-card hover-lift shadow-card border-0 group">
+          <Card key={index} className="hover-lift shadow-card border-border/60 bg-card/85 group rounded-2xl overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 {stat.title}
               </CardTitle>
-              <div className="p-2 rounded-lg bg-accent/50 group-hover:bg-primary/10 transition-colors">
+              <div className="p-2 rounded-lg bg-accent/65 group-hover:bg-primary/10 transition-colors">
                 <stat.icon className={`h-5 w-5 ${stat.color} group-hover:scale-110 transition-transform`} />
               </div>
             </CardHeader>
@@ -280,7 +315,6 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Enhanced Events Section */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -289,7 +323,7 @@ export default function Dashboard() {
           </div>
           <Button 
             variant="outline" 
-            className="hover-lift shadow-button"
+            className="hover-lift"
             onClick={handleViewAllEvents}
           >
             Ver Todos
