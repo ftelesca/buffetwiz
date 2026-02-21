@@ -21,17 +21,35 @@ export function ResetPasswordPage() {
   const { toast } = useToast()
 
   useEffect(() => {
-    // Check if we have the required tokens
-    const accessToken = searchParams.get('access_token')
-    const refreshToken = searchParams.get('refresh_token')
-    
-    if (!accessToken || !refreshToken) {
-      toast({
-        title: "Link inválido",
-        description: "Link de redefinição de senha inválido ou expirado.",
-        variant: "destructive"
-      })
-      navigate('/auth')
+    let isMounted = true
+
+    const ensureRecoverySession = async () => {
+      const accessToken = searchParams.get("access_token")
+      const refreshToken = searchParams.get("refresh_token")
+
+      if (accessToken && refreshToken) {
+        await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        }).catch(() => {})
+      }
+
+      const { data } = await supabase.auth.getSession()
+      if (!isMounted) return
+
+      if (!data.session) {
+        toast({
+          title: "Link inválido",
+          description: "Link de redefinição de senha inválido ou expirado.",
+          variant: "destructive",
+        })
+        navigate("/auth")
+      }
+    }
+
+    ensureRecoverySession()
+    return () => {
+      isMounted = false
     }
   }, [searchParams, navigate, toast])
 

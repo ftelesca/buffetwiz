@@ -10,6 +10,23 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const normalizeDomain = (value?: string): string => {
+  if (!value) return "";
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  try {
+    const hasProtocol = /^https?:\/\//i.test(trimmed);
+    const url = new URL(hasProtocol ? trimmed : `https://${trimmed}`);
+    return url.hostname.toLowerCase();
+  } catch {
+    return trimmed
+      .replace(/^https?:\/\//i, "")
+      .split("/")[0]
+      .split(":")[0]
+      .toLowerCase();
+  }
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -112,17 +129,25 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     let displayFullName = fullName;
+    let existingUserId = userId || null;
     if (isResend) {
       let foundName = null;
       let foundUserId = userId;
 
-      const { data: userData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-      if (userData?.users) {
-        const existingUser = userData.users.find((u) => u.email?.toLowerCase() === normalizedEmail);
+      const perPage = 1000;
+      let page = 1;
+      while (!foundUserId && page <= 20) {
+        const { data: userData } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+        const users = userData?.users || [];
+        const existingUser = users.find((u) => u.email?.trim().toLowerCase() === normalizedEmail);
         if (existingUser) {
           foundUserId = existingUser.id;
           foundName = existingUser.user_metadata?.full_name || existingUser.user_metadata?.name;
+          break;
         }
+
+        if (users.length < perPage) break;
+        page += 1;
       }
 
       if (!foundName && foundUserId) {
@@ -137,28 +162,55 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       displayFullName = foundName || fullName || normalizedEmail.split("@")[0];
+      existingUserId = foundUserId || null;
+    }
+
+    // Avoid accidental account creation on resend if user wasn't found
+    if (isResend && !existingUserId) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Verification email sent successfully",
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const { data: tokenData, error: tokenError } = await supabaseAdmin.auth.admin.generateLink({
       type: "signup",
       email: normalizedEmail,
-      password: crypto.randomUUID(),
+      password: password || crypto.randomUUID(),
     });
 
     if (tokenError || !tokenData) {
       throw new Error("Failed to generate verification link");
     }
 
-    const actionLink = tokenData.properties.action_link;
-    const actionUrl = new URL(actionLink);
-    const tokenHash = actionUrl.searchParams.get('token');
+    const properties = tokenData.properties as unknown as Record<string, string | undefined>;
+    let tokenHash = properties?.hashed_token;
+
+    if (!tokenHash && properties?.action_link) {
+      const actionUrl = new URL(properties.action_link);
+      tokenHash = actionUrl.searchParams.get("token_hash") || actionUrl.searchParams.get("token") || undefined;
+    }
 
     if (!tokenHash) {
       throw new Error("Failed to extract verification token");
     }
 
-    const verificationUrl = `${appUrl}/auth/callback?type=signup&token_hash=${tokenHash}`;
+    const verificationUrl = `${appUrl}/auth/callback?type=signup&token_hash=${encodeURIComponent(tokenHash)}`;
     const displayName = displayFullName || normalizedEmail.split("@")[0];
+    const secretFromDomain =
+      normalizeDomain(Deno.env.get("RESEND_FROM_DOMAIN")) ||
+      normalizeDomain(Deno.env.get("YALT_RESEND_DOMAIN")) ||
+      normalizeDomain(Deno.env.get("BUFFETWIZ_RESEND_DOMAIN"));
+    const fromDomain = normalizeDomain(appDomain) || secretFromDomain || normalizeDomain(new URL(appUrl).hostname);
+    if (!fromDomain) {
+      throw new Error("Email sender domain is not configured");
+    }
 
     const emailContent = generateEmail({
       language: language || 'en',
@@ -181,8 +233,8 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `${appName} <notifications@${appDomain}>`,
-        to: [email],
+        from: `${appName} <notifications@${fromDomain}>`,
+        to: [normalizedEmail],
         subject: emailContent.subject,
         text: emailContent.text,
         html: emailContent.html,
