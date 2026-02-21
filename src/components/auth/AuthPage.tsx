@@ -25,7 +25,7 @@ export function AuthPage() {
           </div>
           <div className="space-y-5">
             <p className="text-xs uppercase tracking-[0.18em] text-primary-foreground/80">Plataforma de gestão</p>
-            <h1 className="text-5xl font-semibold leading-tight tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight">
               BuffetWiz
             </h1>
             <p className="max-w-md text-base text-primary-foreground/90">
@@ -66,7 +66,7 @@ export function AuthPage() {
 
             <Card className="border-border/60 bg-card/88 shadow-card">
               <CardHeader className="text-center pb-4">
-                <CardTitle className="text-2xl">
+                <CardTitle className="text-xl">
                   {currentTab === "login" && "Entrar na sua conta"}
                   {currentTab === "signup" && "Criar nova conta"}
                   {currentTab === "forgot" && "Recuperar senha"}

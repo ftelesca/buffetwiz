@@ -47,21 +47,22 @@ export default function ProductForm({ isOpen, onOpenChange, onSuccess }: Product
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-xl border-border/60 bg-card/95">
         <DialogHeader>
           <DialogTitle>Novo Produto</DialogTitle>
         </DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); addProduct(); }} className="space-y-4">
-          <div>
+          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
             <Label htmlFor="product-description">Descrição</Label>
             <Textarea
               id="product-description"
               value={newProduct.description}
               onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
               placeholder="Digite a descrição do produto..."
+              className="mt-2 bg-background/70"
             />
           </div>
-          <div>
+          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
             <Label htmlFor="product-efficiency">Rendimento</Label>
             <Input
               id="product-efficiency"
@@ -71,6 +72,7 @@ export default function ProductForm({ isOpen, onOpenChange, onSuccess }: Product
               value={newProduct.efficiency}
               onChange={(e) => setNewProduct({ ...newProduct, efficiency: e.target.value })}
               placeholder="1.00"
+              className="mt-2 bg-background/70"
             />
             <p className="text-xs text-muted-foreground mt-1">
               Fator de rendimento do produto (ex: 1.20 = 20% a mais de rendimento)

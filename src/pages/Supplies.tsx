@@ -285,10 +285,10 @@ export default function Insumos() {
   const filteredItems = items.filter((item) => item.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
         {/* Header */}
         <PageHeader title="Insumos" subtitle="Gerencie insumos e unidades">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
               <Upload className="h-4 w-4" />
               Importar Planilha
@@ -310,15 +310,14 @@ export default function Insumos() {
           </div>
         </PageHeader>
 
-        {/* Search */}
-        <div className="flex gap-4">
-          <div className="relative flex-1">
+        <div className="rounded-2xl border border-border/60 bg-card/85 p-4 shadow-card">
+          <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar insumos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-background/70"
             />
           </div>
         </div>
@@ -326,7 +325,7 @@ export default function Insumos() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Items Table */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="rounded-2xl border-border/60 bg-card/90 shadow-card">
               <CardHeader>
                 <div>
                   <CardTitle>Insumos</CardTitle>
@@ -403,7 +402,7 @@ export default function Insumos() {
 
           {/* Units */}
           <div>
-            <Card>
+            <Card className="rounded-2xl border-border/60 bg-card/90 shadow-card">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   Unidades
@@ -422,7 +421,7 @@ export default function Insumos() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {units.map((unit) => (
-                  <div key={unit.id} className="flex items-center justify-between p-2 border rounded">
+                  <div key={unit.id} className="flex items-center justify-between p-2 border border-border/60 rounded-lg bg-background/60">
                     <div className="flex-1">
                       <span className="font-medium">{unit.description}</span>
                     </div>
@@ -447,7 +446,7 @@ export default function Insumos() {
 
         {/* Item Dialog */}
         <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-xl border-border/60 bg-card/95">
             <DialogHeader>
               <DialogTitle>{editingItem ? "Editar Insumo" : "Novo Insumo"}</DialogTitle>
               <DialogDescription>
@@ -547,7 +546,7 @@ export default function Insumos() {
 
         {/* Unit Dialog */}
         <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-md border-border/60 bg-card/95">
             <DialogHeader>
               <DialogTitle>{editingUnit ? "Editar Unidade" : "Nova Unidade"}</DialogTitle>
               <DialogDescription>

@@ -180,12 +180,12 @@ export default function Recipes() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
         <PageHeader
           title="Produtos"
           subtitle="Gerencie produtos e seus insumos"
         >
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button 
               variant="outline" 
               onClick={() => setIsImportDialogOpen(true)}
@@ -200,37 +200,40 @@ export default function Recipes() {
           </div>
         </PageHeader>
 
-        {/* Search */}
-        <div className="flex gap-4">
-          <div className="relative flex-1">
+        <div className="rounded-2xl border border-border/60 bg-card/85 p-4 shadow-card">
+          <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar produtos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-background/70"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ProductList
-            products={filteredProducts}
-            selectedProduct={selectedProduct}
-            onSelectProduct={handleSelectProduct}
-            onProductsChange={handleProductsChange}
-            allProducts={products}
-            searchTerm={searchTerm}
-          />
+          <div className="rounded-2xl border border-border/60 bg-card/90 shadow-card p-4 sm:p-5">
+            <ProductList
+              products={filteredProducts}
+              selectedProduct={selectedProduct}
+              onSelectProduct={handleSelectProduct}
+              onProductsChange={handleProductsChange}
+              allProducts={products}
+              searchTerm={searchTerm}
+            />
+          </div>
 
-          <ProductItems
-            selectedProduct={selectedProduct}
-            productItems={productItems}
-            units={units}
-            onAddItem={handleAddItem}
-            onEditItem={handleEditItem}
-            onProductItemsChange={handleProductItemsChange}
-          />
+          <div className="rounded-2xl border border-border/60 bg-card/90 shadow-card p-4 sm:p-5">
+            <ProductItems
+              selectedProduct={selectedProduct}
+              productItems={productItems}
+              units={units}
+              onAddItem={handleAddItem}
+              onEditItem={handleEditItem}
+              onProductItemsChange={handleProductItemsChange}
+            />
+          </div>
         </div>
 
         <ProductForm

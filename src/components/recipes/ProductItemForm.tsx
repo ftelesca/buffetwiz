@@ -140,27 +140,29 @@ export default function ProductItemForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-lg border-border/60 bg-card/95">
         <DialogHeader>
           <DialogTitle>{editingProductItem ? 'Editar Insumo do Produto' : 'Adicionar Insumo ao Produto'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); saveProductItem(); }} className="space-y-4">
-          <div>
+          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
             <Label htmlFor="item-select">Item</Label>
-            <Combobox
-              options={items.map((item) => ({
-                value: item.id,
-                label: item.description
-              }))}
-              value={newProductItem.item}
-              onValueChange={handleItemChange}
-              placeholder="Selecione um insumo"
-              searchPlaceholder="Buscar insumos..."
-              emptyText="Nenhum insumo encontrado."
-              autoFocus
-            />
+            <div className="mt-2">
+              <Combobox
+                options={items.map((item) => ({
+                  value: item.id,
+                  label: item.description
+                }))}
+                value={newProductItem.item}
+                onValueChange={handleItemChange}
+                placeholder="Selecione um insumo"
+                searchPlaceholder="Buscar insumos..."
+                emptyText="Nenhum insumo encontrado."
+                autoFocus
+              />
+            </div>
           </div>
-          <div>
+          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
             <Label htmlFor="qty-input">Quantidade</Label>
             <Input
               ref={qtyInputRef}
@@ -170,6 +172,7 @@ export default function ProductItemForm({
               value={newProductItem.qty}
               onChange={(e) => setNewProductItem({ ...newProductItem, qty: e.target.value })}
               placeholder="Digite a quantidade..."
+              className="mt-2 bg-background/70"
             />
           </div>
           <SaveCancelButtons

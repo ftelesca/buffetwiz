@@ -217,7 +217,7 @@ const Customers = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Clientes"
         subtitle="Gerencie clientes e informações de contato"
@@ -229,7 +229,7 @@ const Customers = () => {
               Novo Cliente
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-xl border-border/60 bg-card/95">
             <DialogHeader>
               <DialogTitle>
                 {editingCustomer ? "Editar Cliente" : "Novo Cliente"}
@@ -294,18 +294,19 @@ const Customers = () => {
           </Dialog>
         </PageHeader>
 
-      {/* Search Bar */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input
-          placeholder="Buscar clientes..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
+      <div className="rounded-2xl border border-border/60 bg-card/85 p-4 shadow-card">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Buscar clientes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-background/70"
+          />
+        </div>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl border-border/60 bg-card/90 shadow-card">
         <CardHeader>
           <CardTitle>Clientes</CardTitle>
           <CardDescription>
@@ -320,9 +321,9 @@ const Customers = () => {
             )}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           {filteredCustomers.length > 0 ? (
-            <Table>
+            <Table className="min-w-[720px]">
               <TableHeader className="sticky top-0 bg-background z-10 border-b">
                 <TableRow>
                   <TableHead>Nome</TableHead>

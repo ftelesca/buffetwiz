@@ -23,11 +23,11 @@ export function SaveCancelButtons({
   cancelIcon = <X className="h-4 w-4" />
 }: SaveCancelButtonsProps) {
   return (
-    <div className="flex justify-end gap-2">
+    <div className="flex justify-end gap-2 pt-1">
       <Button 
         type="submit"
         disabled={isLoading || disabled}
-        className="order-1"
+        className="order-1 min-w-24"
       >
         {saveIcon}
         {saveLabel}
@@ -37,7 +37,7 @@ export function SaveCancelButtons({
         variant="outline" 
         onClick={onCancel}
         disabled={isLoading}
-        className="order-2"
+        className="order-2 min-w-24"
       >
         {cancelIcon}
         {cancelLabel}

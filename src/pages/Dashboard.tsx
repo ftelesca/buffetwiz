@@ -305,7 +305,7 @@ export default function Dashboard() {
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="text-3xl font-bold tracking-tight">{stat.value}</div>
+              <div className="text-2xl md:text-3xl font-bold tracking-tight">{stat.value}</div>
               <div className="flex items-center gap-1">
                 <span className="text-sm text-success font-medium">{stat.change}</span>
                 <span className="text-xs text-muted-foreground">vs mês anterior</span>
@@ -318,7 +318,7 @@ export default function Dashboard() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Próximos Eventos</h2>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Próximos Eventos</h2>
             <p className="text-muted-foreground mt-1">Acompanhe seus eventos mais importantes</p>
           </div>
           <Button 
@@ -348,7 +348,7 @@ export default function Dashboard() {
       <Dialog open={isMenuDialogOpen} onOpenChange={setIsMenuDialogOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto glass-effect">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Menu do Evento</DialogTitle>
+            <DialogTitle className="text-xl">Menu do Evento</DialogTitle>
           </DialogHeader>
           {selectedEventForMenu && (
             <EventMenu

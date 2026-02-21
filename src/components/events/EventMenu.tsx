@@ -356,9 +356,9 @@ export const EventMenu = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-2xl border border-border/60 bg-card/85 p-5 shadow-card">
         <div className="space-y-1">
-          <h2 className="text-2xl font-bold tracking-tight">{eventTitle}</h2>
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight">{eventTitle}</h2>
           <p className="text-muted-foreground font-medium">{customerName}</p>
         </div>
         
@@ -369,27 +369,29 @@ export const EventMenu = ({
               Adicionar Produto
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-xl border-border/60 bg-card/95">
             <DialogHeader>
               <DialogTitle>Adicionar Produto ao Menu</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
+              <div className="rounded-xl border border-border/60 bg-card/70 p-4">
                 <Label htmlFor="product-select">Produto</Label>
-                <Combobox
-                  options={availableProducts.map((product) => ({
-                    value: product.id,
-                    label: product.description
-                  }))}
-                  value={selectedProductId}
-                  onValueChange={setSelectedProductId}
-                  placeholder="Selecione um produto"
-                  searchPlaceholder="Buscar produtos..."
-                  emptyText="Nenhum produto encontrado."
-                  autoFocus
-                />
+                <div className="mt-2">
+                  <Combobox
+                    options={availableProducts.map((product) => ({
+                      value: product.id,
+                      label: product.description
+                    }))}
+                    value={selectedProductId}
+                    onValueChange={setSelectedProductId}
+                    placeholder="Selecione um produto"
+                    searchPlaceholder="Buscar produtos..."
+                    emptyText="Nenhum produto encontrado."
+                    autoFocus
+                  />
+                </div>
               </div>
-              <div>
+              <div className="rounded-xl border border-border/60 bg-card/70 p-4">
                 <Label htmlFor="qty-input">Quantidade</Label>
                 <Input
                   id="qty-input"
@@ -399,6 +401,7 @@ export const EventMenu = ({
                   value={selectedQty}
                   onChange={(e) => setSelectedQty(e.target.value)}
                   placeholder="Digite a quantidade..."
+                  className="mt-2 bg-background/70"
                 />
               </div>
               <div className="pt-4">
@@ -417,8 +420,8 @@ export const EventMenu = ({
 
       {/* Total Cost Display */}
       {eventMenuProducts && eventMenuProducts.length > 0 && (
-        <div className="bg-muted/50 rounded-lg p-4 text-center">
-          <p className="text-lg font-semibold">
+        <div className="rounded-xl border border-border/60 bg-accent/40 p-4 text-center">
+          <p className="text-base md:text-lg font-semibold">
             Custo Total: {formatCurrencyWithCents(
               eventMenuProducts.reduce(
                 (total, item) => total + (item.qty * (item.product.unit_cost || 0)), 
@@ -439,10 +442,10 @@ export const EventMenu = ({
       ) : eventMenuProducts && eventMenuProducts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {eventMenuProducts.map((item) => (
-            <Card key={item.product.id}>
+            <Card key={item.product.id} className="rounded-2xl border-border/60 bg-card/90 shadow-card">
               <CardHeader className="pb-3 text-center">
                 <div className="space-y-1">
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-base md:text-lg">
                     {item.product.description}
                   </CardTitle>
                   <CardDescription>
@@ -500,7 +503,7 @@ export const EventMenu = ({
 
       {/* Edit Product Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md border-border/60 bg-card/95">
           <DialogHeader>
             <DialogTitle>Editar Produto no Menu</DialogTitle>
           </DialogHeader>
@@ -521,7 +524,7 @@ export const EventMenu = ({
 
       {/* Product Items Dialog */}
       <Dialog open={isProductItemsDialogOpen} onOpenChange={setIsProductItemsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-border/60 bg-card/95">
           <DialogHeader>
             <DialogTitle>
               Itens do Produto: {selectedProductForItems?.product.description}
@@ -530,7 +533,7 @@ export const EventMenu = ({
           <div className="space-y-4">
             {productItems && productItems.length > 0 ? (
               <>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-xl border border-border/60 bg-background/60">
                   <Table>
                     <TableHeader>
                       <TableRow>

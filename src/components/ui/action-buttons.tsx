@@ -31,7 +31,7 @@ export function ActionButtons({
           variant="ghost"
           onClick={onEdit}
           title="Editar"
-          className={editButtonClassName}
+          className={`text-muted-foreground hover:text-foreground ${editButtonClassName}`}
         >
           <Edit className="h-4 w-4" />
         </Button>
@@ -43,7 +43,7 @@ export function ActionButtons({
             size="icon"
             variant="ghost"
             disabled={isDeleting}
-            className={`hover:bg-destructive/10 hover:text-destructive ${deleteButtonClassName}`}
+            className={`text-muted-foreground hover:bg-destructive/10 hover:text-destructive ${deleteButtonClassName}`}
             title="Excluir"
           >
             <Trash2 className="h-4 w-4" />

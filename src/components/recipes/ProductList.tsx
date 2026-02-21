@@ -1,15 +1,13 @@
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { getSupabaseErrorMessage } from "@/lib/errorHandler"
-import { Trash2, Edit } from "lucide-react"
+import { ChefHat } from "lucide-react"
 import { SaveCancelButtons } from "@/components/ui/save-cancel-buttons"
-import { getCountText, getDeletedMessage } from "@/lib/utils"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { getCountText } from "@/lib/utils"
 import { ActionButtons } from "@/components/ui/action-buttons"
 import type { Product } from "@/types/recipe"
 
@@ -72,9 +70,12 @@ export default function ProductList({ products, selectedProduct, onSelectProduct
   }
 
   return (
-    <Card>
+    <Card className="h-full rounded-2xl border-border/60 bg-card/95 shadow-card">
       <CardHeader>
-        <CardTitle>Produtos</CardTitle>
+        <CardTitle className="text-xl flex items-center gap-2">
+          <ChefHat className="h-5 w-5 text-primary" />
+          Produtos
+        </CardTitle>
         <CardDescription>
           {getCountText(
             allProducts.length,
@@ -95,9 +96,9 @@ export default function ProductList({ products, selectedProduct, onSelectProduct
             <div
               key={product.id}
               data-product-id={product.id}
-              className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+              className={`p-3 border rounded-xl cursor-pointer transition-smooth ${
                 selectedProduct?.id === product.id
-                  ? "bg-primary/10 border-primary"
+                  ? "bg-primary/12 border-primary/45 shadow-sm"
                   : "hover:bg-accent"
               }`}
               onClick={() => onSelectProduct(product)}

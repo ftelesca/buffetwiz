@@ -232,10 +232,12 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
+  const selectClassName =
+    "flex h-10 w-full rounded-md border border-input bg-background/75 px-3 py-2 text-sm ring-offset-background transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
+      <div className="rounded-xl border border-border/60 bg-card/70 p-4">
         <Label htmlFor="title">Título *</Label>
         <Input
           id="title"
@@ -245,10 +247,11 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           required
           onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
           onInput={(e) => e.currentTarget.setCustomValidity("")}
+          className="mt-2 bg-background/70"
         />
       </div>
 
-      <div>
+      <div className="rounded-xl border border-border/60 bg-card/70 p-4">
         <Label htmlFor="customer">Cliente *</Label>
         <select
           id="customer"
@@ -257,7 +260,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           required
           onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
           onInput={(e) => e.currentTarget.setCustomValidity("")}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+          className={cn(selectClassName, "mt-2")}
         >
           <option value="">Selecione um cliente</option>
           {customers?.map((customer) => (
@@ -268,8 +271,8 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         </select>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-xl border border-border/60 bg-card/70 p-4">
+        <div className="space-y-2">
           <Label htmlFor="date">Data *</Label>
           <Input
             id="date"
@@ -282,10 +285,11 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             required
             onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
             onInput={(e) => e.currentTarget.setCustomValidity("")}
+            className="bg-background/70"
           />
         </div>
 
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="time">Horário *</Label>
           <Input
             id="time"
@@ -305,10 +309,11 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               }
             }}
             onInput={(e) => e.currentTarget.setCustomValidity("")}
+            className="bg-background/70"
           />
         </div>
 
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="duration">Duração (hh:mm) *</Label>
           <Input
             id="duration"
@@ -328,11 +333,12 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               }
             }}
             onInput={(e) => e.currentTarget.setCustomValidity("")}
+            className="bg-background/70"
           />
         </div>
       </div>
       
-      <div>
+      <div className="rounded-xl border border-border/60 bg-card/70 p-4">
         <Label htmlFor="location">Local *</Label>
         <Input
           id="location"
@@ -342,11 +348,12 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           required
           onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
           onInput={(e) => e.currentTarget.setCustomValidity("")}
+          className="mt-2 bg-background/70"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-xl border border-border/60 bg-card/70 p-4">
+        <div className="space-y-2">
           <Label htmlFor="type">Tipo *</Label>
           <select
             id="type"
@@ -355,7 +362,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             required
             onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
             onInput={(e) => e.currentTarget.setCustomValidity("")}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+            className={selectClassName}
           >
             <option value="">Tipo de evento</option>
             {EVENT_TYPES.map((type) => (
@@ -366,7 +373,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           </select>
         </div>
 
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="status">Status *</Label>
           <select
             id="status"
@@ -375,7 +382,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             required
             onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
             onInput={(e) => e.currentTarget.setCustomValidity("")}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+            className={selectClassName}
           >
             {EVENT_STATUSES.map((status) => (
               <option key={status} value={status}>
@@ -386,8 +393,8 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-xl border border-border/60 bg-card/70 p-4">
+        <div className="space-y-2">
           <Label htmlFor="numguests">Número de Convidados *</Label>
           <Input
             id="numguests"
@@ -399,10 +406,11 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
             required
             onInvalid={(e) => e.currentTarget.setCustomValidity("Por favor preencha este campo")}
             onInput={(e) => e.currentTarget.setCustomValidity("")}
+            className="bg-background/70"
           />
         </div>
 
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="cost">Custo</Label>
           <Input
             id="cost"
@@ -413,7 +421,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           />
         </div>
 
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="price">Preço</Label>
           <Input
             id="price"
@@ -430,11 +438,12 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
               setFormData({ ...formData, price: formatted });
             }}
             placeholder="0,00"
+            className="bg-background/70"
           />
         </div>
       </div>
 
-      <div>
+      <div className="rounded-xl border border-border/60 bg-card/70 p-4">
         <Label htmlFor="description">Descrição</Label>
         <Textarea
           id="description"
@@ -442,6 +451,7 @@ export const EventForm = ({ eventId, onSuccess, onCancel }: EventFormProps) => {
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           placeholder="Detalhes do evento"
           rows={3}
+          className="mt-2 bg-background/70"
         />
       </div>
 

@@ -4,10 +4,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, Edit } from "lucide-react";
+import { Plus, Layers } from "lucide-react";
 import { getDeletedMessage } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ActionButtons } from "@/components/ui/action-buttons";
 import type { Product, ProductItem, Unit } from "@/types/recipe";
 interface ProductItemsProps {
@@ -103,10 +102,11 @@ export default function ProductItems({
       maximumFractionDigits: 2,
     }).format(value);
   };
-  return <Card className="h-fit">
+  return <Card className="h-full rounded-2xl border-border/60 bg-card/95 shadow-card">
       <CardHeader className="flex-shrink-0">
         <div className="flex justify-between items-center gap-4">
-          <CardTitle className="flex-shrink-0">
+          <CardTitle className="flex-shrink-0 text-xl flex items-center gap-2">
+            <Layers className="h-5 w-5 text-primary" />
             {selectedProduct ? "Insumos do Produto" : "Selecione um produto"}
           </CardTitle>
           {selectedProduct && !productItems.some(item => item.item_detail?.isproduct) && <Button onClick={onAddItem} size="sm" className="flex-shrink-0">
@@ -117,7 +117,7 @@ export default function ProductItems({
       </CardHeader>
       <CardContent className="overflow-auto max-h-[70vh]">
         {selectedProduct ? <div className="space-y-4">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-xl border border-border/60 bg-background/60">
               <Table className="table-fixed">
                 <TableHeader className="sticky top-0 bg-background z-10 border-b">
                   <TableRow>
@@ -170,7 +170,7 @@ export default function ProductItems({
             </div>
 
             {/* Total Cost Card */}
-            <Card className="mt-4">
+            <Card className="mt-4 rounded-xl border-border/60 bg-accent/35">
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                   <span>Custo Base:</span>

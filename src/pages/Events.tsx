@@ -159,7 +159,7 @@ export default function Events() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
         <PageHeader
           title="Eventos"
           subtitle="Gerencie eventos gastronômicos"
@@ -171,7 +171,7 @@ export default function Events() {
                 Novo Evento
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-border/60 bg-card/95">
               <DialogHeader>
                 <DialogTitle>
                   {editingEvent ? "Editar Evento" : "Novo Evento"}
@@ -189,18 +189,23 @@ export default function Events() {
           </Dialog>
         </PageHeader>
 
-        {/* Search Bar */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar eventos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        <div className="rounded-2xl border border-border/60 bg-card/85 p-4 shadow-card">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar eventos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-background/70"
+            />
+          </div>
         </div>
 
-        {/* Events Grid */}
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Agenda</p>
+          <h2 className="text-2xl font-semibold tracking-tight">Eventos cadastrados</h2>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
             <EventCard
@@ -225,7 +230,7 @@ export default function Events() {
         </div>
 
         {filteredEvents.length === 0 && !isLoading && (
-          <div className="text-center py-8">
+          <div className="text-center py-10 rounded-2xl border border-dashed border-border bg-card/60">
             <p className="text-muted-foreground">
               {searchTerm ? `Nenhum evento encontrado para "${searchTerm}"` : "Nenhum evento cadastrado"}
             </p>
@@ -238,7 +243,7 @@ export default function Events() {
 
         {/* Menu Dialog */}
         <Dialog open={isMenuDialogOpen} onOpenChange={setIsMenuDialogOpen}>
-          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto border-border/60 bg-card/95">
             <DialogHeader>
               <DialogTitle>Menu do Evento</DialogTitle>
             </DialogHeader>
