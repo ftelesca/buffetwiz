@@ -162,7 +162,9 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    transition: var(--transition-smooth);
+    transition-property: background-color, color, border-color;
+    transition-duration: 220ms;
+    transition-timing-function: ease;
   }
   
   html {

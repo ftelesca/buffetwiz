@@ -122,9 +122,10 @@ export default function AuthCallback() {
         }
         sessionStorage.removeItem('oauth_state');
 
+        const { appUrl, language } = getAppConfig();
         const { data: exchangeData, error: exchangeError } = await supabase.functions.invoke(
           'google-oauth-callback',
-          { body: { code, state } }
+          { body: { code, state, appUrl, language } }
         );
 
         if (exchangeError || !exchangeData?.access_token || !exchangeData?.refresh_token) {

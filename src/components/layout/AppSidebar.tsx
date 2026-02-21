@@ -64,7 +64,7 @@ export function AppSidebar() {
   }
 
   const itemCls = (path: string) => {
-    const base = "group w-full h-11 px-2 flex items-center rounded-xl transition-colors overflow-hidden"
+    const base = "group w-full h-11 px-0 flex items-center justify-start rounded-xl transition-colors overflow-hidden"
     const active = "text-primary bg-primary/12 ring-1 ring-primary/40 shadow-sm"
     const inactive = "text-muted-foreground hover:bg-accent/70 hover:text-foreground"
     return `${base} ${isActive(path) ? active : inactive}`
@@ -98,14 +98,14 @@ export function AppSidebar() {
                   onClick={handleNavigate}
                   end={item.url === "/"}
                 >
-                  <span className="h-10 w-10 flex-shrink-0 flex items-center justify-center">
+                  <span className="ml-1 h-10 w-10 flex-shrink-0 flex items-center justify-center">
                     <item.icon className="h-5 w-5 flex-shrink-0" />
                   </span>
                   <span
-                    className={`ml-1 text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                    className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-200 ${
                       expanded
-                        ? "opacity-100 translate-x-0"
-                        : "opacity-0 -translate-x-2 pointer-events-none"
+                        ? "ml-1 max-w-[11rem] opacity-100 translate-x-0"
+                        : "ml-0 max-w-0 opacity-0 -translate-x-2 pointer-events-none"
                     }`}
                   >
                     {item.title}

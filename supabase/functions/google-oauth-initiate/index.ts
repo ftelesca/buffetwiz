@@ -6,13 +6,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const getOrigin = (value?: string | null): string | null => {
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+};
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
+    const payload = await req.json().catch(() => ({}));
+    const appUrl = typeof payload?.appUrl === "string" ? payload.appUrl : null;
+    const appOrigin = getOrigin(appUrl) || getOrigin(req.headers.get("origin"));
+    if (!appOrigin) {
+      return new Response(JSON.stringify({ error: "Invalid appUrl" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const clientId = Deno.env.get("GOOGLE_CLIENT_ID"); // From Supabase secrets
 
     if (!clientId) {
@@ -23,7 +51,7 @@ serve(async (req) => {
     const state = crypto.randomUUID();
 
     // Build Google OAuth URL
-    const redirectUri = "https://buffetwiz.com.br/auth/google/callback";
+    const redirectUri = `${appOrigin}/auth/google/callback`;
 
     const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     authUrl.searchParams.set("client_id", clientId);
@@ -37,6 +65,7 @@ serve(async (req) => {
       JSON.stringify({
         authUrl: authUrl.toString(),
         state: state,
+        redirectUri,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

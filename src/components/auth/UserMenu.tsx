@@ -20,6 +20,7 @@ export function UserMenu() {
   const { user, profile, signOut } = useAuth()
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
   const [isPreferencesDialogOpen, setIsPreferencesDialogOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { toast } = useToast()
 
   const handleSignOut = async () => {
@@ -52,11 +53,11 @@ export function UserMenu() {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu modal={false} open={isMenuOpen} onOpenChange={setIsMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Button 
             variant="ghost" 
-            className="flex items-center gap-2 h-auto p-2 hover:bg-accent/50 transition-colors"
+            className="flex items-center gap-2 h-auto p-2 hover:bg-accent/50 transition-colors data-[state=open]:bg-accent/55"
           >
             <Avatar className="h-8 w-8">
               <AvatarImage src={profile?.avatar_url || ""} alt={displayName} />
@@ -71,16 +72,27 @@ export function UserMenu() {
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent
+          align="end"
+          sideOffset={8}
+          className="w-56"
+          onCloseAutoFocus={(event) => event.preventDefault()}
+        >
           <DropdownMenuItem 
-            onClick={() => setIsProfileDialogOpen(true)}
+            onClick={() => {
+              setIsMenuOpen(false)
+              setIsProfileDialogOpen(true)
+            }}
             className="cursor-pointer"
           >
             <User className="mr-2 h-4 w-4" />
             <span>Minha Conta</span>
           </DropdownMenuItem>
           <DropdownMenuItem 
-            onClick={() => setIsPreferencesDialogOpen(true)}
+            onClick={() => {
+              setIsMenuOpen(false)
+              setIsPreferencesDialogOpen(true)
+            }}
             className="cursor-pointer"
           >
             <Settings className="mr-2 h-4 w-4" />

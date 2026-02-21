@@ -7,14 +7,35 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const getOrigin = (value?: string | null): string | null => {
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     // 1. Parse request body
-    const { code, state } = await req.json();
+    const payload = await req.json();
+    const code = typeof payload?.code === "string" ? payload.code : null;
+    const state = typeof payload?.state === "string" ? payload.state : undefined;
+    const appUrl = typeof payload?.appUrl === "string" ? payload.appUrl : null;
 
     if (!code) {
       return new Response(JSON.stringify({ error: "No authorization code provided" }), {
@@ -22,6 +43,15 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const appOrigin = getOrigin(appUrl) || getOrigin(req.headers.get("origin"));
+    if (!appOrigin) {
+      return new Response(JSON.stringify({ error: "Invalid appUrl" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const redirectUri = `${appOrigin}/auth/google/callback`;
 
     // 2. Get environment variables
     const clientId = Deno.env.get("GOOGLE_CLIENT_ID");
@@ -41,7 +71,7 @@ serve(async (req) => {
         code,
         client_id: clientId,
         client_secret: clientSecret,
-        redirect_uri: "https://buffetwiz.com.br/auth/google/callback",
+        redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }),
     });
