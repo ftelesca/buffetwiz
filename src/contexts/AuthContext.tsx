@@ -32,6 +32,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const getSignInErrorMessage = (error: any) => {
+  const message = (error?.message || "").toLowerCase();
+
+  if (message.includes("invalid login credentials") || message.includes("invalid email or password")) {
+    return "Email ou senha inválidos";
+  }
+
+  if (message.includes("email not confirmed")) {
+    return "Email não confirmado";
+  }
+
+  if (message.includes("too many requests")) {
+    return "Muitas tentativas de login. Tente novamente em alguns instantes.";
+  }
+
+  return "Erro ao fazer login";
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -106,8 +124,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.code === "email_not_confirmed") {
         throw error;
       }
-      toast.error(error.message || "Erro ao fazer login");
-      throw error;
+
+      const translatedMessage = getSignInErrorMessage(error);
+      toast.error(translatedMessage);
+
+      const translatedError = new Error(translatedMessage);
+      (translatedError as any).code = error?.code;
+      throw translatedError;
     }
   };
 
@@ -205,7 +228,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const normalizedEmail = email.trim().toLowerCase();
     const config = getAppConfig();
     try {
-      const { error } = await supabase.functions.invoke("email-resetpwd", {
+      const { data, error } = await supabase.functions.invoke("email-resetpwd", {
         body: {
           email: normalizedEmail,
           ...config,
@@ -213,7 +236,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) throw error;
-      toast.success("Email de recuperação enviado");
+      if (data && data.success === false) {
+        throw new Error(data.error || "Erro ao enviar recuperação");
+      }
+      toast.success("Se o email estiver cadastrado, enviaremos o link de recuperação.");
     } catch (error: any) {
       toast.error(error.message || "Erro ao enviar recuperação");
       throw error;

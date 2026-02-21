@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/hooks/use-toast"
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"
 import { GoogleIcon } from "./GoogleIcon"
 
@@ -21,7 +20,6 @@ export function LoginForm({ onSwitchToSignUp, onSwitchToForgot }: LoginFormProps
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   
   const { signIn, signInWithGoogle, resendVerificationEmail } = useAuth()
-  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,24 +32,9 @@ export function LoginForm({ onSwitchToSignUp, onSwitchToForgot }: LoginFormProps
       if (error?.code === "email_not_confirmed") {
         try {
           await resendVerificationEmail(email);
-          toast({
-            title: "Email não confirmado",
-            description: "Reenviamos o link de verificação para o seu email.",
-            variant: "default"
-          });
-        } catch (resendError: any) {
-          toast({
-            title: "Email não confirmado",
-            description: resendError?.message || "Erro ao reenviar verificação.",
-            variant: "destructive"
-          });
+        } catch {
+          // Toast handled in AuthContext
         }
-      } else {
-        toast({
-          title: "Erro ao entrar",
-          description: error?.message || "Erro ao fazer login",
-          variant: "destructive"
-        });
       }
     } finally {
       setIsLoading(false);
@@ -63,12 +46,8 @@ export function LoginForm({ onSwitchToSignUp, onSwitchToForgot }: LoginFormProps
     
     try {
       await signInWithGoogle();  // From AuthContext
-    } catch (error: any) {
-      toast({
-        title: "Erro no login",
-        description: error.message || "Erro ao fazer login com Google",
-        variant: "destructive"
-      });
+    } catch {
+      // Toast handled in AuthContext
     } finally {
       setIsGoogleLoading(false);
     }

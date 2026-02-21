@@ -3,7 +3,6 @@ import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
 import { Mail, Loader2, CheckCircle, ArrowLeft } from "lucide-react"
 
 interface ForgotPasswordFormProps {
@@ -37,9 +36,9 @@ export function ForgotPasswordForm({ onSwitchToLogin }: ForgotPasswordFormProps)
           <CheckCircle className="h-8 w-8 text-primary" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-xl font-semibold">Email enviado</h3>
+          <h3 className="text-xl font-semibold">Solicitação recebida</h3>
           <p className="text-muted-foreground">
-            Enviamos um link de recuperação para <strong>{email}</strong>
+            Se o email <strong>{email}</strong> estiver cadastrado, enviaremos um link de recuperação.
           </p>
           <p className="text-sm text-muted-foreground">
             Verifique sua caixa de entrada e clique no link para redefinir sua senha.

@@ -134,10 +134,14 @@ const handler = async (req: Request): Promise<Response> => {
       let foundName = null;
       let foundUserId = userId;
 
-      const perPage = 1000;
+      const perPage = 200;
       let page = 1;
       while (!foundUserId && page <= 20) {
-        const { data: userData } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+        const { data: userData, error: listError } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+        if (listError) {
+          throw new Error("Failed to verify existing user");
+        }
+
         const users = userData?.users || [];
         const existingUser = users.find((u) => u.email?.trim().toLowerCase() === normalizedEmail);
         if (existingUser) {
@@ -146,8 +150,9 @@ const handler = async (req: Request): Promise<Response> => {
           break;
         }
 
-        if (users.length < perPage) break;
-        page += 1;
+        const nextPage = typeof userData?.nextPage === "number" ? userData.nextPage : null;
+        if (!nextPage || users.length === 0) break;
+        page = nextPage;
       }
 
       if (!foundName && foundUserId) {

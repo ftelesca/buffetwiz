@@ -27,6 +27,24 @@ const normalizeDomain = (value?: string): string => {
   }
 };
 
+const successResponse = (corsHeaders: Record<string, string>) =>
+  new Response(
+    JSON.stringify({
+      success: true,
+      message: "If the email is registered, a reset link will be sent",
+    }),
+    { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+  );
+
+const isUserNotFoundError = (message?: string) => {
+  const normalized = (message || "").toLowerCase();
+  return (
+    normalized.includes("user not found") ||
+    normalized.includes("no user found") ||
+    normalized.includes("email not found")
+  );
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -68,34 +86,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-    const findUserByEmail = async () => {
-      const perPage = 1000;
-      let page = 1;
-
-      while (page <= 20) {
-        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
-        if (userError) {
-          throw new Error("Failed to verify user");
-        }
-
-        const users = userData?.users || [];
-        const found = users.find((u) => u.email?.trim().toLowerCase() === normalizedEmail);
-        if (found) return found;
-
-        if (users.length < perPage) break;
-        page += 1;
-      }
-
-      return null;
-    };
-
-    const user = await findUserByEmail();
-    if (!user) {
-      return new Response(
-        JSON.stringify({ success: true, message: "Reset password email sent successfully" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
 
     const { data: tokenData, error: tokenError } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
@@ -103,7 +93,10 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (tokenError || !tokenData) {
-      throw new Error("Failed to generate reset link");
+      if (isUserNotFoundError(tokenError?.message)) {
+        return successResponse(corsHeaders);
+      }
+      throw new Error(tokenError?.message || "Failed to generate reset link");
     }
 
     const properties = tokenData.properties as unknown as Record<string, string | undefined>;
@@ -119,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const resetUrl = `${appUrl}/auth/callback?type=recovery&token_hash=${encodeURIComponent(tokenHash)}`;
-    const displayName = user.user_metadata?.full_name || normalizedEmail.split("@")[0];
+    const displayName = normalizedEmail.split("@")[0];
     const secretFromDomain =
       normalizeDomain(Deno.env.get("RESEND_FROM_DOMAIN")) ||
       normalizeDomain(Deno.env.get("YALT_RESEND_DOMAIN")) ||
